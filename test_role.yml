@@ -1,0 +1,9 @@
+---
+- name: Test role
+  hosts: localhost
+  tasks:
+    - name: Test Include Role
+      vars:
+        word: "CPE"
+      include_roles:
+        name: debug_msg
