@@ -3,4 +3,5 @@
   hosts: localhost
   tasks:
     - name: Hello
-      msg: "Hello world"
+      vars:
+        msg: "Hello world"
