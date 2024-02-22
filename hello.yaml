@@ -1,7 +1,7 @@
 ---
-- name: TEST HELLO
+- name: Display "hello world" message
   hosts: localhost
   tasks:
-    - name: Hello
-      vars:
-        msg: "Hello world"
+    - name: Print message
+      debug:
+        msg: "hello world"
