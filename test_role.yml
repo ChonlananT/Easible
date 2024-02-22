@@ -5,5 +5,5 @@
     - name: Test Include Role
       vars:
         word: "CPE"
-      include_roles:
+      include_role:
         name: debug_msg
