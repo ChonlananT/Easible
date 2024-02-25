@@ -1,6 +1,6 @@
 ---
 - name: Login cli
-  hosts: routers
+  hosts: 192.168.20.11
   gather_facts: false
   connection: network_cli
   vars:
@@ -27,4 +27,4 @@
       debug:
         msg: "{{ item }} is present in the 'sh run' output"
       loop: "{{ output }}"
-      when: item in ['192.168.20.11 255.255.255.0','192.168.20.12 255.255.255.0','192.168.20.13 255.255.255.0']
+      when: item in ['192.168.20.11 255.255.255.0']
