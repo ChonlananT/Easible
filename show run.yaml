@@ -1,0 +1,30 @@
+---
+- name: Login cli
+  hosts: routers
+  gather_facts: false
+  connection: network_cli
+  vars:
+    ansible_network_os: ios
+    ansible_user: "261336"
+    ansible_ssh_pass: "netlab"
+    ansible_become: yes
+    ansible_become_method: enable
+    ansible_become_pass: "netlab"
+    ansible_ssh_common_args: '-oKexAlgorithms=+diffie-hellman-group1-sha1 -oHostKeyAlgorithms=+ssh-rsa'
+
+  tasks:
+    - name: show run command
+      cisco.ios.ios_command:
+        commands:
+          - show run
+      register: output
+
+    - name: Debug ip
+      debug:
+        var: output
+
+    - name: Check for IP address and subnet in the output
+      debug:
+        msg: "{{ item }} is present in the 'sh run' output"
+      loop: "{{ output }}"
+      when: item in ['192.168.20.11 255.255.255.0','192.168.20.12 255.255.255.0','192.168.20.13 255.255.255.0']
