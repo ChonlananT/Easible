@@ -3,15 +3,6 @@
   hosts: all
   gather_facts: false
   connection: network_cli
-  vars:
-    ansible_network_os: ios
-    ansible_user: "261336"
-    ansible_ssh_pass: "netlab"
-    ansible_become: yes
-    ansible_become_method: enable
-    ansible_become_pass: "netlab"
-    ansible_ssh_common_args: '-oKexAlgorithms=+diffie-hellman-group1-sha1 -oHostKeyAlgorithms=+ssh-rsa'
-
   tasks:
     - name: Show running configuration
       ios_command:
