@@ -2,6 +2,9 @@ from flask import Blueprint, request, jsonify
 from services.ssh_service import create_ssh_connection
 from services.parse_service import parse_result
 from services.ansible_playbook import generate_playbook
+from services.add_db_host import add_device
+from services.delete_db_host import delete_device
+from services.get_db_host import fetch_all_devices
 
 api_bp = Blueprint('api', __name__)
 
