@@ -5,8 +5,27 @@ from services.ansible_playbook import generate_playbook
 from services.add_db_host import add_device
 from services.delete_db_host import delete_device
 from services.get_db_host import fetch_all_devices
+from services.generate_inventory import generate_inventory_content
 
 api_bp = Blueprint('api', __name__)
+
+@api_bp.route('/api/get_hosts', methods=['GET'])
+def get_hosts():
+    try:
+        devices = fetch_all_devices()
+        return jsonify(devices), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@api_bp.route('/api/delete_host', methods=['DELETE'])
+def delete_host():
+    try:
+        data = request.json
+        hostname = data['hostname']
+        delete_device(hostname)
+        return jsonify({"message": f"Device '{hostname}' deleted successfully."}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @api_bp.route('/api/show_interface_brief', methods=['POST'])
 def show_interface_brief():
@@ -74,19 +93,37 @@ def create_playbook():
         return jsonify({"message": "Playbook created successfully."})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@api_bp.route('/api/add_host', methods=['POST'])
+def add_host():
+    try:
+        data = request.json
+        add_device(
+            data['deviceType'],
+            data['hostname'],
+            data['ipAddress'],
+            data['username'],
+            data['password'],
+            data['enablePassword']
+        )
+        return jsonify(data), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 @api_bp.route('/api/create_inventory', methods=['POST'])
 def create_inventory():
     try:
-        data = request.json
-        host = data['host']
-        port = int(data['port'])
-        username = data['username']
-        password = data['password']
-        inventory_content = data['inventoryContent']
+        # Generate inventory content
+        inventory_content = generate_inventory_content()
 
-        ssh = create_ssh_connection(host, port, username, password)
+        # Create SSH connection and get the username
+        ssh, username = create_ssh_connection()
+
+        # Define the path using the returned username
         inventory_path = f"/home/{username}/inventory/inventory.ini"
+
+        # Write inventory content to the remote file
         sftp = ssh.open_sftp()
         with sftp.open(inventory_path, 'w') as inventory_file:
             inventory_file.write(inventory_content)

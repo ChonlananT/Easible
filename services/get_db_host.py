@@ -8,11 +8,21 @@ def fetch_all_devices():
             with conn.cursor() as cursor:
                 cursor.execute(query)
                 rows = cursor.fetchall()
-                print("ID | Device Type | Hostname | IP Address  | Username | Password | Enable Password")
-                print("-" * 80)
-                for row in rows:
-                    print(f"{row[0]} | {row[1]} | {row[2]} | {row[3]} | {row[4]} | {row[5]} | {row[6]}")
+                devices = [
+                    {
+                        "id": row[0],
+                        "deviceType": row[1],
+                        "hostname": row[2],
+                        "ipAddress": row[3],
+                        "username": row[4],
+                        "password": row[5],
+                        "enablePassword": row[6],
+                    }
+                    for row in rows
+                ]
+                return devices
         except Exception as e:
             print("Error fetching devices:", e)
+            return []
         finally:
             conn.close()
