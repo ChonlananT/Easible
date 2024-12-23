@@ -1,4 +1,4 @@
-from services.connect_db_host import get_connection
+from services.database.connect_db_host import get_connection
 
 def fetch_all_devices():
     query = "SELECT * FROM inventory;"

@@ -1,4 +1,4 @@
-from services.connect_db_host import get_connection
+from services.database.connect_db_host import get_connection
 
 def add_device(device_type, hostname, ipaddress, username, password, enable_password):
     query = """

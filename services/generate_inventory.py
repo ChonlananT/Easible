@@ -1,5 +1,4 @@
-import json
-from services.get_db_host import fetch_all_devices
+from services.database import fetch_all_devices
 
 def generate_inventory_content():
     # Fetch devices from the database
