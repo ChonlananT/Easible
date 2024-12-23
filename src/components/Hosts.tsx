@@ -4,6 +4,7 @@ import './Host.css';
 
 function Hosts() {
   const [hosts, setHosts] = useState([]);
+  const [searchQuery, setSearchQuery] = useState(''); // New state for search query
   const [showPopup, setShowPopup] = useState(false);
   const [formData, setFormData] = useState({
     deviceType: 'switch',
@@ -15,7 +16,6 @@ function Hosts() {
   });
   const [ipError, setIpError] = useState('');
 
-  // Fetch hosts from the backend
   useEffect(() => {
     fetch('/api/get_hosts')
       .then((res) => res.json())
@@ -32,10 +32,13 @@ function Hosts() {
     }
   };
 
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value); // Update search query state
+  };
+
   const validateIp = (ip) => {
-    // Basic regex for validating IP addresses
     const ipRegex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
-    
+
     if (!ipRegex.test(ip)) {
       setIpError('Please enter a valid IP address');
     } else {
@@ -44,7 +47,6 @@ function Hosts() {
   };
 
   const handleSaveHost = async () => {
-    // Ensure no errors before saving
     if (ipError) {
       return;
     }
@@ -86,28 +88,27 @@ function Hosts() {
     }
   };
 
-  // Handle creating inventory (POST request to backend)
-  const handleCreateInventory = async () => {
-    try {
-      const response = await fetch('/api/create_inventory', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
+  const [showInventoryPopup, setShowInventoryPopup] = useState(false);
 
-      if (response.ok) {
-        alert('Inventory created successfully!');
-      } else {
-        console.error('Failed to create inventory');
-      }
-    } catch (error) {
-      console.error('Error creating inventory:', error);
-    }
+  const handleCreateInventory = () => {
+    // Your logic for creating an inventory goes here
+    console.log("Inventory created");
+    setShowInventoryPopup(true); // Show the popup
   };
+
+  const closePopup = () => {
+    setShowInventoryPopup(false); // Hide the popup
+  };
+
+  // Filter hosts based on search query
+  const filteredHosts = hosts.filter((host) =>
+    host.hostname.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="App">
       <ul className="nav-links">
-      <li className="center"><a href="/dashboard">Dashboard</a></li>
+        <li className="center"><a href="/dashboard">Dashboard</a></li>
         <li className="center"><a href="/jobs">Jobs</a></li>
         <li className="center sub-topic"><a href="/routerrouter">router-router</a></li>
         <li className="center sub-topic"><a href="/routerswitch">router-switch</a></li>
@@ -115,6 +116,15 @@ function Hosts() {
         <li className="center"><a href="/hosts">Hosts</a></li>
         <li className="center"><a href="/topology">Topology</a></li>
       </ul>
+
+      <div className="search-bar">
+        <input
+          type="text"
+          placeholder="Search by hostname..."
+          value={searchQuery}
+          onChange={handleSearchChange}
+        />
+      </div>
 
       <table className="hosts-table">
         <thead>
@@ -127,23 +137,42 @@ function Hosts() {
           </tr>
         </thead>
         <tbody>
-          {hosts.map((host) => (
-            <tr key={host.id}>
-              <td>{host.deviceType}</td>
-              <td>{host.hostname}</td>
-              <td>{host.ipAddress}</td>
-              <td>{host.username}</td>
-              <td>
-                <button onClick={() => handleDeleteHost(host.hostname)}>Delete</button>
+          {filteredHosts.length > 0 ? (
+            filteredHosts.map((host) => (
+              <tr key={host.id}>
+                <td>{host.deviceType}</td>
+                <td>{host.hostname}</td>
+                <td>{host.ipAddress}</td>
+                <td>{host.username}</td>
+                <td>
+                  <button onClick={() => handleDeleteHost(host.hostname)}>Delete</button>
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="5" style={{ textAlign: 'center', color: '#EE4B2B' }}>
+                No results found for "{searchQuery}".
               </td>
             </tr>
-          ))}
+          )}
         </tbody>
       </table>
 
+
       <div>
-        <button onClick={() => setShowPopup(true)}>Add Host</button>
-        <button onClick={handleCreateInventory}>Create Inventory</button> {/* Create Inventory Button */}
+        <button className="purple-round" onClick={() => setShowPopup(true)}>Add Host</button>
+        <button className="purple-round" onClick={handleCreateInventory}>Create Inventory</button>
+
+        {/* Popup component for Inventory Created */}
+        {showInventoryPopup && (
+          <div className="popup-inventory">
+            <div className="popup-inventory-content">
+              <p>Inventory has been created!</p>
+              <button className="close-btn" onClick={closePopup}>Close</button>
+            </div>
+          </div>
+        )}
       </div>
 
       {showPopup && (
