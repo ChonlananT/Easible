@@ -18,11 +18,11 @@ def generate_inventory_content():
         password = device.get("password")
 
         # Start by adding device block
-        inventory_content += f"[{device['id']}]\n"
+        inventory_content += f"[{device['hostname']}]\n"
         inventory_content += f"{hostname} ansible_host={ip_address}\n"
 
         # Add variables if there is an enablePassword
-        inventory_content += f"\n[{device['id']}:vars]\n"
+        inventory_content += f"\n[{device['hostname']}:vars]\n"
         inventory_content += f"ansible_network_os=ios\n"
         inventory_content += f"ansible_user={username}\n"
         inventory_content += f"ansible_password={password}\n"

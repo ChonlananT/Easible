@@ -162,33 +162,85 @@ def show_interface_brief():
 @api_bp.route('/api/create_playbook', methods=['POST'])
 def create_playbook():
     try:
-        # รับข้อมูลจาก frontend
+        # Receive data from the frontend
         data = request.json
-        hostname = data.get("hostname")  # กำหนด host จาก frontend
-        interface = data.get("interface")  # Interface ที่เลือก
-        command = data.get("command")  # Command ที่เลือก
+        hostname1 = data.get("hostname1")  # Get host from frontend
+        hostname2 = data.get("hostname2")  # Get host from frontend
+        command = data.get("command")  # Command selected for host
+        vlan_data = data.get("vlanData", {})  # VLAN data if command is vlan
+        switchport_mode = data.get("switchportMode")  # Switchport mode if command is switchport
+        interface1 = data.get("interface1")  # Interface selected for host1
+        interface2 = data.get("interface2")  # Interface selected for host2
+        
+        # Validate required fields
+        if not hostname1 or not command:
+            return jsonify({"error": "Missing hostname1 or command"}), 400
 
-        if not hostname or not command:
-            return jsonify({"error": "Missing hostname or command"}), 400
+        if not hostname2:
+            return jsonify({"error": "Missing hostname2"}), 400
+        
+        # Define playbook content based on the command type
+        if command == "vlan":
+            vlan_id = vlan_data.get("vlanId")
+            vlan_name = vlan_data.get("vlanName")
+            ip_address1 = vlan_data.get("ipAddress1")
+            ip_address2 = vlan_data.get("ipAddress2")
 
-        # ตรวจสอบว่า Command ต้องเข้า Config Mode หรือไม่
-        is_config_mode = command.startswith("conf t") or "interface" in command
+            if not vlan_id or not vlan_name:
+                return jsonify({"error": "VLAN ID and VLAN Name are required for the vlan command"}), 400
 
-        # สร้างเนื้อหา Playbook
-        playbook_content = f"""
+            playbook_content = f"""
 ---
-- name: Execute Network Command
-  hosts: {hostname}
+- name: Configure VLAN on {hostname1} and {hostname2}
+  hosts: {hostname1},{hostname2}
   gather_facts: no
   tasks:
-    - name: Enter Configuration Mode and Execute Commands
+    - name: Configure VLAN for {hostname1}
       ios_config:
         lines:
-          - {command.replace("\\n", "\\n                  - ")}
-        parents: interface {interface}
+          - vlan {vlan_id}
+          - name {vlan_name}
+          - ip address {ip_address1}  # Optional, based on the input
+      when: inventory_hostname == "{hostname1}"
+
+    - name: Configure VLAN for {hostname2}
+      ios_config:
+        lines:
+          - vlan {vlan_id}
+          - name {vlan_name}
+          - ip address {ip_address2}  # Optional, based on the input
+      when: inventory_hostname == "{hostname2}"
 """
 
-        # สร้างไฟล์ Playbook บน VM
+        elif command == "switchport":
+            if not switchport_mode or not interface1 or not interface2:
+                return jsonify({"error": "Switchport mode, interface1, and interface2 are required for switchport command"}), 400
+            
+            playbook_content = f"""
+---
+- name: Configure Switchport on {hostname1} and {hostname2}
+  hosts: {hostname1},{hostname2}
+  gather_facts: no
+  tasks:
+    - name: Configure Switchport for {hostname1}
+      ios_config:
+        lines:
+          - switchport mode {switchport_mode}
+        parents: interface {interface1}
+      when: inventory_hostname == "{hostname1}"
+
+    - name: Configure Switchport for {hostname2}
+      ios_config:
+        lines:
+          - switchport mode {switchport_mode}
+        parents: interface {interface2}
+      when: inventory_hostname == "{hostname2}"
+"""
+
+        else:
+            return jsonify({"error": "Unsupported command"}), 400
+
+        # Create SSH connection and write the playbook to file on the server
         ssh, username = create_ssh_connection()
         playbook_path = f"/home/{username}/playbook/playbook.yml"
 
@@ -198,7 +250,7 @@ def create_playbook():
         sftp.close()
         ssh.close()
 
-        # ตอบกลับ frontend ว่า Playbook ถูกสร้างสำเร็จ
+        # Respond to frontend that the playbook was created successfully
         return jsonify({"message": "Playbook created successfully", "playbook": playbook_content})
 
     except Exception as e:
