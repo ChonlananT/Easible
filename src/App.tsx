@@ -7,6 +7,8 @@ import Jobs from './components/Jobs.tsx';
 import RouterRouter from './components/RouterRouter.tsx';
 import RouterSwitch from './components/RouterSwitch.tsx';
 import SwitchSwitch from './components/SwitchSwitch.tsx';
+import ConfigDevice from './components/ConfigDevice.tsx';
+
 
 function App() {
   const [user, setUser] = useState('');
@@ -60,7 +62,9 @@ function App() {
     return <RouterSwitch />;
   } else if (route === '/switchswitch') {
     return <SwitchSwitch />;
-  } else {
+  } else if (route === '/configdevice') {
+    return <ConfigDevice />;
+  }else {
     return <Topology />;
   }
 

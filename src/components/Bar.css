@@ -9,12 +9,39 @@
 }
 
 body {
-  height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #efefef;
+  margin: 0; /* Ensure there's no unwanted margin around the body */
+  font-family: 'Poppins', sans-serif;
 }
+
+
+
+
+.App {
+  display: flex; /* Use flexbox for layout */
+  height: 100vh; /* Take up the full viewport height */
+  overflow-y: auto; /* Enable scrolling for overflow content */
+}
+
+
+
+
+
+/* Keep the nav-links fixed to the left */
+.nav-links-container {
+  position: fixed; /* Fix navbar on the left */
+  top: 0; /* Align with the top of the viewport */
+  bottom: 0; /* Extend to the bottom of the viewport */
+  left: 0; /* Align to the left */
+  width: 300px; /* Set a consistent width */
+  z-index: 1000; /* Ensure it stays above other content */
+  background: #fff; /* Keep the background for readability */
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+  overflow-y: auto; /* Add scrolling for overflow content */
+}
+
+
+
+
 
 .nav-links {
   display: flex;
@@ -121,3 +148,28 @@ body {
   overflow-y: auto;  /* Ensure scrolling is enabled */
 }
 
+
+
+
+.content {
+  margin-left: 300px; /* Space to the right of navbar */
+  padding: 20px; /* Add padding for a neat look */
+  flex: 1; /* Allow content to grow and occupy remaining space */
+  background: #efefef; /* Optional background to differentiate from navbar */
+}
+
+
+
+
+
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.dashboard-icon {
+  width: 240px;
+  height: 78px;
+  margin-bottom: 80px;
+}

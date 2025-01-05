@@ -1,0 +1,59 @@
+.host-selection-container {
+    padding: 30px;
+    margin: 40px;
+    border: 1px solid #ddd;
+    background: linear-gradient(to right, #ffffff, #f7f7f7);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 20px;
+}
+
+.host-selection__dropdown-group {
+    margin-bottom: 18px;
+}
+
+.host-selection__dropdown {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #bbb;
+    border-radius: 6px;
+    font-size: 16px;
+    background-color: #fff;
+    transition: all 0.3s ease;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.host-selection__dropdown:focus {
+    outline: none;
+    border-color: #5b9bd5;
+    box-shadow: 0 0 8px rgba(91, 155, 213, 0.5);
+}
+
+.host-selection__switchport-configuration {
+    margin-top: 20px;
+    background: linear-gradient(to bottom, #e3f4ff, #8e90df);
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #a6d4ff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.host-selection-container h1, 
+.host-selection-container h2 {
+    color: #333;
+    margin-bottom: 20px;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    color: #fff;
+    background-color: #8e90df;
+    border: none;
+    border-radius: 24px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #7475b3;
+}

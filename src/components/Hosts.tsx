@@ -90,8 +90,23 @@ function Hosts() {
 
   const [showInventoryPopup, setShowInventoryPopup] = useState(false);
 
-  const handleCreateInventory = () => {
+  const handleCreateInventory = async () => {
     // Your logic for creating an inventory goes here
+    try {
+      const response = await fetch('/api/create_inventory', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      // if (response.ok) {
+      //   alert('Inventory created successfully!');
+      // } else {
+      //   console.error('Failed to create inventory');
+      // }
+    } catch (error) {
+      console.error('Error creating inventory:', error);
+    }
+    
     console.log("Inventory created");
     setShowInventoryPopup(true); // Show the popup
   };
@@ -107,16 +122,21 @@ function Hosts() {
 
   return (
     <div className="App">
-      <ul className="nav-links">
-        <li className="center"><a href="/dashboard">Dashboard</a></li>
-        <li className="center"><a href="/jobs">Jobs</a></li>
-        <li className="center sub-topic"><a href="/routerrouter">router-router</a></li>
-        <li className="center sub-topic"><a href="/routerswitch">router-switch</a></li>
-        <li className="center sub-topic"><a href="/switchswitch">switch-switch</a></li>
-        <li className="center"><a href="/hosts">Hosts</a></li>
-        <li className="center"><a href="/topology">Topology</a></li>
-      </ul>
-
+      <div className="nav-links-container">
+        <ul className="nav-links">
+        <img src="/easible-name.png" alt='' className="dashboard-icon" />
+          <li className="center"><a href="/dashboard">Dashboard</a></li>
+          <li className="center"><a href="/jobs">Configuration</a></li>
+          <li className="center sub-topic"><a href="/routerrouter">router-router</a></li>
+          <li className="center sub-topic"><a href="/routerswitch">router-switch</a></li>
+          <li className="center sub-topic"><a href="/switchswitch">switch-switch</a></li>
+          <li className="center sub-topic"><a href="/configdevice">config device</a></li>
+          <li className="center"><a href="/hosts">Hosts</a></li>
+          <li className="center"><a href="/topology">Topology</a></li>
+        </ul>
+      </div>
+      
+      <div className='content'>
       <div className="search-bar">
         <input
           type="text"
@@ -218,6 +238,8 @@ function Hosts() {
           </div>
         </div>
       )}
+      </div>
+      
     </div>
   );
 }

@@ -191,7 +191,7 @@
 
   /* Table Styling */
   .hosts-table {
-    width: 100%;
+    width: 80%;
     margin: 20px auto;
     border-collapse: separate;
     border-spacing: 0;
@@ -242,11 +242,13 @@
   .hosts-table td:first-child,
   .hosts-table th:first-child {
     border-radius: 8px 0 0 8px;
+    padding-left: 60px;
   }
   
   .hosts-table td:last-child,
   .hosts-table th:last-child {
     border-radius: 0 8px 8px 0;
+    padding-right: 1px;
   }
   
   
