@@ -1,7 +1,8 @@
 import re
+import ipaddress
 from flask import Blueprint, request, jsonify
 from services.ssh_service import create_ssh_connection
-from services.parse import parse_result, parse_interface
+from services.parse import parse_result, parse_interface, parse_switchport
 from services.ansible_playbook import generate_playbook
 from services.database import add_device, fetch_all_devices, delete_device
 # from services.database.delete_db_host import delete_device
@@ -181,44 +182,157 @@ def create_playbook():
         
         # Define playbook content based on the command type
         if command == "vlan":
-            vlan_id = vlan_data.get("vlanId")
-            vlan_name = vlan_data.get("vlanName")
+            vlan_id1 = vlan_data.get("vlanId1")
+            vlan_name1 = vlan_data.get("vlanName1")
+            vlan_id2 = vlan_data.get("vlanId2")
+            vlan_name2 = vlan_data.get("vlanName2")
             ip_address1 = vlan_data.get("ipAddress1")
             ip_address2 = vlan_data.get("ipAddress2")
+            subnet_mask1 = vlan_data.get("subnetMask1")
+            subnet_mask2 = vlan_data.get("subnetMask2")
+            interface1_vlan = vlan_data.get("interface1")
+            interface2_vlan = vlan_data.get("interface2")
 
-            if not vlan_id or not vlan_name:
-                return jsonify({"error": "VLAN ID and VLAN Name are required for the vlan command"}), 400
+            # Validate that at least one VLAN configuration is provided
+            if not ((vlan_id1 and vlan_name1) or (vlan_id2 and vlan_name2)):
+                return jsonify({"error": "Provide VLAN ID and Name for at least one host"}), 400
 
-            playbook_content = f"""
+            # Calculate subnet if subnet_mask is provided
+            def calculate_subnet(ip, subnet_mask):
+                try:
+                    network = ipaddress.IPv4Network(f"{ip}/{subnet_mask}", strict=False)
+                    return network.network_address, network.netmask
+                except ValueError as e:
+                    return None, str(e)
+
+            subnet1, netmask1 = calculate_subnet(ip_address1, subnet_mask1) if ip_address1 and subnet_mask1 else (None, None)
+            subnet2, netmask2 = calculate_subnet(ip_address2, subnet_mask2) if ip_address2 and subnet_mask2 else (None, None)
+            
+            playbook_content_checker = f"""
 ---
-- name: Configure VLAN on {hostname1} and {hostname2}
+- name: check VLAN on specific hosts
   hosts: {hostname1},{hostname2}
   gather_facts: no
   tasks:
-    - name: Configure VLAN for {hostname1}
-      ios_config:
-        lines:
-          - vlan {vlan_id}
-          - name {vlan_name}
-          - ip address {ip_address1}  # Optional, based on the input
-      when: inventory_hostname == "{hostname1}"
+"""
+            if interface1_vlan:
+                playbook_content_checker += f"""
+      - name: Run 'show run int {interface1_vlan}' command on {hostname1}
+        ios_command:
+          commands:
+          - show run interface {interface1_vlan}
+        when: inventory_hostname == "{hostname1}"
+        register: interface1_output
+      - name: Filter interface details on {hostname1}
+        debug:        
+"""
+                playbook_content_checker += """          msg: "{{ interface1_output.stdout_lines }}"
+"""
+                playbook_content_checker += f"""
+        when: interface1_output is defined and inventory_hostname == "{hostname1}"
+"""
+            if interface2_vlan:
+                playbook_content_checker +=f"""      - name: Run 'show run int {interface2_vlan}' command on {hostname2}
+        ios_command:
+          commands:
+          - show run interface {interface2_vlan}
+        when: inventory_hostname == "{hostname2}"
+        register: interface2_output
+      - name: Filter interface details on {hostname2}
+        debug:
+"""
+                playbook_content_checker += """
+          msg: "{{ interface2_output.stdout_lines }}"
+"""
+                playbook_content_checker += f"""
+        when: interface2_output is defined and inventory_hostname == "{hostname2}"
+"""
+            ssh, username = create_ssh_connection()
+            inventory_path = f"/home/{username}/inventory/inventory.ini"
+            playbook_checker_path = f"/home/{username}/playbook/vlanchecker.yml"
+            sftp = ssh.open_sftp()
+            with sftp.open(playbook_checker_path, "w") as playbook_file:
+                playbook_file.write(playbook_content_checker)
+            sftp.close()
+            ansible_command = f"ansible-playbook -i {inventory_path} {playbook_checker_path}"
+            stdout, stderr = ssh.exec_command(ansible_command)[1:]
+            output = stdout.read().decode("utf-8")
+            error = stderr.read().decode("utf-8")
+            parse_result = parse_switchport(output)
+            ssh.close()
+            print(parse_result)
+            playbook_content = f"""
+---
+- name: Configure VLAN on specific hosts
+  hosts: {hostname1},{hostname2}
+  gather_facts: no
+  tasks:
+"""
+            for result in parse_result:
+              hostname = result['hostname']
+              switchport = result['switchport']
+              interface = result['interface']
 
-    - name: Configure VLAN for {hostname2}
+              if vlan_id1 and vlan_name1 and hostname == hostname1:
+                  playbook_content += f"""
+    - name: Configure VLAN for {hostname}
       ios_config:
         lines:
-          - vlan {vlan_id}
-          - name {vlan_name}
-          - ip address {ip_address2}  # Optional, based on the input
-      when: inventory_hostname == "{hostname2}"
+          - vlan {vlan_id1}
+          - name {vlan_name1}
+"""
+                  if ip_address1 and netmask1:
+                      playbook_content += f"""          - int vlan {vlan_id1}
+          - ip address {ip_address1} {netmask1}
+"""
+        
+                  if switchport == "access":
+                      playbook_content += f"""          - int {interface1_vlan}
+          - switchport mode trunk
+          - switchport trunk allowed vlan {vlan_id1}
+"""
+                  elif switchport == "trunk":
+                      playbook_content += f"""          - int {interface1_vlan}
+          - switchport mode trunk
+          - switchport trunk allowed vlan add {vlan_id1}
+"""
+                  playbook_content += f"""      when: inventory_hostname == "{hostname1}"
 """
 
+              # Add configuration for SW2 if provided
+              if vlan_id2 and vlan_name2 and hostname == hostname2:
+                  playbook_content += f"""
+    - name: Configure VLAN for {hostname}
+      ios_config:
+        lines:
+          - vlan {vlan_id2}
+          - name {vlan_name2}
+"""
+                  if ip_address2 and netmask2:
+                      playbook_content += f"""          - int vlan {vlan_id2}
+          - ip address {ip_address2} {netmask2}
+"""
+        
+                  if switchport == "access":
+                      playbook_content += f"""          - int {interface2_vlan}
+          - switchport mode trunk
+          - switchport trunk allowed vlan {vlan_id2}
+"""
+                  elif switchport == "trunk":
+                      playbook_content += f"""          - int {interface2_vlan}
+          - switchport mode trunk
+          - switchport trunk allowed vlan add {vlan_id2}
+"""
+                  playbook_content += f"""      when: inventory_hostname == "{hostname2}"
+"""
+              
         elif command == "switchport":
             if not switchport_mode or not interface1 or not interface2:
                 return jsonify({"error": "Switchport mode, interface1, and interface2 are required for switchport command"}), 400
             
             playbook_content = f"""
 ---
-- name: Configure Switchport on {hostname1} and {hostname2}
+- name: Configure Switchport on specific hosts
   hosts: {hostname1},{hostname2}
   gather_facts: no
   tasks:
@@ -243,6 +357,7 @@ def create_playbook():
         # Create SSH connection and write the playbook to file on the server
         ssh, username = create_ssh_connection()
         playbook_path = f"/home/{username}/playbook/playbook.yml"
+        inventory_path = f"/home/{username}/inventory/inventory.ini"
 
         sftp = ssh.open_sftp()
         with sftp.open(playbook_path, "w") as playbook_file:
@@ -251,7 +366,7 @@ def create_playbook():
         ssh.close()
 
         # Respond to frontend that the playbook was created successfully
-        return jsonify({"message": "Playbook created successfully", "playbook": playbook_content})
+        return jsonify({"message": "Playbook created successfully", "playbook": playbook_content, "parse_result": parse_result})
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
