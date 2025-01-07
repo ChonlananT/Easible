@@ -23,8 +23,18 @@ type InterfaceData = {
   }[];
 };
 
-
-
+type VlanData = {
+  vlanId1?: string;
+  vlanId2?: string;
+  vlanName1?: string;
+  vlanName2?: string;
+  ipAddress1?: string;
+  ipAddress2?: string;
+  subnetMask1?: string;
+  subnetMask2?: string;
+  interface1?: string;
+  interface2?: string;
+};
 
 function SwitchSwitch() {
   const [hosts, setHosts] = useState<DropdownOption[]>([]);
@@ -34,7 +44,7 @@ function SwitchSwitch() {
   const [selectedInterface1, setSelectedInterface1] = useState('');
   const [selectedInterface2, setSelectedInterface2] = useState('');
   const [selectedCommand, setSelectedCommand] = useState('');
-  const [vlanData, setVlanData] = useState({ vlanId: '', vlanName: '', ipAddress1: '', ipAddress2: '' });
+  const [vlanData, setVlanData] = useState<VlanData>({vlanId1: '',vlanName1: '',ipAddress1: '',subnetMask1: '',vlanId2: '',vlanName2: '',ipAddress2: '',subnetMask2: '',});
   const [switchportMode, setSwitchportMode] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState<boolean>(true);
@@ -88,6 +98,11 @@ function SwitchSwitch() {
       setSelectedCommand(value);
     } else if (type === 'vlan') {
       setVlanData((prev) => ({ ...prev, [key]: value }));
+      if (key === 'interface1') {
+        setSelectedInterface1(value);
+      } else if (key === 'interface2') {
+        setSelectedInterface2(value);
+      }
     } else if (type === 'switchport') {
       if (key === 'interface1') {
         setSelectedInterface1(value);  // Track the interface for SW1
@@ -115,17 +130,26 @@ function SwitchSwitch() {
       return;
     }
 
-    // For vlan, check if at least one host has vlan info
-    if (selectedCommand === 'vlan' && (!vlanData.vlanId || !vlanData.vlanName)) {
-      setError('Please provide VLAN ID and Name for at least one host.');
-      return;
-    }
-
     const requestData = {
       hostname1: selectedHost1,
       hostname2: selectedHost2,
       command: selectedCommand,
-      vlanData,
+      vlanData: {
+        ...(vlanData.vlanId1 && vlanData.vlanName1 && {
+          vlanId1: vlanData.vlanId1,
+          vlanName1: vlanData.vlanName1,
+          ipAddress1: vlanData.ipAddress1,
+          subnetMask1: vlanData.subnetMask1,
+          interface1: selectedInterface1,
+        }),
+        ...(vlanData.vlanId2 && vlanData.vlanName2 && {
+          vlanId2: vlanData.vlanId2,
+          vlanName2: vlanData.vlanName2,
+          ipAddress2: vlanData.ipAddress2,
+          subnetMask2: vlanData.subnetMask2,
+          interface2: selectedInterface2,
+        }),
+      },
       switchportMode,
       interface1: selectedInterface1,  // Include the selected interface for SW1
       interface2: selectedInterface2,  // Include the selected interface for SW2
@@ -249,9 +273,6 @@ function SwitchSwitch() {
                   </select>
               </div>
             </div>
-
-
-              
             </div>
               {selectedHost1 && selectedHost2 && selectedCommand === 'switchport' && (
                   <div className="host-selection__switchport-configuration">
@@ -304,6 +325,100 @@ function SwitchSwitch() {
                     </div>
                   </div>
                 )}
+
+                {selectedHost1 && selectedHost2 && selectedCommand === 'vlan' && (
+                  <div className="host-selection__vlan-configuration">
+                    <div className="host-selection__dropdown-group">
+                      <label htmlFor="vlan-id1">VLAN ID:</label>
+                      <input 
+                        type="text"
+                        value={vlanData.vlanId1}
+                        onChange={(e) => handleSelectChange('vlanId1', 'vlan', e.target.value)}
+                        placeholder="Enter Vlan ID"
+                      />
+                      <label htmlFor="vlan-name">VLAN Name:</label>
+                      <input 
+                        type="text"
+                        value={vlanData.vlanName1}
+                        onChange={(e) => handleSelectChange('vlanName1', 'vlan', e.target.value)}
+                        placeholder="Enter Vlan Name"
+                      />
+                      <label htmlFor="ip-address1">IP Address 1:</label>
+                      <input 
+                        type="text"
+                        value={vlanData.ipAddress1}
+                        onChange={(e) => handleSelectChange('ipAddress1', 'vlan', e.target.value)}
+                        placeholder="Enter IP Address 1"
+                      />
+                      <label htmlFor="subnetMask1">Subnet Mask (1-32)</label>
+                      <input 
+                        type="text"
+                        value={vlanData.subnetMask1}
+                        onChange={(e) => handleSelectChange('subnetMask1', 'vlan', e.target.value)}
+                        placeholder="Enter Subnet Mask"
+                        min="1"
+                        max="32"
+                      />
+                      <label htmlFor="interface1">Interface for Host1</label>
+                      <select
+                        id="interface1"
+                        className="host-selection__dropdown"
+                        onChange={(e) => handleSelectChange('interface1', 'vlan', e.target.value)}
+                      >
+                        <option value="">-- Select Interface --</option>
+                        {getInterfacesForHost(selectedHost1).map((intf) => (
+                          <option key={intf.interface} value={intf.interface}>
+                            {intf.interface} ({intf.status})
+                          </option>
+                        ))}
+                      </select>
+                      <label htmlFor="vlan-id2">VLAN ID:</label>
+                      <input 
+                        type="text"
+                        value={vlanData.vlanId2}
+                        onChange={(e) => handleSelectChange('vlanId2', 'vlan', e.target.value)}
+                        placeholder="Enter Vlan ID"
+                      />
+                      <label htmlFor="vlan-name">VLAN Name:</label>
+                      <input
+                        type="text"
+                        value={vlanData.vlanName2}
+                        onChange={(e) => handleSelectChange('vlanName2', 'vlan', e.target.value)}
+                        placeholder="Enter Vlan Name"
+                      />
+                      <label htmlFor="ip-address2">IP Address 2:</label>
+                      <input 
+                        type="text"
+                        value={vlanData.ipAddress2}
+                        onChange={(e) => handleSelectChange('ipAddress2', 'vlan', e.target.value)}
+                        placeholder="Enter IP Address 2"
+                      />
+                      <label htmlFor="subnetMask2">Subnet Mask (1-32)</label>
+                      <input 
+                        type="text"
+                        value={vlanData.subnetMask2}
+                        onChange={(e) => handleSelectChange('subnetMask2', 'vlan', e.target.value)}
+                        placeholder="Enter Subnet Mask"
+                        min="1"
+                        max="32"
+                      />
+                      <label htmlFor="interface2">Interface for Host2</label>
+                      <select
+                        id="interface2"
+                        className="host-selection__dropdown"
+                        onChange={(e) => handleSelectChange('interface2', 'vlan', e.target.value)}
+                      >
+                        <option value="">-- Select Interface --</option>
+                        {getInterfacesForHost(selectedHost2).map((intf) => (
+                          <option key={intf.interface} value={intf.interface}>
+                            {intf.interface} ({intf.status})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                )}
+
               <button className="buttont-sw-sw" onClick={handleSubmit}>Submit</button>
               {error && <div className="error">Error: {error}
             </div>}
