@@ -8,12 +8,12 @@
     border-radius: 16px;
     gap: 10px;
     flex-direction: row;
-    border: 1px solid rgb(99, 46, 46);
+    /* border: 1px solid rgb(99, 46, 46); */
 }
 
 .host-selection__dropdown-group {
     margin-bottom: 16px;
-    border: 1px solid rgb(99, 46, 46);
+    /* border: 1px solid rgb(99, 46, 46); */
     /* display: flex; */
     /* width: 100%; */
 }
@@ -54,7 +54,7 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-button {
+.button-sw-sw {
     padding: 12px 24px;
     font-size: 15px;
     color: #ffffff;
@@ -73,8 +73,18 @@ button:hover {
 .manu-liver{
     display: flex;
     flex-direction: row;
-    border: 1px solid red;
+    /* border: 1px solid red; */
     gap: 10px;
     align-items: center;
+    /* justify-content: center; */
+}
+
+.switch-switch{
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    align-items: center;
+    align-items: flex-start; /* Align content to the top */
+    
     /* justify-content: center; */
 }

@@ -169,30 +169,55 @@ function SwitchSwitch() {
       </ul>
         <div className='content'>
           <h2>Select Host, Command, and Configuration</h2>
-          <div className="host-selection-container">
-            <div className="host-selection__hosts">
-              <div className="host-selection__dropdown-group">
-                <label htmlFor="host1">Select Host (SW1):</label>
-                {/* {!loading ? (
-                  <div>
-                    {
-                      hosts.length === 0 ? (
-                        <div style={{color:'red'}}>No Data</div>
-                      ) : (
-                        <div></div>
-                      )
-                    }
-                  </div>    
-                ) : (
-                  <div></div>
-                )} */}
-                <div className='manu-liver'>
+          <div className='switch-switch'>
+            <div className="host-selection-container">
+              <div className="host-selection__hosts">
+                <div className="host-selection__dropdown-group">
+                  <label htmlFor="host1">Select Host (SW1):</label>
+                  {/* {!loading ? (
+                    <div>
+                      {
+                        hosts.length === 0 ? (
+                          <div style={{color:'red'}}>No Data</div>
+                        ) : (
+                          <div></div>
+                        )
+                      }
+                    </div>    
+                  ) : (
+                    <div></div>
+                  )} */}
+                  <div className='manu-liver'>
+                    <select
+                      id="host1"
+                      className="host-selection__dropdown"
+                      onChange={(e) => handleSelectChange('host1', 'host', e.target.value)}
+                      value={selectedHost1}
+                      // disabled={loading || !hosts.length}
+                    >
+                      <option value="">-- Select a Host --</option>
+                      <option value="trunk">Test</option>
+                      {hosts.map((host : DropdownOption) => (
+                        <option key={host.hostname} value={host.hostname}>
+                          {host.hostname}
+                        </option>
+                      ))}
+                    </select>
+                    {/* {loading ? (
+                      <Spinner color="primary" size="large" /> // Using the spinner with optional props
+                    ) : (
+                      <div></div>
+                      // <Spinner color="primary" size="large" /> 
+                    )} */}
+                  </div>
+                </div>
+                <div className="host-selection__dropdown-group">
+                  <label htmlFor="host2">Select Host (SW2):</label>
                   <select
-                    id="host1"
+                    id="host2"
                     className="host-selection__dropdown"
-                    onChange={(e) => handleSelectChange('host1', 'host', e.target.value)}
-                    value={selectedHost1}
-                    // disabled={loading || !hosts.length}
+                    onChange={(e) => handleSelectChange('host2', 'host', e.target.value)}
+                    value={selectedHost2}
                   >
                     <option value="">-- Select a Host --</option>
                     <option value="trunk">Test</option>
@@ -202,110 +227,87 @@ function SwitchSwitch() {
                       </option>
                     ))}
                   </select>
-                  {/* {loading ? (
-                    <Spinner color="primary" size="large" /> // Using the spinner with optional props
-                  ) : (
-                    <div></div>
-                    // <Spinner color="primary" size="large" /> 
-                  )} */}
                 </div>
               </div>
+
+            <div className="host-selection__commands">
               <div className="host-selection__dropdown-group">
-                <label htmlFor="host2">Select Host (SW2):</label>
-                <select
-                  id="host2"
-                  className="host-selection__dropdown"
-                  onChange={(e) => handleSelectChange('host2', 'host', e.target.value)}
-                  value={selectedHost2}
-                >
-                  <option value="">-- Select a Host --</option>
-                  <option value="trunk">Test</option>
-                  {hosts.map((host : DropdownOption) => (
-                    <option key={host.hostname} value={host.hostname}>
-                      {host.hostname}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-          <div className="host-selection__commands">
-            <div className="host-selection__dropdown-group">
-              <label htmlFor="command">Select Command:</label>
-              {/* <div className='manu-liver'> */}
-                <select
-                  id="command"
-                  className="host-selection__dropdown"
-                  value={selectedCommand}
-                  onChange={(e) => handleSelectChange('command', 'command', e.target.value)}
-                >
-                  <option value="">-- Select a Command --</option>
-                  {commands.map((command) => (
-                    <option key={command.value} value={command.value}>
-                      {command.label}
-                    </option>
-                  ))}
-                </select>
-            </div>
-          </div>
-
-
-            {selectedHost1 && selectedHost2 && selectedCommand === 'switchport' && (
-              <div className="host-selection__switchport-configuration">
-                <div className="host-selection__dropdown-group">
-                  <label htmlFor="interface1">Select Interface for SW1:</label>
+                <label htmlFor="command">Select Command:</label>
+                {/* <div className='manu-liver'> */}
                   <select
-                    id="interface1"
+                    id="command"
                     className="host-selection__dropdown"
-                    onChange={(e) => handleSelectChange('interface1', 'switchport', e.target.value)}
+                    value={selectedCommand}
+                    onChange={(e) => handleSelectChange('command', 'command', e.target.value)}
                   >
-                    <option value="">-- Select Interface --</option>
-                    <option value="trunk">Test</option>
-                    {getInterfacesForHost(selectedHost1).map((intf) => (
-                      <option key={intf.interface} value={intf.interface}>
-                        {intf.interface} ({intf.status})
+                    <option value="">-- Select a Command --</option>
+                    {commands.map((command) => (
+                      <option key={command.value} value={command.value}>
+                        {command.label}
                       </option>
                     ))}
                   </select>
-                </div>
-
-                <div className="host-selection__dropdown-group">
-                  <label htmlFor="interface2">Select Interface for SW2:</label>
-                  <select
-                    id="interface2"
-                    className="host-selection__dropdown"
-                    onChange={(e) => handleSelectChange('interface2', 'switchport', e.target.value)}
-                  >
-                    <option value="">-- Select Interface --</option>
-                    <option value="trunk">Test</option>
-                    {getInterfacesForHost(selectedHost2).map((intf) => (
-                      <option key={intf.interface} value={intf.interface}>
-                        {intf.interface} ({intf.status})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="host-selection__dropdown-group">
-                  <label htmlFor="switchport-mode">Switchport Mode:</label>
-                  <select
-                    id="switchport-mode"
-                    className="host-selection__dropdown"
-                    value={switchportMode}
-                    onChange={(e) => handleSelectChange('switchport', 'switchport', e.target.value)}
-                  >
-                    <option value="">-- Select Mode --</option>
-                    <option value="trunk">Trunk</option>
-                    <option value="access">Access</option>
-                  </select>
-                </div>
               </div>
-            )}
-          </div>
+            </div>
 
-          <button onClick={handleSubmit}>Submit</button>
-          {error && <div className="error">Error: {error}</div>}
-        
+
+              
+            </div>
+              {selectedHost1 && selectedHost2 && selectedCommand === 'switchport' && (
+                  <div className="host-selection__switchport-configuration">
+                    <div className="host-selection__dropdown-group">
+                      <label htmlFor="interface1">Select Interface for SW1:</label>
+                      <select
+                        id="interface1"
+                        className="host-selection__dropdown"
+                        onChange={(e) => handleSelectChange('interface1', 'switchport', e.target.value)}
+                      >
+                        <option value="">-- Select Interface --</option>
+                        <option value="trunk">Test</option>
+                        {getInterfacesForHost(selectedHost1).map((intf) => (
+                          <option key={intf.interface} value={intf.interface}>
+                            {intf.interface} ({intf.status})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="host-selection__dropdown-group">
+                      <label htmlFor="interface2">Select Interface for SW2:</label>
+                      <select
+                        id="interface2"
+                        className="host-selection__dropdown"
+                        onChange={(e) => handleSelectChange('interface2', 'switchport', e.target.value)}
+                      >
+                        <option value="">-- Select Interface --</option>
+                        <option value="trunk">Test</option>
+                        {getInterfacesForHost(selectedHost2).map((intf) => (
+                          <option key={intf.interface} value={intf.interface}>
+                            {intf.interface} ({intf.status})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="host-selection__dropdown-group">
+                      <label htmlFor="switchport-mode">Switchport Mode:</label>
+                      <select
+                        id="switchport-mode"
+                        className="host-selection__dropdown"
+                        value={switchportMode}
+                        onChange={(e) => handleSelectChange('switchport', 'switchport', e.target.value)}
+                      >
+                        <option value="">-- Select Mode --</option>
+                        <option value="trunk">Trunk</option>
+                        <option value="access">Access</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+              <button className="buttont-sw-sw" onClick={handleSubmit}>Submit</button>
+              {error && <div className="error">Error: {error}
+            </div>}
+          </div>
         </div>
     </div>
   );
