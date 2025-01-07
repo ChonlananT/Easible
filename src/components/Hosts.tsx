@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './Bar.css';
 import './Host.css';
+import HostsTable  from './hostTable.tsx';
 
 function Hosts() {
   const [hosts, setHosts] = useState([]);
@@ -146,6 +147,7 @@ function Hosts() {
         />
       </div>
 
+      {/* <HostsTable filteredHosts={filteredHosts} searchQuery={searchQuery} handleDeleteHost={handleDeleteHost} /> */}
       <table className="hosts-table">
         <thead>
           <tr>

@@ -1,59 +1,80 @@
 .host-selection-container {
-    padding: 30px;
-    margin: 40px;
-    border: 1px solid #ddd;
-    background: linear-gradient(to right, #ffffff, #f7f7f7);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    border-radius: 20px;
+    padding: 20px;
+    margin: 30px;
+    display: flex;
+    border: 1px solid #e0e0e0;
+    background: linear-gradient(to top right, #fafafa, #ffffff);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    border-radius: 16px;
+    gap: 10px;
+    flex-direction: row;
+    border: 1px solid rgb(99, 46, 46);
 }
 
 .host-selection__dropdown-group {
-    margin-bottom: 18px;
+    margin-bottom: 16px;
+    border: 1px solid rgb(99, 46, 46);
+    /* display: flex; */
+    /* width: 100%; */
 }
+
+/* .host-selection__commands{
+} */
 
 .host-selection__dropdown {
     width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #bbb;
-    border-radius: 6px;
-    font-size: 16px;
-    background-color: #fff;
-    transition: all 0.3s ease;
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+    padding: 12px 14px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 14px;
+    background-color: #fdfdfd;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
 .host-selection__dropdown:focus {
     outline: none;
-    border-color: #5b9bd5;
-    box-shadow: 0 0 8px rgba(91, 155, 213, 0.5);
+    border-color: #66afe9;
+    box-shadow: 0 0 6px rgba(102, 175, 233, 0.6);
 }
 
 .host-selection__switchport-configuration {
-    margin-top: 20px;
-    background: linear-gradient(to bottom, #e3f4ff, #8e90df);
-    padding: 20px;
-    border-radius: 12px;
-    border: 1px solid #a6d4ff;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    margin-top: 25px;
+    background: linear-gradient(to bottom right, #eef6f9, #dcecf5);
+    padding: 18px;
+    border-radius: 10px;
+    border: 1px solid #c7dfe6;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
 }
 
-.host-selection-container h1, 
+.host-selection-container h1,
 .host-selection-container h2 {
-    color: #333;
-    margin-bottom: 20px;
+    color: #444;
+    margin-bottom: 16px;
+    font-weight: 600;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 button {
-    padding: 10px 20px;
-    font-size: 16px;
-    color: #fff;
-    background-color: #8e90df;
+    padding: 12px 24px;
+    font-size: 15px;
+    color: #ffffff;
+    background-color: #3a79c0;
     border: none;
-    border-radius: 24px;
+    border-radius: 20px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: transform 0.2s ease, background-color 0.3s ease;
 }
 
 button:hover {
-    background-color: #7475b3;
+    background-color: #2c5fa4;
+    transform: scale(1.05);
+}
+
+.manu-liver{
+    display: flex;
+    flex-direction: row;
+    border: 1px solid red;
+    gap: 10px;
+    align-items: center;
+    /* justify-content: center; */
 }

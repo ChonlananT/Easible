@@ -9,7 +9,6 @@ import RouterSwitch from './components/RouterSwitch.tsx';
 import SwitchSwitch from './components/SwitchSwitch.tsx';
 import ConfigDevice from './components/ConfigDevice.tsx';
 
-
 function App() {
   const [user, setUser] = useState('');
   const [awxData, setAwxData] = useState([]);
@@ -68,25 +67,25 @@ function App() {
     return <Topology />;
   }
 
-  return (
-    <div className="App">
-      <ul className="nav-links">
-        <li className="center"><a href="#" onClick={() => navigate('/dashboard')}>Dashboard</a></li>
-        <li className="center"><a href="#" onClick={() => navigate('/jobs')}>Jobs</a></li>
-        <li className="center"><a href="#" onClick={() => navigate('/inventories')}>Inventories</a></li>
-        <li className="center"><a href="#" onClick={() => navigate('/topology')}>Topology</a></li>
-      </ul>
-      <p>User: {user}</p>
-      <p>AWX Data:</p>
-      <div>
-        {awxData.map(host => (
-          <div key={host.id}>
-            <div>ID: {host.id} | Name: {host.name} | Description: {host.description}</div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+  // return (
+  //   <div className="App">
+  //     <ul className="nav-links">
+  //       <li className="center"><a href="#" onClick={() => navigate('/dashboard')}>Dashboard</a></li>
+  //       <li className="center"><a href="#" onClick={() => navigate('/jobs')}>Jobs</a></li>
+  //       <li className="center"><a href="#" onClick={() => navigate('/inventories')}>Inventories</a></li>
+  //       <li className="center"><a href="#" onClick={() => navigate('/topology')}>Topology</a></li>
+  //     </ul>
+  //     <p>User: {user}</p>
+  //     <p>AWX Data:</p>
+  //     <div>
+  //       {awxData.map(host => (
+  //         <div key={host.id}>
+  //           <div>ID: {host.id} | Name: {host.name} | Description: {host.description}</div>
+  //         </div>
+  //       ))}
+  //     </div>
+  //   </div>
+  // );
 }
 
 export default App;
