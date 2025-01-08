@@ -27,11 +27,14 @@ def parse_interface(output):
                     "status": status.strip()
                 }
             })
+        vlan_lines = re.findall(r"(?<![a-zA-Z\/\.])\b(\d+)\b\s+[^\n]+", data, re.MULTILINE)
+        vlan_ids = [int(vlan_id) for vlan_id in vlan_lines]
         
         # Add the hostname with its interfaces
         parsed_data.append({
             "hostname": hostname,
-            "interfaces": interface_list
+            "interfaces": interface_list,
+            "vlan_ids": vlan_ids
         })
     
     return parsed_data

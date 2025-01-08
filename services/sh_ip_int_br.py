@@ -9,6 +9,7 @@ def sh_ip_int_br():
         ios_command:
           commands:
           - show ip interface brief
+          - show vlan brief
         register: interface_output
       - name: Filter interface details
         debug:

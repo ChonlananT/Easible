@@ -5,11 +5,8 @@ from services.ssh_service import create_ssh_connection
 from services.parse import parse_result, parse_interface, parse_switchport
 from services.ansible_playbook import generate_playbook
 from services.database import add_device, fetch_all_devices, delete_device
-# from services.database.delete_db_host import delete_device
-# from services.database.get_db_host import fetch_all_devices
 from services.generate_inventory import generate_inventory_content
 from services.sh_ip_int_br import sh_ip_int_br
-# from services.parse_interface import parse_interface
 
 api_bp = Blueprint('api', __name__)
 
@@ -30,57 +27,6 @@ def delete_host():
         return jsonify({"message": f"Device '{hostname}' deleted successfully."}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-# @api_bp.route('/api/create_playbook', methods=['POST'])
-# def create_playbook():
-#     try:
-#         data = request.json
-#         host = data['host']
-#         port = int(data['port'])
-#         username = data['username']
-#         password = data['password']
-#         commands = data['commands']
-#         interface_commands = data['interfaceCommands']  # Get interface commands
-
-#         playbook_content = f"""---
-# - name: Generated Ansible Playbook
-#   hosts: all
-#   gather_facts: no
-#   tasks:
-# """
-#         # Add regular commands
-#         for cmd in commands:
-#             playbook_content += f"""
-#     - name: Run "{cmd}"
-#       ios_command:
-#         commands: [{cmd}]
-#       register: result_{cmd.replace(" ", "_")}
-
-#     - name: Show "{cmd}" result
-#       debug:
-#         var: result_{cmd.replace(" ", "_")}.stdout_lines
-# """
-
-#        # Add interface configuration if commands are provided
-#         if interface_commands:
-#             playbook_content += "\n    - name: Configure interfaces\n"
-#             playbook_content += """      ios_config:
-#         lines:"""
-#             for iface_cmd in interface_commands:
-#                 playbook_content += f"""
-#          - {iface_cmd}"""
-
-#         ssh = create_ssh_connection(host, port, username, password)
-#         playbook_path = f"/home/{username}/playbook/playbook.yml"
-#         sftp = ssh.open_sftp()
-#         with sftp.open(playbook_path, 'w') as playbook_file:
-#             playbook_file.write(playbook_content)
-#         sftp.close()
-#         ssh.close()
-
-#         return jsonify({"message": "Playbook created successfully."})
-#     except Exception as e:
-#         return jsonify({"error": str(e)}), 500
     
 @api_bp.route('/api/add_host', methods=['POST'])
 def add_host():
@@ -123,7 +69,7 @@ def create_inventory():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@api_bp.route('/api/show_ip_interface_brief', methods=['POST'])
+@api_bp.route('/api/show_detail', methods=['POST'])
 def show_interface_brief():
     try:
         # Generate playbook content
@@ -338,18 +284,59 @@ def create_playbook():
   tasks:
     - name: Configure Switchport for {hostname1}
       ios_config:
-        lines:
-          - switchport mode {switchport_mode}
+        lines:"""
+            if switchport_mode == 'access':
+              playbook_content += f"""
+          - no switchport trunk allowed vlan
+          - switchport mode access"""
+            else:
+              playbook_content += f"""
+          - switchport mode trunk"""
+            playbook_content += f"""
         parents: interface {interface1}
       when: inventory_hostname == "{hostname1}"
 
     - name: Configure Switchport for {hostname2}
       ios_config:
-        lines:
-          - switchport mode {switchport_mode}
+        lines:"""
+            if switchport_mode == 'access':
+              playbook_content += f"""
+          - no switchport trunk allowed vlan
+          - switchport mode access"""
+            else:
+              playbook_content += f"""
+          - switchport mode trunk"""
+            playbook_content += f"""
         parents: interface {interface2}
       when: inventory_hostname == "{hostname2}"
+"""     
+        elif command == "bridge_priority":
+          vlan = data.get("bridgePriority", {}).get("vlan")
+          priority1 = data.get("bridgePriority", {}).get("priority1")
+          priority2 = data.get("bridgePriority", {}).get("priority2")
+
+          if not vlan or not priority1 or not priority2:
+              return jsonify({"error": "VLAN and priorities for both switches are required"}), 400
+
+          playbook_content = f"""
+---
+- name: Configure Bridge Priority
+  hosts: {hostname1},{hostname2}
+  gather_facts: no
+  tasks:
+    - name: Set Bridge Priority for {hostname1}
+      ios_config:
+        lines:
+          - spanning-tree vlan {vlan} priority {priority1}
+      when: inventory_hostname == "{hostname1}"
+
+    - name: Set Bridge Priority for {hostname2}
+      ios_config:
+        lines:
+          - spanning-tree vlan {vlan} priority {priority2}
+      when: inventory_hostname == "{hostname2}"
 """
+
 
         else:
             return jsonify({"error": "Unsupported command"}), 400
@@ -366,7 +353,7 @@ def create_playbook():
         ssh.close()
 
         # Respond to frontend that the playbook was created successfully
-        return jsonify({"message": "Playbook created successfully", "playbook": playbook_content, "parse_result": parse_result})
+        return jsonify({"message": "Playbook created successfully", "playbook": playbook_content})
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
