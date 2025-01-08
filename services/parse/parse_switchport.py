@@ -17,10 +17,14 @@ def parse_switchport(output):
             data,
             re.DOTALL
         )
+
         for interface, switchport in interface_data:
+            # ลบอักขระพิเศษ เช่น " หรือ , ที่อาจติดท้ายชื่อ interface
+            interface_clean = interface.replace('"', '').replace(',', '').strip()
+
             parsed_data.append({
                 "hostname": hostname,
-                "interface": interface,
+                "interface": interface_clean,
                 "switchport": switchport
             })
     
