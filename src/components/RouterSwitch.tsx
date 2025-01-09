@@ -15,7 +15,13 @@ function RouterSwitch() {
           <li className="center"><a href="/hosts">Hosts</a></li>
           <li className="center"><a href="/topology">Topology</a></li>
       </ul>
-      <div>Router-Switch</div>
+      <div className='content'>
+        <div className='content-topic'>
+            Jobs <span className='content-topic-small'>(Router-Switch)</span>
+          </div>
+        <div className="content-board"></div>
+      </div>
+      
     </div>
   );
 }

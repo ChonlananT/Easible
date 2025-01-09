@@ -5,12 +5,12 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 40%; /* Increase width for balanced spacing */
-  max-width: 400px; /* Limit maximum size */
+  width: 80%; /* Increase width for balanced spacing */
+  max-width: 500px; /* Limit maximum size */
   background-color: #fff; /* Pure white for a clean look */
   border: none; /* Remove border for a modern design */
   border-radius: 12px; /* Softer rounded corners */
-  padding: 20px; /* Adequate inner spacing for content */
+  padding: 30px; /* Adequate inner spacing for content */
   z-index: 1000;
   box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2); /* Enhanced shadow for depth */
 }
@@ -37,7 +37,8 @@
   border-radius: 8px; /* Rounded inputs */
   font-size: 14px;
   box-sizing: border-box;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  transition: border-color 1s ease, box-shadow 0.3s ease;
+  margin: 2px;
 }
 
 /* Highlight input on focus */
@@ -50,23 +51,37 @@
 
 /* Buttons */
 .popup-content button {
-  margin-top: 10px;
+  margin-top: 5px;
   padding: 8px 15px;
   font-size: 14px;
   font-weight: 600;
   border: none;
-  border-radius: 30px; /* Fully rounded buttons */
-  background: linear-gradient(90deg, #959dc5, #6f87fd); /* Gradient background */
+  border-radius: 30px;
   color: #fff;
   cursor: pointer;
-  transition: transform 0.2s ease, background-color 0.3s ease;
+  transition: transform 0.4s ease, background-color 0.5s ease;
 }
 
-/* Button Hover State */
-.popup-content button:hover {
-  transform: translateY(-2px); /* Subtle lift effect */
-  background: linear-gradient(90deg, #535b7c, #354fcf); /* Darker gradient */
+/* Styles for the Save Host button */
+.save-btn {
+  background: linear-gradient(90deg, #5e6ec0, #8e39e9); /* Gradient for Save button */
 }
+
+.save-btn:hover {
+  transform: translateY(-2px); /* Lift effect */
+  background: linear-gradient(90deg, #535b7c, #560bab); /* Darker gradient for hover */
+}
+
+/* Styles for the Cancel button */
+.cancel-btn {
+  background: linear-gradient(90deg, #a6a6a6, #a39b98); /* Gradient for Cancel button */
+}
+
+.cancel-btn:hover {
+  transform: translateY(-2px); /* Lift effect */
+  background: linear-gradient(90deg, #6a6969, #5b5351); /* Darker gradient for hover */
+}
+
 
 /* Responsive Design */
 @media screen and (max-width: 768px) {
@@ -76,26 +91,9 @@
   }
 }
 
-  
 
 
 
-  /* General Button Styling */
-  button {
-    margin: 5px;
-    padding: 10px 15px;
-    font-size: 14px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 20px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-  
-  button:hover {
-    background-color: #0056b3;
-  }
   
   .purple-round {
     margin: 5px;
@@ -191,20 +189,20 @@
 
   /* Table Styling */
   .hosts-table {
-    width: 80%;
+    width: 96%;
     margin: 20px auto;
     border-collapse: separate;
     border-spacing: 0;
     border-radius: 8px;
     overflow: hidden;
     font-family: 'Poppins', sans-serif;
-    font-size: 14px;
+    font-size: 16px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   }
   
   .hosts-table th,
   .hosts-table td {
-    text-align: left;
+    text-align: center; /* Center the text */
     padding: 15px;
     border-bottom: 1px solid #e0e0e0;
   }
@@ -215,7 +213,7 @@
     font-weight: bold;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-  }
+  }  
   
   .hosts-table tbody tr:nth-child(even) {
     background-color: #f9f9f9;
@@ -223,7 +221,7 @@
   
   .hosts-table td button {
     padding: 6px 12px;
-    font-size: 14px;
+    font-size: 16px;
     font-family: 'Poppins', sans-serif;
     color: #fff;
     background-color: #ff5722;
@@ -242,13 +240,13 @@
   .hosts-table td:first-child,
   .hosts-table th:first-child {
     border-radius: 8px 0 0 8px;
-    padding-left: 60px;
+    padding-left: 20px;
   }
   
   .hosts-table td:last-child,
   .hosts-table th:last-child {
     border-radius: 0 8px 8px 0;
-    padding-right: 1px;
+    padding-right: 5px;
   }
   
   
@@ -260,6 +258,7 @@
     display: flex;
     justify-content: center; /* Center the search bar */
     margin: 20px 0; /* Add spacing from surrounding elements */
+    padding-left: 0px;
   }
   
   .search-bar input {
@@ -276,6 +275,18 @@
     border-color: #adadad; /* Highlight border on focus */
     box-shadow: 0 0 8px rgba(105, 105, 105, 0.5); /* Glow effect on focus */
     outline: none; /* Remove default outline */
+  }
+  
+
+
+
+
+
+  /* Button Styling */
+  .button-hosts {
+    display: flex;
+    justify-content: center; /* Centers the button horizontally */
+    align-items: center; /* Centers the button vertically */
   }
   
 
