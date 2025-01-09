@@ -127,13 +127,13 @@ def create_playbook():
         # ส่วนหัวของ playbook
         # จะเป็น play เดียว ที่รันกับ hosts: all (หรือจะเจาะจงชื่อ host รวมกันใน hosts: ... ก็ได้)
         # ในตัวอย่างนี้ใช้ "all" + เงื่อนไข when ว่า inventory_hostname == "SW1" หรือ "SW2" ฯลฯ
+        trunked_interfaces = set()
         playbook_content = """---
 - name: Configure multiple links
   hosts: all
   gather_facts: no
   tasks:
 """
-
         # 2) สะสม tasks จากแต่ละลิงก์
         for idx, link in enumerate(data, start=1):
             hostname1 = link.get("hostname1")
@@ -248,7 +248,7 @@ def create_playbook():
                     # หาก host_result == hostname1 => สร้าง config เฉพาะ hostname1
                     if host_result == hostname1 and vlan_id1 and vlan_name1:
                         playbook_content += f"""
-  - name: [Link#{idx}] Configure VLAN on {hostname1}
+  - name: "[Link#{idx}] Configure VLAN on {hostname1}"
     ios_config:
       lines:
         - vlan {vlan_id1}
@@ -261,17 +261,26 @@ def create_playbook():
 """
                         # เช็คว่า interface ที่กลับมาจาก parse_switchport ตรงกับ interface1_vlan ไหม
                         # แล้วค่อยสั่ง switchport mode trunk หรือ trunk allowed vlan ...
+                        interface1_vlan_lower = interface1_vlan.lower() if interface1_vlan else None
                         if interface == interface1_vlan:
                             if switchport == "access":
-                                playbook_content += f"""        - interface {interface1_vlan}
+                                if (host_result, interface) in trunked_interfaces:
+                                    playbook_content += f"""        - interface {interface1_vlan_lower}
+        - switchport trunk allowed vlan add {vlan_id1}
+"""
+                                else:
+                                    # ครั้งแรก => สั่ง trunk allowed vlan
+                                    playbook_content += f"""        - interface {interface1_vlan_lower}
         - switchport mode trunk
         - switchport trunk allowed vlan {vlan_id1}
 """
+                                    trunked_interfaces.add((host_result, interface))
                             elif switchport == "trunk":
-                                playbook_content += f"""        - interface {interface1_vlan}
+                                playbook_content += f"""        - interface {interface1_vlan_lower}
         - switchport mode trunk
         - switchport trunk allowed vlan add {vlan_id1}
 """
+                                trunked_interfaces.add((host_result, interface))
 
                         playbook_content += f"""    when: inventory_hostname == "{hostname1}"
 """
@@ -279,7 +288,7 @@ def create_playbook():
                     # หาก host_result == hostname2 => สร้าง config เฉพาะ hostname2
                     if host_result == hostname2 and vlan_id2 and vlan_name2:
                         playbook_content += f"""
-  - name: [Link#{idx}] Configure VLAN on {hostname2}
+  - name: "[Link#{idx}] Configure VLAN on {hostname2}"
     ios_config:
       lines:
         - vlan {vlan_id2}
@@ -289,17 +298,26 @@ def create_playbook():
                             playbook_content += f"""        - interface vlan {vlan_id2}
         - ip address {ip_address2} {netmask2}
 """
+                        interface2_vlan_lower = interface2_vlan.lower() if interface2_vlan else None
                         if interface == interface2_vlan:
                             if switchport == "access":
-                                playbook_content += f"""        - interface {interface2_vlan}
+                                if (host_result, interface) in trunked_interfaces:
+                                    playbook_content += f"""        - interface {interface2_vlan_lower}
+        - switchport trunk allowed vlan add {vlan_id2}
+"""
+                                else:
+                                    # ครั้งแรก => สั่ง trunk allowed vlan
+                                    playbook_content += f"""        - interface {interface2_vlan_lower}
         - switchport mode trunk
         - switchport trunk allowed vlan {vlan_id2}
 """
+                                    trunked_interfaces.add((host_result, interface))    
                             elif switchport == "trunk":
-                                playbook_content += f"""        - interface {interface2_vlan}
+                                playbook_content += f"""        - interface {interface2_vlan_lower}
         - switchport mode trunk
         - switchport trunk allowed vlan add {vlan_id2}
 """
+                                trunked_interfaces.add((host_result, interface))
                         playbook_content += f"""    when: inventory_hostname == "{hostname2}"
 """
             elif command == "switchport":
@@ -309,7 +327,7 @@ def create_playbook():
 
                 # ตั้งค่าให้ hostname1
                 playbook_content += f"""
-  - name: [Link#{idx}] Configure Switchport for {hostname1}
+  - name: "[Link#{idx}] Configure Switchport for {hostname1}"
     ios_config:
       parents: interface {interface1}
       lines:
@@ -327,7 +345,7 @@ def create_playbook():
 
                 # ตั้งค่าให้ hostname2
                 playbook_content += f"""
-  - name: [Link#{idx}] Configure Switchport for {hostname2}
+  - name: "[Link#{idx}] Configure Switchport for {hostname2}"
     ios_config:
       parents: interface {interface2}
       lines:
@@ -352,13 +370,13 @@ def create_playbook():
                     return jsonify({"error": f"Link #{idx}: VLAN and both priorities are required"}), 400
 
                 playbook_content += f"""
-  - name: [Link#{idx}] Set Bridge Priority for {hostname1}
+  - name: "[Link#{idx}] Set Bridge Priority for {hostname1}"
     ios_config:
       lines:
         - spanning-tree vlan {vlan} priority {priority1}
     when: inventory_hostname == "{hostname1}"
 
-  - name: [Link#{idx}] Set Bridge Priority for {hostname2}
+  - name: "[Link#{idx}] Set Bridge Priority for {hostname2}"
     ios_config:
       lines:
         - spanning-tree vlan {vlan} priority {priority2}
