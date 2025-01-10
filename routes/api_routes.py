@@ -98,6 +98,7 @@ def show_interface_brief():
 
         # Parse the interface data
         parsed_result = parse_interface(output)
+        print(parse_result)
         ssh.close()
 
         # Return the structured data
@@ -106,7 +107,7 @@ def show_interface_brief():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@api_bp.route('/api/create_playbook', methods=['POST'])
+@api_bp.route('/api/create_playbook_swtosw', methods=['POST'])
 def create_playbook():
     try:
         # 1) ดึงข้อมูลจาก request
@@ -238,7 +239,6 @@ def create_playbook():
                 error = stderr.read().decode("utf-8")
                 parse_result = parse_switchport(output)
                 ssh.close()
-                print(parse_result)
 
                 for result in parse_result:
                     host_result = result['hostname']
@@ -411,6 +411,186 @@ def create_playbook():
             "playbook": playbook_content,
             # "output": output,       # ถ้าคุณรัน ansible-playbook ไปแล้ว
             # "errors": errors        # ถ้าคุณรัน ansible-playbook ไปแล้ว
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@api_bp.route('/api/create_playbook_rttort', methods=['POST'])
+def create_playbook_routerrouter():
+    try:
+        data = request.json
+
+        # ถ้าเป็น single object -> แปลงเป็น list
+        if isinstance(data, dict):
+            data = [data]
+        elif not isinstance(data, list):
+            return jsonify({"error": "Invalid data format. Expected a list of link configurations."}), 400
+
+        # ส่วนหัวของ playbook
+        playbook_content = """---
+- name: Configure router-router links
+  hosts: all
+  gather_facts: no
+  tasks:
+"""
+
+        # Loop ทีละ link
+        for idx, link in enumerate(data, start=1):
+            hostname1 = link.get("hostname1")
+            hostname2 = link.get("hostname2")
+            interface1 = link.get("interface1")
+            interface2 = link.get("interface2")
+            ip1 = link.get("ipAddress1")
+            ip2 = link.get("ipAddress2")
+            cidr = link.get("cidr")
+            protocol = link.get("protocol")
+            static_route1 = link.get("staticRoute1")
+            static_route2 = link.get("staticRoute2")
+
+            # ตรวจสอบค่าเบื้องต้น
+            if not (hostname1 and hostname2 and interface1 and interface2 and ip1 and ip2 and cidr):
+                return jsonify({"error": f"Link #{idx}: missing required fields"}), 400
+
+            # คำนวณ Subnet Mask (เช่น /24 -> 255.255.255.0)
+            try:
+                network1 = ipaddress.ip_network(f"{ip1}/{cidr}", strict=False)
+                netmask1 = str(network1.netmask)
+            except ValueError as e:
+                return jsonify({"error": f"Link #{idx} invalid IP or CIDR: {e}"}), 400
+
+            try:
+                network2 = ipaddress.ip_network(f"{ip2}/{cidr}", strict=False)
+                netmask2 = str(network2.netmask)
+            except ValueError as e:
+                return jsonify({"error": f"Link #{idx} invalid IP or CIDR: {e}"}), 400
+
+            # สร้าง task สำหรับ config IP บน Host1
+            playbook_content += f"""
+  - name: "[Link#{idx}] Config IP on {hostname1}"
+    ios_config:
+      lines:
+        - interface {interface1}
+        - ip address {ip1} {netmask1}
+        - no shutdown
+    when: inventory_hostname == "{hostname1}"
+"""
+
+            # สร้าง task สำหรับ config IP บน Host2
+            playbook_content += f"""
+  - name: "[Link#{idx}] Config IP on {hostname2}"
+    ios_config:
+      lines:
+        - interface {interface2}
+        - ip address {ip2} {netmask2}
+        - no shutdown
+    when: inventory_hostname == "{hostname2}"
+"""
+
+            # ถ้า protocol != none ก็เพิ่ม tasks ต่อ
+            if protocol and protocol.lower() != "none":
+                if protocol.lower() == "rip":
+                    # ตัวอย่าง config RIP (version 2 + network)
+                    # อาจต้องคำนวณ network address
+                    netaddr1 = str(network1.network_address)
+                    netaddr2 = str(network2.network_address)
+                    
+                    playbook_content += f"""
+  - name: "[Link#{idx}] Configure RIP on {hostname1}"
+    ios_config:
+      lines:
+        - router rip
+        - version 2
+        - network {netaddr1}
+      when: inventory_hostname == "{hostname1}"
+"""
+
+                    playbook_content += f"""
+  - name: "[Link#{idx}] Configure RIP on {hostname2}"
+    ios_config:
+      lines:
+        - router rip
+        - version 2
+        - network {netaddr2}
+      when: inventory_hostname == "{hostname2}"
+"""
+
+                elif protocol.lower() == "ospf":
+                    # ตัวอย่าง OSPF process 1 + network ... area 0
+                    # สมมติใช้ wildcard mask = 0.0.0.255 ถ้า /24 
+                    # (ในงานจริงอาจต้องคำนวณตาม cidr)
+                    netaddr1 = str(network1.network_address)
+                    netaddr2 = str(network2.network_address)
+
+                    # ตัวอย่าง simplistic (ทุก interface area 0)
+                    playbook_content += f"""
+  - name: "[Link#{idx}] Configure OSPF on {hostname1}"
+    ios_config:
+      lines:
+        - router ospf 1
+        - network {ip1} 0.0.0.0 area 0
+      when: inventory_hostname == "{hostname1}"
+"""
+
+                    playbook_content += f"""
+  - name: "[Link#{idx}] Configure OSPF on {hostname2}"
+    ios_config:
+      lines:
+        - router ospf 1
+        - network {ip2} 0.0.0.0 area 0
+      when: inventory_hostname == "{hostname2}"
+"""
+
+                elif protocol.lower() == "static":
+                    # ตรวจสอบว่ามี staticRoute1 และ staticRoute2 หรือไม่
+                    if not (static_route1 and static_route1.get("prefix") and static_route1.get("subnet") and static_route1.get("nextHop") and
+                            static_route2 and static_route2.get("prefix") and static_route2.get("subnet") and static_route2.get("nextHop")):
+                        return jsonify({"error": f"Link #{idx}: Incomplete staticRoute details"}), 400
+
+                    prefix1 = static_route1.get("prefix")
+                    subnet1 = static_route1.get("subnet")
+                    nextHop1 = static_route1.get("nextHop")
+
+                    prefix2 = static_route2.get("prefix")
+                    subnet2 = static_route2.get("subnet")
+                    nextHop2 = static_route2.get("nextHop")
+
+                    # สร้าง task สำหรับ Static Route บน Host1
+                    playbook_content += f"""
+  - name: "[Link#{idx}] Configure Static Route on {hostname1}"
+    ios_config:
+      lines:
+        - ip route {prefix1} {subnet1} {nextHop1}
+      when: inventory_hostname == "{hostname1}"
+"""
+
+                    # สร้าง task สำหรับ Static Route บน Host2
+                    playbook_content += f"""
+  - name: "[Link#{idx}] Configure Static Route on {hostname2}"
+    ios_config:
+      lines:
+        - ip route {prefix2} {subnet2} {nextHop2}
+      when: inventory_hostname == "{hostname2}"
+"""
+                else:
+                    # ถ้า protocol ไม่รู้จัก ก็ข้าม หรือ return error
+                    pass
+
+        # หลังจากรวม tasks ทุกลิงก์แล้ว -> เขียน playbook ลงไฟล์
+        ssh, username = create_ssh_connection()
+        playbook_path = f"/home/{username}/playbook/routerrouter_playbook.yml"
+        inventory_path = f"/home/{username}/inventory/inventory.ini"
+
+        sftp = ssh.open_sftp()
+        with sftp.open(playbook_path, "w") as playbook_file:
+            playbook_file.write(playbook_content)
+        sftp.close()
+
+        ssh.close()
+
+        return jsonify({
+            "message": "Router-Router playbook created successfully",
+            "playbook": playbook_content
         }), 200
 
     except Exception as e:
