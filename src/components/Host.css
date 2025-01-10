@@ -231,12 +231,14 @@
   }
   
   .hosts-table th {
-    background-color: #3b47a3;
+    background: linear-gradient(to bottom, #3b47a3, #5a6bbf); /* Gradient from top to bottom */
     color: #fff;
     font-weight: bold;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-  }  
+  }
+  
+  
   
   .hosts-table tbody tr:nth-child(even) {
     background-color: #f9f9f9;

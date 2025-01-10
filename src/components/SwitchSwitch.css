@@ -1,22 +1,65 @@
-.all-links{
+.all-links {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 40px;
     align-items: center;
     justify-content: center;
 }
 
+.all-links > *:not(:last-child)::after {
+    content: '';
+    display: block;
+    border-radius: 24px;
+    width: 100%;  /* Full width of the item */
+    height: 2px; /* Set height for the gap */
+    background-color: #ccc;  /* Set your desired color */
+}
+
+
+
+
+
+.link-index {
+  font-size: 20px;
+  font-weight: 600;
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  align-items: left;
+  justify-content: left;
+  width: 100%; /* Makes the .link-index span the full width of its parent */
+}
+
+
+
+
+
+.content-section {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    align-items: flex-start; /* Align items to the top */
+    justify-content: left;
+    width: 100%;
+    margin-bottom: 20px;
+  }
+
+  
+
+  
+
+
 
 .host-selection-container {
     padding: 20px;
-    margin: 30px;
     display: flex;
-    border: 1px solid #e0e0e0;
+    /* border: 1px solid #e0e0e0;
     background: linear-gradient(to top right, #fafafa, #ffffff);
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    border-radius: 16px;
-    gap: 10px;
+    border-radius: 16px; */
+    gap: 20px;
     flex-direction: row;
+    width: 50%;
     /* border: 1px solid rgb(99, 46, 46); */
 }
 
@@ -27,14 +70,12 @@
     /* width: 100%; */
 }
 
-/* .host-selection__commands{
-} */
-
 .host-selection__dropdown {
     width: 100%;
+    margin-top: 8px;
     padding: 12px 14px;
     border: 1px solid #ccc;
-    border-radius: 8px;
+    border-radius: 16px;
     font-size: 14px;
     background-color: #fdfdfd;
     transition: border-color 0.25s ease, box-shadow 0.25s ease;
@@ -47,12 +88,13 @@
 }
 
 .host-selection__switchport-configuration {
-    margin-top: 25px;
-    background: linear-gradient(to bottom right, #eef6f9, #dcecf5);
+    background: #ebf2f9;
     padding: 18px;
-    border-radius: 10px;
-    border: 1px solid #c7dfe6;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    border-radius: 12px;
+    border: 2px solid #aad3f0;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+    width: 40%;
+    transition: all 0.3s ease-in-out;
 }
 
 .host-selection-container h1,
@@ -61,6 +103,37 @@
     margin-bottom: 16px;
     font-weight: 600;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.input-sw-sw-group {
+    display: flex;
+    margin-bottom: 16px;
+    flex-direction: column;
+    gap: 10px;
+    align-items: left;
+    /* justify-content: center; */
+    width: 97%;
+}
+
+.input-sw-sw {
+    width: 103%;
+    padding: 12px 14px;
+    border: 1px solid #ccc;
+    border-radius: 16px;
+    font-size: 14px;
+    background-color: #fdfdfd;
+}
+
+
+
+
+
+
+.connect-pic{
+    display: flex;
+    justify-content: center; /* Centers the element horizontally */
+    align-items: center; /* Centers the element vertically */
+    margin-bottom: 10px;
 }
 
 
@@ -120,7 +193,7 @@
 
 
 
-.manu-liver{
+.host-selection__dropdown-container{
     display: flex;
     flex-direction: row;
     /* border: 1px solid red; */
@@ -131,12 +204,11 @@
 
 .switch-switch{
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     gap: 10px;
     align-items: center;
-    align-items: flex-start; /* Align content to the top */
-    
     /* justify-content: center; */
+    width: 97%;
 }
 
 .links-container {
@@ -153,15 +225,13 @@
   }
   
   .host-selection__vlan-configuration {
-    margin-top: 25px;
-    background: linear-gradient(to bottom right, #eef6f9, #dcecf5);
+    background: #ebf2f9;
     padding: 18px;
-    border-radius: 10px;
-    border: 1px solid #c7dfe6;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
+    border-radius: 12px;
+    border: 2px solid #aad3f0;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+    width: 40%;
+    transition: all 0.3s ease-in-out;
 }
 
 
@@ -214,6 +284,50 @@
     border-color: #66afe9;
     box-shadow: 0 0 6px rgba(102, 175, 233, 0.6);
 }
+
+
+
+
+
+.host-selection__bridge-priority-configuration {
+    background: #ebf2f9;
+    padding: 18px;
+    border-radius: 12px;
+    border: 2px solid #aad3f0;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+    width: 40%;
+    transition: all 0.3s ease-in-out;
+}
+
+
+
+
+
+
+.remove-link-container {
+    margin-top: 52px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 5%;
+}
+  
+.button-sw-sw-remove {
+    font-size: 15px;
+    border: none;
+    border-radius: 24px;
+    cursor: pointer;
+    background-color: #fff;
+    transition: transform 0.2s ease-in-out;
+}
+
+/* Apply the scale effect on hover */
+.button-sw-sw-remove:hover {
+    transform: scale(1.2); /* Increase size by 20% */
+  }
+
+
 
 
 

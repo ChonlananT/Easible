@@ -205,18 +205,10 @@ body {
   margin: 10px 25px 15px 25px; /* Top, Right, Bottom, Left */
   border: 2px solid #D4D4D4; /* Border thickness */
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.1); /* Inset shadow for depth */
-  
-  /* Add maximum and minimum width constraints */
-  width: 100%; /* Makes the width dynamic, based on container */
-  max-width: 1150px; /* Maximum width of the content */
-  min-width: 300px; /* Minimum width of the content */
-
-  height: 550px; /* Fixed height for the content area */
   overflow-y: auto; /* Allows scrolling when content overflows vertically */
-
   box-sizing: border-box; /* Include padding in width and height calculation */
+  height: 80%; /* Adjust automatically based on content */
 }
-
 
 
 
