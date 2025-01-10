@@ -34,9 +34,10 @@ body {
   left: 0; /* Align to the left */
   width: 300px; /* Set a consistent width */
   z-index: 1000; /* Ensure it stays above other content */
-  background: #fff; /* Keep the background for readability */
-  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+  background: #f5f7f9; /* Keep the background for readability */
+  /* box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2); */
   overflow-y: auto; /* Add scrolling for overflow content */
+  border-color: red;
 }
 
 
@@ -48,23 +49,25 @@ body {
   flex-direction: column; /* Stack links vertically */
   align-items: flex-start; /* Center items horizontally */
   justify-content: center; /* Center items vertically */
-  background: #fff;
-  padding: 30px;
+  background: #f5f7f9;
+  padding: 20px;
   border-radius: 0; /* Remove border-radius for a full-height panel look */
-  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+  /* box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2); */
   position: fixed;
   top: 0; /* Align to the top of the page */
   left: 0; /* Align to the left of the page */
   bottom: 0; /* Span the entire height */
   width: 300px; /* Set a consistent width */
   margin: 0; /* No extra margin */
+  padding-left: 35px;
   z-index: 1000;
   overflow-y: auto; /* Add scrolling for long content if needed */
+  border-color: red;
 }
 
 .nav-links li {
   list-style: none;
-  margin: 35px; /* Add spacing between links */
+  margin: 25px; /* Add spacing between links */
 }
 
 .nav-links li a {
@@ -124,14 +127,30 @@ body {
 
 .nav-links li.sub-topic {
   margin-left: 60px; /* Indent to the right */
-  margin-top: 0px;
-  margin-bottom: 30px;
+  margin-top: 10px;
+  margin-bottom: 25px;
 }
 
 .nav-links li.sub-topic a {
   font-size: 16px; /* Smaller font size for sub-topics */
   font-weight: 400; /* Adjust font weight if needed */
 }
+
+.center a {
+  text-decoration: none;
+  color: black;
+  transition: color 0.3s ease;
+}
+
+.center a.active {
+  color: purple; /* Change color to purple for the active link */
+}
+.sub-topic a.active {
+  color: purple; /* Ensure sub-topic items also change to purple */
+}
+
+
+
 
 
 /* Add this to your RouterRouter.css or relevant CSS file */
@@ -151,17 +170,60 @@ body {
 
 
 
+
 .content {
   margin-left: 300px; /* Space to the right of navbar */
   padding: 20px; /* Add padding for a neat look */
   flex: 1; /* Allow content to grow and occupy remaining space */
-  background: #efefef; /* Optional background to differentiate from navbar */
+  background: #ffffff; /* Optional background to differentiate from navbar */
+  border-color: red;
+}
+
+.content-topic {
+  flex: 1; /* Allow content to grow and occupy remaining space */
+  margin-left: 25px; /* Remove any left margin */
+  font-size: 40px; /* Adjust font size as needed */
+  margin-top: 10px; /* Add space at the top */
+  font-weight: 525; /* Adjust font weight as needed */
+}
+
+.content-topic-small {
+  font-size: 25px; /* Adjust this value as needed */
+  font-weight: 525px; /* Thin font weight */
+  font-family: 'Arial', sans-serif; /* Use a thin font-family */
+  color: rgb(112, 113, 114);
+}
+
+
+
+
+/*content-inside*/
+.content-board {
+  background-color: white;
+  border-radius: 12px;
+  padding: 30px;
+  margin: 10px 25px 15px 25px; /* Top, Right, Bottom, Left */
+  border: 2px solid #D4D4D4; /* Border thickness */
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1); /* Inset shadow for depth */
+  
+  /* Add maximum and minimum width constraints */
+  width: 100%; /* Makes the width dynamic, based on container */
+  max-width: 1150px; /* Maximum width of the content */
+  min-width: 300px; /* Minimum width of the content */
+
+  height: 550px; /* Fixed height for the content area */
+  overflow-y: auto; /* Allows scrolling when content overflows vertically */
+
+  box-sizing: border-box; /* Include padding in width and height calculation */
 }
 
 
 
 
 
+
+
+/*logo*/
 .dashboard-header {
   display: flex;
   align-items: center;
@@ -171,5 +233,12 @@ body {
 .dashboard-icon {
   width: 240px;
   height: 78px;
-  margin-bottom: 80px;
+  margin-bottom: 30px;
 }
+
+
+
+
+
+
+

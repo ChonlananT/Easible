@@ -127,119 +127,147 @@ function Hosts() {
         <ul className="nav-links">
         <img src="/easible-name.png" alt='' className="dashboard-icon" />
           <li className="center"><a href="/dashboard">Dashboard</a></li>
+          <li className="center"><a href="/hosts">Hosts</a></li>
           <li className="center"><a href="/jobs">Configuration</a></li>
           <li className="center sub-topic"><a href="/routerrouter">router-router</a></li>
           <li className="center sub-topic"><a href="/routerswitch">router-switch</a></li>
           <li className="center sub-topic"><a href="/switchswitch">switch-switch</a></li>
           <li className="center sub-topic"><a href="/configdevice">config device</a></li>
-          <li className="center"><a href="/hosts">Hosts</a></li>
           <li className="center"><a href="/topology">Topology</a></li>
         </ul>
       </div>
       
       <div className='content'>
-      <div className="search-bar">
-        <input
-          type="text"
-          placeholder="Search by hostname..."
-          value={searchQuery}
-          onChange={handleSearchChange}
-        />
-      </div>
+        <div className='content-topic'>Hosts</div>
+        <div className="search-bar">
+          <input
+            type="text"
+            placeholder="Search by hostname..."
+            value={searchQuery}
+            onChange={handleSearchChange}
+          />
+        </div>
 
-      {/* <HostsTable filteredHosts={filteredHosts} searchQuery={searchQuery} handleDeleteHost={handleDeleteHost} /> */}
-      <table className="hosts-table">
-        <thead>
-          <tr>
-            <th>Device Type</th>
-            <th>Hostname</th>
-            <th>IP Address</th>
-            <th>Username</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredHosts.length > 0 ? (
-            filteredHosts.map((host) => (
-              <tr key={host.id}>
-                <td>{host.deviceType}</td>
-                <td>{host.hostname}</td>
-                <td>{host.ipAddress}</td>
-                <td>{host.username}</td>
-                <td>
-                  <button onClick={() => handleDeleteHost(host.hostname)}>Delete</button>
+        {/* <HostsTable filteredHosts={filteredHosts} searchQuery={searchQuery} handleDeleteHost={handleDeleteHost} /> */}
+        <table className="hosts-table">
+          <thead>
+            <tr>
+              <th>Hostname</th>
+              <th>Device Type</th>              
+              <th>IP Address</th>
+              <th>Username</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredHosts.length > 0 ? (
+              filteredHosts.map((host) => (
+                <tr key={host.id}>
+                  <td>{host.hostname}</td>
+                  <td>{host.deviceType}</td>
+                  <td>{host.ipAddress}</td>
+                  <td>{host.username}</td>
+                  <td>
+                    <button onClick={() => handleDeleteHost(host.hostname)}>Delete</button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="5" style={{ textAlign: 'center', color: 'black' }}>
+                  No results found for "{searchQuery}".
                 </td>
               </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="5" style={{ textAlign: 'center', color: '#EE4B2B' }}>
-                No results found for "{searchQuery}".
-              </td>
-            </tr>
+            )}
+          </tbody>
+        </table>
+
+
+        <div className="button-hosts">
+          <button className="green-round" onClick={() => setShowPopup(true)}>Add Host</button>
+          <button className="purple-round" onClick={handleCreateInventory}>Create Inventory</button>
+
+          {/* Popup component for Inventory Created */}
+          {showInventoryPopup && (
+            <div className="popup-inventory">
+              <div className="popup-inventory-content">
+                <p>Inventory has been created!</p>
+                <button className="close-btn" onClick={closePopup}>Close</button>
+              </div>
+            </div>
           )}
-        </tbody>
-      </table>
+        </div>
 
+        {showPopup && (
+          <div className="popup">
+            <div className="popup-content">
+              <h2>Add Host</h2>
+              <label>
+                Device Type:
+                <select name="deviceType" value={formData.deviceType} onChange={handleInputChange}>
+                  <option value="switch">Switch</option>
+                  <option value="router">Router</option>
+                </select>
+              </label>
+              <label>
+                Hostname:
+                <input
+                  type="text"
+                  name="hostname"
+                  value={formData.hostname}
+                  onChange={handleInputChange}
+                  placeholder="Enter hostname"
+                />
+              </label>
+              <label>
+                IP Address:
+                <input
+                  type="text"
+                  name="ipAddress"
+                  value={formData.ipAddress}
+                  onChange={handleInputChange}
+                  style={{ borderColor: ipError ? 'red' : '#ccc' }}
+                  placeholder="Enter IP address"
+                />
+                {ipError && <span style={{ color: 'red' }}>{ipError}</span>}
+              </label>
+              <label>
+                Username:
+                <input
+                  type="text"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleInputChange}
+                  placeholder="Enter username"
+                />
+              </label>
+              <label>
+                Password:
+                <input
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  placeholder="Enter password"
+                />
+              </label>
+              <label>
+                Enable Password:
+                <input
+                  type="password"
+                  name="enablePassword"
+                  value={formData.enablePassword}
+                  onChange={handleInputChange}
+                  placeholder="Enter enable password"
+                />
+              </label>
 
-      <div>
-        <button className="purple-round" onClick={() => setShowPopup(true)}>Add Host</button>
-        <button className="purple-round" onClick={handleCreateInventory}>Create Inventory</button>
+              <button onClick={handleSaveHost} disabled={ipError} className="save-btn">Save Host</button>
+              <button onClick={() => setShowPopup(false)} className="cancel-btn">Cancel</button>
 
-        {/* Popup component for Inventory Created */}
-        {showInventoryPopup && (
-          <div className="popup-inventory">
-            <div className="popup-inventory-content">
-              <p>Inventory has been created!</p>
-              <button className="close-btn" onClick={closePopup}>Close</button>
             </div>
           </div>
         )}
-      </div>
-
-      {showPopup && (
-        <div className="popup">
-          <div className="popup-content">
-            <h2>Add Host</h2>
-            <label>
-              Device Type:
-              <select name="deviceType" value={formData.deviceType} onChange={handleInputChange}>
-                <option value="switch">Switch</option>
-                <option value="router">Router</option>
-              </select>
-            </label>
-            <label>
-              Hostname:
-              <input type="text" name="hostname" value={formData.hostname} onChange={handleInputChange} />
-            </label>
-            <label>
-              IP Address:
-              <input
-                type="text"
-                name="ipAddress"
-                value={formData.ipAddress}
-                onChange={handleInputChange}
-                style={{ borderColor: ipError ? 'red' : '#ccc' }}
-              />
-              {ipError && <span style={{ color: 'red' }}>{ipError}</span>}
-            </label>
-            <label>
-              Username:
-              <input type="text" name="username" value={formData.username} onChange={handleInputChange} />
-            </label>
-            <label>
-              Password:
-              <input type="password" name="password" value={formData.password} onChange={handleInputChange} />
-            </label>
-            <label>
-              Enable Password:
-              <input type="password" name="enablePassword" value={formData.enablePassword} onChange={handleInputChange} />
-            </label>
-            <button onClick={handleSaveHost} disabled={ipError}>Save Host</button>
-            <button onClick={() => setShowPopup(false)}>Cancel</button>
-          </div>
-        </div>
-      )}
       </div>
       
     </div>

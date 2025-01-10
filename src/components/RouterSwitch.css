@@ -1,0 +1,64 @@
+.router-router-page {
+    display: flex;
+    flex-direction: row;
+  }
+  
+  .nav-links {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    width: 220px;
+    background: #f2f2f2;
+  }
+  
+  .nav-links li {
+    padding: 10px 16px;
+  }
+  
+  .nav-links li a {
+    text-decoration: none;
+    color: #333;
+  }
+  
+  .content {
+    flex: 1;
+    padding: 20px;
+  }
+  
+  .router-router-link {
+    background: #fafafa;
+    border-radius: 8px;
+  }
+  
+  .link-config-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .link-config-group {
+    display: flex;
+    flex-direction: column;
+    width: 220px; /* Adjust as needed */
+  }
+  
+  .link-config-group select,
+  .link-config-group input {
+    margin-top: 4px;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+  }
+  
+  .dropdown-with-spinner {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .error {
+    color: red;
+    margin-top: 1rem;
+  }
+  

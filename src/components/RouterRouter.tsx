@@ -253,6 +253,7 @@ function RouterRouter() {
   return (
     <div className="App">
       <ul className="nav-links">
+<<<<<<< HEAD
         <img src="/easible-name.png" alt="" className="dashboard-icon" />
         <li className="center">
           <a href="/dashboard">Dashboard</a>
@@ -590,6 +591,100 @@ function RouterRouter() {
           Submit All
         </button>
         {error && <div className="error">Error: {error}</div>}
+=======
+        <img src="/easible-name.png" alt='' className="dashboard-icon" />
+          <li className="center"><a href="/dashboard">Dashboard</a></li>
+          <li className="center"><a href="/hosts">Hosts</a></li>
+          <li className="center"><a href="/jobs">Configuration</a></li>
+          <li className="center sub-topic"><a href="/routerrouter">router-router</a></li>
+          <li className="center sub-topic"><a href="/routerswitch">router-switch</a></li>
+          <li className="center sub-topic"><a href="/switchswitch">switch-switch</a></li>
+          <li className="center sub-topic"><a href="/configdevice">config device</a></li>
+          <li className="center"><a href="/topology">Topology</a></li>
+        </ul>
+      </div>
+      
+
+      <div className='content'>
+        <div className='content-topic'>
+        Configuration <span className='content-topic-small'>(Router-Router)</span>
+        </div>
+        <div className="content-board">
+            {/* Add button */}
+          <div className="button-container">
+            <button onClick={addBox}>Add Block</button>
+          </div>
+
+          {/* Default First Box (fixed and not removable) */}
+          <div className="pair">
+            {["block", "block"].map((blockClass, idx) => (
+              <div key={idx} className={blockClass}>
+                <div className="dropdown">
+                  {topics.dropdowns.map((topic, index) => (
+                    <Field key={index} label={topic} options={dropdownOptions} />
+                  ))}
+                </div>
+                <div className="text">
+                  {topics.texts.map((topic, index) => (
+                    <Field key={index} label={topic} placeholder={inputPlaceholders[index]} />
+                  ))}
+                </div>
+              </div>
+            ))}
+            <div className="single">
+              <div className="single-block">
+                <div className="dropdown">
+                  {topics2.dropdowns.map((topic, index) => (
+                    <Field key={index} label={topic} options={dropdownOptions} />
+                  ))}
+                </div>
+                <div className="text">
+                  {topics2.texts.map((topic, index) => (
+                    <Field key={index} label={topic} placeholder={["Ex. 0", "Ex. 0"][index]} />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Render dynamically added boxes */}
+          {boxes.map((box) => (
+            <div className="pair" key={box.id}> {/* Use unique ID as key */}
+              {["block", "block"].map((blockClass, idx) => (
+                <div key={idx} className={blockClass}>
+                  <div className="dropdown">
+                    {box.topics.dropdowns.map((topic, index) => (
+                      <Field key={index} label={topic} options={box.dropdownOptions} />
+                    ))}
+                  </div>
+                  <div className="text">
+                    {box.topics.texts.map((topic, index) => (
+                      <Field key={index} label={topic} placeholder={box.inputPlaceholders[index]} />
+                    ))}
+                  </div>
+                </div>
+              ))}
+              <div className="single">
+                <div className="single-block">
+                  <div className="dropdown">
+                    {box.topics2.dropdowns.map((topic, index) => (
+                      <Field key={index} label={topic} options={box.dropdownOptions} />
+                    ))}
+                  </div>
+                  <div className="text">
+                    {box.topics2.texts.map((topic, index) => (
+                      <Field key={index} label={topic} placeholder={["Ex. 0", "Ex. 0"][index]} />
+                    ))}
+                  </div>
+                </div>
+              </div>
+              {/* Remove button for dynamically added boxes */}
+              <button onClick={() => removeBox(box.id)}>Remove Box</button>
+            </div>
+          ))}
+        </div>
+            
+>>>>>>> 75778651e9dca0b80c1adf27bc88d095f0789933
       </div>
     </div>
   );
