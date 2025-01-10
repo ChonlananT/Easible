@@ -380,16 +380,14 @@ function SwitchSwitch() {
         </div>
         <div className="content-board">
           {/* ปุ่มเพิ่มลิงก์ใหม่ */}
-          <button onClick={handleAddLink} style={{ marginBottom: '1rem' }}>
-            Add Link
-          </button>
+          <div className="all-links">
+          
 
           {/* Render ฟอร์มสำหรับแต่ละลิงก์ */}
           {links.map((link, index) => (
             <div
               key={index}
               className="switch-switch"
-              style={{ border: '1px solid #ccc', padding: '1rem', marginBottom: '1rem' }}
             >
               <h3>Link #{index + 1}</h3>
 
@@ -414,14 +412,16 @@ function SwitchSwitch() {
                         value={link.selectedHost1}
                       >
                         <option value="">-- Select a Host --</option>
+                        <option value="test">test</option>
                         {!loading &&
                           hosts.map((host: DropdownOption) => (
                             <option key={host.hostname} value={host.hostname}>
                               {host.hostname}
                             </option>
+                            
                           ))}
                       </select>
-                      {loading ? <Spinner color="primary" size="large" /> : null}
+                      
                     </div>
                   </div>
 
@@ -433,6 +433,7 @@ function SwitchSwitch() {
                       value={link.selectedHost2}
                     >
                       <option value="">-- Select a Host --</option>
+                      <option value="test">test</option>
                       {hosts.map((host: DropdownOption) => (
                         <option key={host.hostname} value={host.hostname}>
                           {host.hostname}
@@ -682,12 +683,35 @@ function SwitchSwitch() {
               )}
             </div>
           ))}
+          
         </div>
-          <button className="buttont-sw-sw" onClick={handleSubmitAll}>
+        <div className="line-container">
+            <div className="line"></div>
+            <button 
+              onClick={handleAddLink} 
+              className={`button-sw-sw-add ${loading ? 'loading' : ''}`} 
+              // disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Spinner color="white" size="small" /> {/* Spinner in front of the text */}
+                  <span className="fetching-text">Fetching Data...</span>
+                </>
+              ) : (
+                "+ Add Switch-Switch Link"
+              )}
+            </button>
+            <div className="line"></div>
+          </div>
+        </div>
+        <div className="submit-sw-sw-container">
+          <button className="button-sw-sw-submit" onClick={handleSubmitAll}>
             Submit All
           </button>
+        </div>
+          
 
-          {error && <div className="error">Error: {error}</div>}
+          {error && <div className="error-sw-sw">Error: {error}</div>}
         
       </div>
     </div>
