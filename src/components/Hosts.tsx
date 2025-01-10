@@ -127,12 +127,12 @@ function Hosts() {
         <ul className="nav-links">
         <img src="/easible-name.png" alt='' className="dashboard-icon" />
           <li className="center"><a href="/dashboard">Dashboard</a></li>
+          <li className="center"><a href="/hosts">Hosts</a></li>
           <li className="center"><a href="/jobs">Configuration</a></li>
           <li className="center sub-topic"><a href="/routerrouter">router-router</a></li>
           <li className="center sub-topic"><a href="/routerswitch">router-switch</a></li>
           <li className="center sub-topic"><a href="/switchswitch">switch-switch</a></li>
           <li className="center sub-topic"><a href="/configdevice">config device</a></li>
-          <li className="center"><a href="/hosts">Hosts</a></li>
           <li className="center"><a href="/topology">Topology</a></li>
         </ul>
       </div>
@@ -152,8 +152,8 @@ function Hosts() {
         <table className="hosts-table">
           <thead>
             <tr>
-              <th>Device Type</th>
               <th>Hostname</th>
+              <th>Device Type</th>              
               <th>IP Address</th>
               <th>Username</th>
               <th></th>
@@ -163,8 +163,8 @@ function Hosts() {
             {filteredHosts.length > 0 ? (
               filteredHosts.map((host) => (
                 <tr key={host.id}>
-                  <td>{host.deviceType}</td>
                   <td>{host.hostname}</td>
+                  <td>{host.deviceType}</td>
                   <td>{host.ipAddress}</td>
                   <td>{host.username}</td>
                   <td>
@@ -184,7 +184,7 @@ function Hosts() {
 
 
         <div className="button-hosts">
-          <button className="purple-round" onClick={() => setShowPopup(true)}>Add Host</button>
+          <button className="green-round" onClick={() => setShowPopup(true)}>Add Host</button>
           <button className="purple-round" onClick={handleCreateInventory}>Create Inventory</button>
 
           {/* Popup component for Inventory Created */}

@@ -94,12 +94,34 @@
 
 
 
-  
+.green-round {
+  margin: 5px;
+  padding: 10px 20px;
+  font-size: 14px;
+  background-color: #2AC9AE; /* Gray background */
+  color: white; /* White text */
+  border: none; /* No border */
+  border-radius: 20px; /* Fully rounded corners */
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+.green-round:hover {
+  background-color: #24af98; /* Darker gray on hover */
+  transform: scale(1.05);
+}
+
+.green-round:focus {
+  outline: none; /* Remove focus outline */
+  box-shadow: 0 0 0 2px #e0e0e0; /* Focus ring for accessibility */
+}  
+
   .purple-round {
     margin: 5px;
     padding: 10px 20px;
     font-size: 14px;
-    background-color: #a2a4f9; /* Gray background */
+    background-color: #ead152; /* Gray background */
     color: white; /* White text */
     border: none; /* No border */
     border-radius: 20px; /* Fully rounded corners */
@@ -109,7 +131,8 @@
   }
   
   .purple-round:hover {
-    background-color: #7475b3; /* Darker gray on hover */
+    background-color: #d9c042; /* Darker gray on hover */
+    transform: scale(1.05);
   }
   
   .purple-round:focus {
@@ -190,7 +213,7 @@
   /* Table Styling */
   .hosts-table {
     width: 96%;
-    margin: 20px auto;
+    margin: 40px 20px 35px 20px;
     border-collapse: separate;
     border-spacing: 0;
     border-radius: 8px;
@@ -208,7 +231,7 @@
   }
   
   .hosts-table th {
-    background-color: #8e90df;
+    background-color: #3b47a3;
     color: #fff;
     font-weight: bold;
     text-transform: uppercase;
