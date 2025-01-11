@@ -1,0 +1,55 @@
+.config-command-section{
+    margin-top: 30px;
+    margin-bottom: 10px;
+    padding: 0 150px 0 150px;
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+    justify-content: center;
+}
+
+.config-command-board{
+    width: 50%;
+    display: flex; /* Enable flexbox layout */
+    flex-direction: column; /* Ensure items are stacked vertically */
+    justify-content: center; /* Center content vertically */
+    align-items: center; /* Center content horizontally */
+    background: #ebf2f9;
+    padding: 18px;
+    border-radius: 12px;
+    border: 2px solid #aad3f0;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease-in-out;
+    animation: spreadFromCenter 0.2s ease; /* Apply the animation */
+    transform-origin: center;
+}
+
+
+
+
+
+
+.config-device-input-text {
+    margin: 5px;
+    width: 100%;
+    display: flex;
+    flex-direction: column; /* Stacks the label and input vertically */
+}
+
+.config-device-input-text label {
+    margin-bottom: 5px; /* Adds spacing below the label */
+}
+
+.config-device-input-text input {
+    padding: 12px 14px; /* Adds padding inside the input field */
+    border: 1px solid #ccc; /* Creates a subtle border for the input */
+    border-radius: 16px; /* Slightly rounds the corners of the input field */
+}
+
+.config-device-input-text input:focus {
+    border-color: #0096bb; /* Changes border color when the input is focused */
+    outline: none; /* Removes the default focus outline */
+    box-shadow: 0 0 5px rgba(0, 208, 255, 0.5); /* Adds a subtle glow for focus */
+}
