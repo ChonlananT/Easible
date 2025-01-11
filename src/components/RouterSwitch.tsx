@@ -10,7 +10,7 @@ function RouterSwitch() {
           <li className="center"><a href="/hosts">Hosts</a></li>
           <li className="center"><a href="/jobs">Configuration</a></li>
           <li className="center sub-topic"><a href="/routerrouter">router-router</a></li>
-          <li className="center sub-topic"><a href="/routerswitch">router-switch</a></li>
+          <li className="center sub-topic"><a href="/routerswitch" style={{ color: '#8c94dc' }}>router-switch</a></li>
           <li className="center sub-topic"><a href="/switchswitch">switch-switch</a></li>
           <li className="center sub-topic"><a href="/configdevice">config device</a></li>
           <li className="center"><a href="/topology">Topology</a></li>

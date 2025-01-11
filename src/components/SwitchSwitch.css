@@ -19,8 +19,23 @@
 
 
 
+.top-link {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between; /* Align items to the far edges */
+    align-items: center; /* Align vertically (if needed) */
+    width: 100%; /* Optional: Make the container stretch full width */
+}
+
+/* Styling for the left and right objects (optional) */
+.top-link .left-object,
+.top-link .right-object {
+    padding: 10px; /* Add spacing around elements */
+}
+
+
 .link-index {
-  font-size: 20px;
+  font-size: 26px;
   font-weight: 600;
   display: flex;
   flex-direction: row;
@@ -36,7 +51,7 @@
 
 .content-section {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     gap: 20px;
     align-items: flex-start; /* Align items to the top */
     justify-content: left;
@@ -49,6 +64,20 @@
   
 
 
+  .host-card {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    border: 2px solid #d4c9ed; /* Softer border color */
+    background: #f6f4ff;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Slightly stronger shadow for depth */
+    border-radius: 20px; /* More rounded corners for a softer appearance */
+    width: 100%;
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Add hover effect transition */
+}
 
 .host-selection-container {
     padding: 20px;
@@ -58,16 +87,16 @@
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
     border-radius: 16px; */
     gap: 20px;
-    flex-direction: row;
-    width: 50%;
+    flex-direction: column;
+    width: 100%;
     /* border: 1px solid rgb(99, 46, 46); */
 }
 
 .host-selection__dropdown-group {
-    margin-bottom: 16px;
+    margin-bottom: 10px;
     /* border: 1px solid rgb(99, 46, 46); */
     /* display: flex; */
-    /* width: 100%; */
+    width: 100%;
 }
 
 .host-selection__dropdown {
@@ -87,15 +116,44 @@
     box-shadow: 0 0 6px rgba(102, 175, 233, 0.6);
 }
 
+
+
+
+
+
+.command-section{
+    padding: 0 150px 0 150px;
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+    justify-content: center;
+}
+
+@keyframes spreadFromCenter {
+    from {
+        opacity: 0; /* Start fully transparent */
+        transform: scaleX(0); /* Start with no width (collapsed horizontally) */
+    }
+    to {
+        opacity: 1; /* Fully visible */
+        transform: scaleX(1); /* End with full width */
+    }
+}
+
 .host-selection__switchport-configuration {
     background: #ebf2f9;
     padding: 18px;
     border-radius: 12px;
     border: 2px solid #aad3f0;
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
-    width: 40%;
     transition: all 0.3s ease-in-out;
+    animation: spreadFromCenter 0.2s ease; /* Apply the animation */
+    transform-origin: center; /* Ensure the scaling happens from the center */
 }
+
+
 
 .host-selection-container h1,
 .host-selection-container h2 {
@@ -133,7 +191,7 @@
     display: flex;
     justify-content: center; /* Centers the element horizontally */
     align-items: center; /* Centers the element vertically */
-    margin-bottom: 10px;
+    width: 10%;
 }
 
 
@@ -189,9 +247,42 @@
     border-radius: 20px;
   }
 
+  .line-vertical {
+    height: 500px; /* Add a unit like px to define a valid height */
+    width: 2px;
+    background-color: #aad3f0; /* Adjust the color to your preference */
+    border-radius: 20px;
+    margin: 0 30px; /* Add spacing around the button */
+}
 
 
 
+
+
+
+.host-selection__hosts{
+    display: flex;
+    flex-direction: row;
+    /* gap: 20px; */
+    align-items: center;
+    justify-content: center;
+    padding: 0 70px 0 70px;
+}
+
+.host-selection__hosts > div {
+    flex: 1; /* Each side will take up an equal amount of space */
+    max-width: 50%; /* Ensures no side gets too big */
+}
+
+.host-selection__commands{
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+    padding: 0 300px 0 300px;
+}
 
 .host-selection__dropdown-container{
     display: flex;
@@ -225,13 +316,18 @@
   }
   
   .host-selection__vlan-configuration {
+    display: flex; /* Enable flexbox layout */
+    flex-direction: row; /* Ensure items are stacked vertically */
+    justify-content: center; /* Center content vertically */
+    align-items: center; /* Center content horizontally */
     background: #ebf2f9;
     padding: 18px;
     border-radius: 12px;
     border: 2px solid #aad3f0;
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
-    width: 40%;
     transition: all 0.3s ease-in-out;
+    animation: spreadFromCenter 0.2s ease; /* Apply the animation */
+    transform-origin: center;
 }
 
 
@@ -295,8 +391,10 @@
     border-radius: 12px;
     border: 2px solid #aad3f0;
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
-    width: 40%;
+    width: 50%;
     transition: all 0.3s ease-in-out;
+    animation: spreadFromCenter 0.2s ease; /* Apply the animation */
+    transform-origin: center;
 }
 
 
@@ -305,7 +403,7 @@
 
 
 .remove-link-container {
-    margin-top: 52px;
+    margin-top: 4px;
     display: flex;
     justify-content: center;
     align-items: center;

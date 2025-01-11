@@ -13,7 +13,7 @@ function Topology() {
           <li className="center sub-topic"><a href="/routerswitch">router-switch</a></li>
           <li className="center sub-topic"><a href="/switchswitch">switch-switch</a></li>
           <li className="center sub-topic"><a href="/configdevice">config device</a></li>
-          <li className="center"><a href="/topology">Topology</a></li>
+          <li className="center"><a href="/topology" style={{ color: '#8c94dc' }}>Topology</a></li>
       </ul>
       <div>Topology</div>
     </div>

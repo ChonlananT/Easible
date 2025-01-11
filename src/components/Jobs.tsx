@@ -20,7 +20,7 @@ function Jobs() {
       <img src="/easible-name.png" alt='' className="dashboard-icon" />
           <li className="center"><a href="/dashboard">Dashboard</a></li>
           <li className="center"><a href="/hosts">Hosts</a></li>
-          <li className="center"><a href="/jobs">Configuration</a></li>
+          <li className="center"><a href="/jobs" style={{ color: '#8c94dc' }}>Configuration</a></li>
           <li className="center sub-topic"><a href="/routerrouter">router-router</a></li>
           <li className="center sub-topic"><a href="/routerswitch">router-switch</a></li>
           <li className="center sub-topic"><a href="/switchswitch">switch-switch</a></li>

@@ -142,11 +142,8 @@ body {
   transition: color 0.3s ease;
 }
 
-.center a.active {
-  color: purple; /* Change color to purple for the active link */
-}
-.sub-topic a.active {
-  color: purple; /* Ensure sub-topic items also change to purple */
+.center a:hover {
+  color: #8c94dc; /* Optional: Hover effect with a slightly darker shade */
 }
 
 

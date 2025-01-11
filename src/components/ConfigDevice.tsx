@@ -17,7 +17,7 @@ const ConfigDevice = () => {
             <li className="center sub-topic"><a href="/routerrouter">router-router</a></li>
             <li className="center sub-topic"><a href="/routerswitch">router-switch</a></li>
             <li className="center sub-topic"><a href="/switchswitch">switch-switch</a></li>
-            <li className="center sub-topic"><a href="/configdevice">config device</a></li>
+            <li className="center sub-topic"><a href="/configdevice" style={{ color: '#8c94dc' }}>config device</a></li>
             <li className="center"><a href="/topology">Topology</a></li>
           </ul>
           <span>config device</span>

@@ -25,7 +25,7 @@ type InterfaceData = {
 
 type StaticRoute = {
   prefix: string;
-  subnet: string;
+  cidr: number;
   nextHop: string;
 };
 
@@ -147,8 +147,8 @@ function RouterRouter() {
   
         // ถ้า protocol เปลี่ยนเป็น 'static' ให้ initialize staticRoute1 และ staticRoute2
         if (field === 'selectedProtocol' && value === 'static') {
-          link.staticRoute1 = { prefix: '', subnet: '', nextHop: '' };
-          link.staticRoute2 = { prefix: '', subnet: '', nextHop: '' };
+          link.staticRoute1 = { prefix: '', cidr: 24, nextHop: '' };
+          link.staticRoute2 = { prefix: '', cidr: 24, nextHop: '' };
         }
   
         // ถ้า protocol ไม่ใช่ 'static' ให้ลบ staticRoute1 และ staticRoute2
@@ -199,11 +199,11 @@ function RouterRouter() {
         if (
           !link.staticRoute1 ||
           !link.staticRoute1.prefix ||
-          !link.staticRoute1.subnet ||
+          !link.staticRoute1.cidr ||
           !link.staticRoute1.nextHop ||
           !link.staticRoute2 ||
           !link.staticRoute2.prefix ||
-          !link.staticRoute2.subnet ||
+          !link.staticRoute2.cidr ||
           !link.staticRoute2.nextHop
         ) {
           setError('Please fill all Static Route fields for each link.');
@@ -257,7 +257,7 @@ function RouterRouter() {
           <li className="center"><a href="/dashboard">Dashboard</a></li>
           <li className="center"><a href="/hosts">Hosts</a></li>
           <li className="center"><a href="/jobs">Configuration</a></li>
-          <li className="center sub-topic"><a href="/routerrouter">router-router</a></li>
+          <li className="center sub-topic"><a href="/routerrouter" style={{ color: '#8c94dc' }}>router-router</a></li>
           <li className="center sub-topic"><a href="/routerswitch">router-switch</a></li>
           <li className="center sub-topic"><a href="/switchswitch">switch-switch</a></li>
           <li className="center sub-topic"><a href="/configdevice">config device</a></li>
@@ -265,315 +265,350 @@ function RouterRouter() {
       </ul>
 
       <div className="content">
-        <h2>Router-Router Configuration (Multiple Links)</h2>
+        <div className="content-topic">
+          Configuration
+          <span className="content-topic-small"> (Router-Router)</span>
+        </div>
+        <div className="content-board">
+          <div className="all-links">
+            {links.map((link, index) => (
+            <div
+              key={index}
+              className="switch-switch"
+            >
+              <div className='link-index'>Link {index + 1}</div>
 
-        <button onClick={handleAddLink} style={{ marginBottom: '1rem' }}>
-          Add Link
-        </button>
+              <div className="content-section">
+                <div className="host-selection-container">
+                  <div className="host-selection__hosts">
+                    <div className="host-selection__dropdown-group">
+                      <label>Router1 (Host):</label>
+                      <div className="host-selection__dropdown-container">
+                      <select
+                        className="host-selection__dropdown"
+                        value={link.selectedHost1}
+                        onChange={(e) =>
+                          handleChange(index, 'selectedHost1', e.target.value)
+                        }
+                      >
+                        <option value="">-- Select Router (Host1) --</option>
+                        {!loading &&
+                          hosts.map((host) => (
+                            <option key={host.hostname} value={host.hostname}>
+                              {host.hostname}
+                            </option>
+                          ))}
+                      </select>
+                      </div>
+                      {/* {loading ? <Spinner color="primary" size="large" /> : null} */}
+                    </div>
 
-        {links.map((link, index) => (
-          <div
-            key={index}
-            className="switch-switch"
-            style={{
-              border: '1px solid #ccc',
-              padding: '1rem',
-              marginBottom: '1rem',
-            }}
-          >
-            <h3>Link #{index + 1}</h3>
+                    <div className="host-selection__dropdown-group">
+                      <label>Router2 (Host):</label>
+                      <select
+                        className="host-selection__dropdown"
+                        value={link.selectedHost2}
+                        onChange={(e) =>
+                          handleChange(index, 'selectedHost2', e.target.value)
+                        }
+                      >
+                        <option value="">-- Select Router (Host2) --</option>
+                        {hosts.map((host) => (
+                          <option key={host.hostname} value={host.hostname}>
+                            {host.hostname}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
 
-            {links.length > 1 && (
-              <button
-                onClick={() => handleRemoveLink(index)}
-                style={{ color: 'red', marginBottom: '1rem' }}
-              >
-                Remove This Link
-              </button>
+                  <div className="host-selection__commands">
+                    <div className="host-selection__dropdown-group">
+                      <label>Interface of Router1:</label>
+                      <select
+                        className="host-selection__dropdown"
+                        value={link.selectedInterface1}
+                        onChange={(e) =>
+                          handleChange(index, 'selectedInterface1', e.target.value)
+                        }
+                      >
+                        <option value="">-- Select Interface --</option>
+                        {getInterfacesForHost(link.selectedHost1).map((intf) => (
+                          <option key={intf.interface} value={intf.interface}>
+                            {intf.interface} ({intf.status})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="host-selection__dropdown-group">
+                      <label>Interface of Router2:</label>
+                      <select
+                        className="host-selection__dropdown"
+                        value={link.selectedInterface2}
+                        onChange={(e) =>
+                          handleChange(index, 'selectedInterface2', e.target.value)
+                        }
+                      >
+                        <option value="">-- Select Interface --</option>
+                        {getInterfacesForHost(link.selectedHost2).map((intf) => (
+                          <option key={intf.interface} value={intf.interface}>
+                            {intf.interface} ({intf.status})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              
+
+              {/* กรอก IP Address ฝั่ง Router1, Router2 และ Subnet */}
+              <div style={{ marginTop: '20px' }}>
+                <div className="host-selection__dropdown-group">
+                  <label>IP Address (Router1):</label>
+                  <input
+                    type="text"
+                    className="host-selection__dropdown"
+                    value={link.ipAddress1}
+                    onChange={(e) =>
+                      handleChange(index, 'ipAddress1', e.target.value)
+                    }
+                    placeholder="Enter IP for Router1"
+                  />
+                </div>
+
+                <div className="host-selection__dropdown-group">
+                  <label>IP Address (Router2):</label>
+                  <input
+                    type="text"
+                    className="host-selection__dropdown"
+                    value={link.ipAddress2}
+                    onChange={(e) =>
+                      handleChange(index, 'ipAddress2', e.target.value)
+                    }
+                    placeholder="Enter IP for Router2"
+                  />
+                </div>
+
+                <div className="host-selection__dropdown-group">
+                  <label>Subnet (CIDR):</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={32}
+                    className="host-selection__dropdown"
+                    value={link.cidr}
+                    onChange={(e) => handleChange(index, 'cidr', e.target.value)}
+                    placeholder="24"
+                  />
+                </div>
+              </div>
+
+              {/* เลือก Protocol */}
+              <div style={{ marginTop: '20px' }}>
+                <label>Protocol:</label>
+                <select
+                  className="host-selection__dropdown"
+                  value={link.selectedProtocol}
+                  onChange={(e) =>
+                    handleChange(index, 'selectedProtocol', e.target.value)
+                  }
+                >
+                  {protocols.map((prot) => (
+                    <option key={prot.value} value={prot.value}>
+                      {prot.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* ถ้าเลือก protocol = static */}
+              {link.selectedProtocol === 'static' && (
+              <>
+                {/* Static Route for Host1 */}
+                <div
+                  className="host-selection__static-route-configuration"
+                  style={{
+                    marginTop: '20px',
+                    background: 'linear-gradient(to bottom right, #eef6f9, #dcecf5)',
+                    padding: '18px',
+                    borderRadius: '10px',
+                    border: '1px solid #c7dfe6',
+                    boxShadow: '0 1px 4px rgba(0, 0, 0, 0.08)',
+                  }}
+                >
+                  <h4>Static Route Configuration for {link.selectedHost1}</h4>
+                  <div className="host-selection__dropdown-group">
+                    <label>Prefix (Host1):</label>
+                    <input
+                      type="text"
+                      className="host-selection__dropdown"
+                      value={link.staticRoute1?.prefix || ''}
+                      onChange={(e) =>
+                        handleChange(
+                          index,
+                          { group: 'staticRoute1', key: 'prefix' },
+                          e.target.value
+                        )
+                      }
+                      placeholder="Enter Prefix (e.g., 10.0.0.0)"
+                    />
+                  </div>
+                    
+                  <div className="host-selection__dropdown-group">
+                    <label>CIDR (Host1):</label>
+                    <input
+                      type="text"
+                      className="host-selection__dropdown"
+                      value={link.staticRoute1?.cidr || ''}
+                      onChange={(e) =>
+                        handleChange(
+                          index,
+                          { group: 'staticRoute1', key: 'cidr' },
+                          e.target.value
+                        )
+                      }
+                      placeholder="Enter Subnet Mask (e.g., 255.255.255.0)"
+                    />
+                  </div>
+                    
+                  <div className="host-selection__dropdown-group">
+                    <label>Next Hop (Host1):</label>
+                    <input
+                      type="text"
+                      className="host-selection__dropdown"
+                      value={link.staticRoute1?.nextHop || ''}
+                      onChange={(e) =>
+                        handleChange(
+                          index,
+                          { group: 'staticRoute1', key: 'nextHop' },
+                          e.target.value
+                        )
+                      }
+                      placeholder="Enter Next Hop IP Address"
+                    />
+                  </div>
+                </div>
+                    
+                {/* Static Route for Host2 */}
+                <div
+                  className="host-selection__static-route-configuration"
+                  style={{
+                    marginTop: '20px',
+                    background: 'linear-gradient(to bottom right, #eef6f9, #dcecf5)',
+                    padding: '18px',
+                    borderRadius: '10px',
+                    border: '1px solid #c7dfe6',
+                    boxShadow: '0 1px 4px rgba(0, 0, 0, 0.08)',
+                  }}
+                >
+                  <h4>Static Route Configuration for {link.selectedHost2}</h4>
+                  <div className="host-selection__dropdown-group">
+                    <label>Prefix (Host2):</label>
+                    <input
+                      type="text"
+                      className="host-selection__dropdown"
+                      value={link.staticRoute2?.prefix || ''}
+                      onChange={(e) =>
+                        handleChange(
+                          index,
+                          { group: 'staticRoute2', key: 'prefix' },
+                          e.target.value
+                        )
+                      }
+                      placeholder="Enter Prefix (e.g., 10.0.0.0)"
+                    />
+                  </div>
+                    
+                  <div className="host-selection__dropdown-group">
+                    <label>CIDR (Host2):</label>
+                    <input
+                      type="text"
+                      className="host-selection__dropdown"
+                      value={link.staticRoute2?.cidr || ''}
+                      onChange={(e) =>
+                        handleChange(
+                          index,
+                          { group: 'staticRoute2', key: 'cidr' },
+                          e.target.value
+                        )
+                      }
+                      placeholder="Enter Subnet Mask (e.g., 255.255.255.0)"
+                    />
+                  </div>
+                    
+                  <div className="host-selection__dropdown-group">
+                    <label>Next Hop (Host2):</label>
+                    <input
+                      type="text"
+                      className="host-selection__dropdown"
+                      value={link.staticRoute2?.nextHop || ''}
+                      onChange={(e) =>
+                        handleChange(
+                          index,
+                          { group: 'staticRoute2', key: 'nextHop' },
+                          e.target.value
+                        )
+                      }
+                      placeholder="Enter Next Hop IP Address"
+                    />
+                  </div>
+                </div>
+              </>
             )}
 
-            <div className="host-selection-container">
-              <div className="host-selection__hosts">
-                <div className="host-selection__dropdown-group">
-                  <label>Router1 (Host):</label>
-                  <select
-                    className="host-selection__dropdown"
-                    value={link.selectedHost1}
-                    onChange={(e) =>
-                      handleChange(index, 'selectedHost1', e.target.value)
-                    }
-                  >
-                    <option value="">-- Select Router (Host1) --</option>
-                    {!loading &&
-                      hosts.map((host) => (
-                        <option key={host.hostname} value={host.hostname}>
-                          {host.hostname}
-                        </option>
-                      ))}
-                  </select>
-                  {loading ? <Spinner color="primary" size="large" /> : null}
-                </div>
-
-                <div className="host-selection__dropdown-group">
-                  <label>Router2 (Host):</label>
-                  <select
-                    className="host-selection__dropdown"
-                    value={link.selectedHost2}
-                    onChange={(e) =>
-                      handleChange(index, 'selectedHost2', e.target.value)
-                    }
-                  >
-                    <option value="">-- Select Router (Host2) --</option>
-                    {hosts.map((host) => (
-                      <option key={host.hostname} value={host.hostname}>
-                        {host.hostname}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="host-selection__commands">
-                <div className="host-selection__dropdown-group">
-                  <label>Interface of Router1:</label>
-                  <select
-                    className="host-selection__dropdown"
-                    value={link.selectedInterface1}
-                    onChange={(e) =>
-                      handleChange(index, 'selectedInterface1', e.target.value)
-                    }
-                  >
-                    <option value="">-- Select Interface --</option>
-                    {getInterfacesForHost(link.selectedHost1).map((intf) => (
-                      <option key={intf.interface} value={intf.interface}>
-                        {intf.interface} ({intf.status})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="host-selection__dropdown-group">
-                  <label>Interface of Router2:</label>
-                  <select
-                    className="host-selection__dropdown"
-                    value={link.selectedInterface2}
-                    onChange={(e) =>
-                      handleChange(index, 'selectedInterface2', e.target.value)
-                    }
-                  >
-                    <option value="">-- Select Interface --</option>
-                    {getInterfacesForHost(link.selectedHost2).map((intf) => (
-                      <option key={intf.interface} value={intf.interface}>
-                        {intf.interface} ({intf.status})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+            <div className="remove-link-container">
+              {links.length > 1 && (
+                <button
+                  onClick={() => handleRemoveLink(index)}
+                  className='button-sw-sw-remove'
+                >
+                  <img
+                    src="bin.png"  // Replace with your actual image path
+                    alt="Remove link"
+                    style={{ width: '45px', height: '27px' }}  // Adjust size as needed
+                  />
+                </button>
+              )}
             </div>
 
-            {/* กรอก IP Address ฝั่ง Router1, Router2 และ Subnet */}
-            <div style={{ marginTop: '20px' }}>
-              <div className="host-selection__dropdown-group">
-                <label>IP Address (Router1):</label>
-                <input
-                  type="text"
-                  className="host-selection__dropdown"
-                  value={link.ipAddress1}
-                  onChange={(e) =>
-                    handleChange(index, 'ipAddress1', e.target.value)
-                  }
-                  placeholder="Enter IP for Router1"
-                />
-              </div>
-
-              <div className="host-selection__dropdown-group">
-                <label>IP Address (Router2):</label>
-                <input
-                  type="text"
-                  className="host-selection__dropdown"
-                  value={link.ipAddress2}
-                  onChange={(e) =>
-                    handleChange(index, 'ipAddress2', e.target.value)
-                  }
-                  placeholder="Enter IP for Router2"
-                />
-              </div>
-
-              <div className="host-selection__dropdown-group">
-                <label>Subnet (CIDR):</label>
-                <input
-                  type="number"
-                  min={1}
-                  max={32}
-                  className="host-selection__dropdown"
-                  value={link.cidr}
-                  onChange={(e) => handleChange(index, 'cidr', e.target.value)}
-                  placeholder="24"
-                />
-              </div>
             </div>
-
-            {/* เลือก Protocol */}
-            <div style={{ marginTop: '20px' }}>
-              <label>Protocol:</label>
-              <select
-                className="host-selection__dropdown"
-                value={link.selectedProtocol}
-                onChange={(e) =>
-                  handleChange(index, 'selectedProtocol', e.target.value)
-                }
-              >
-                {protocols.map((prot) => (
-                  <option key={prot.value} value={prot.value}>
-                    {prot.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* ถ้าเลือก protocol = static */}
-            {link.selectedProtocol === 'static' && (
-            <>
-              {/* Static Route for Host1 */}
-              <div
-                className="host-selection__static-route-configuration"
-                style={{
-                  marginTop: '20px',
-                  background: 'linear-gradient(to bottom right, #eef6f9, #dcecf5)',
-                  padding: '18px',
-                  borderRadius: '10px',
-                  border: '1px solid #c7dfe6',
-                  boxShadow: '0 1px 4px rgba(0, 0, 0, 0.08)',
-                }}
-              >
-                <h4>Static Route Configuration for {link.selectedHost1}</h4>
-                <div className="host-selection__dropdown-group">
-                  <label>Prefix (Host1):</label>
-                  <input
-                    type="text"
-                    className="host-selection__dropdown"
-                    value={link.staticRoute1?.prefix || ''}
-                    onChange={(e) =>
-                      handleChange(
-                        index,
-                        { group: 'staticRoute1', key: 'prefix' },
-                        e.target.value
-                      )
-                    }
-                    placeholder="Enter Prefix (e.g., 10.0.0.0)"
-                  />
-                </div>
-                  
-                <div className="host-selection__dropdown-group">
-                  <label>Subnet (Host1):</label>
-                  <input
-                    type="text"
-                    className="host-selection__dropdown"
-                    value={link.staticRoute1?.subnet || ''}
-                    onChange={(e) =>
-                      handleChange(
-                        index,
-                        { group: 'staticRoute1', key: 'subnet' },
-                        e.target.value
-                      )
-                    }
-                    placeholder="Enter Subnet Mask (e.g., 255.255.255.0)"
-                  />
-                </div>
-                  
-                <div className="host-selection__dropdown-group">
-                  <label>Next Hop (Host1):</label>
-                  <input
-                    type="text"
-                    className="host-selection__dropdown"
-                    value={link.staticRoute1?.nextHop || ''}
-                    onChange={(e) =>
-                      handleChange(
-                        index,
-                        { group: 'staticRoute1', key: 'nextHop' },
-                        e.target.value
-                      )
-                    }
-                    placeholder="Enter Next Hop IP Address"
-                  />
-                </div>
-              </div>
-                  
-              {/* Static Route for Host2 */}
-              <div
-                className="host-selection__static-route-configuration"
-                style={{
-                  marginTop: '20px',
-                  background: 'linear-gradient(to bottom right, #eef6f9, #dcecf5)',
-                  padding: '18px',
-                  borderRadius: '10px',
-                  border: '1px solid #c7dfe6',
-                  boxShadow: '0 1px 4px rgba(0, 0, 0, 0.08)',
-                }}
-              >
-                <h4>Static Route Configuration for {link.selectedHost2}</h4>
-                <div className="host-selection__dropdown-group">
-                  <label>Prefix (Host2):</label>
-                  <input
-                    type="text"
-                    className="host-selection__dropdown"
-                    value={link.staticRoute2?.prefix || ''}
-                    onChange={(e) =>
-                      handleChange(
-                        index,
-                        { group: 'staticRoute2', key: 'prefix' },
-                        e.target.value
-                      )
-                    }
-                    placeholder="Enter Prefix (e.g., 10.0.0.0)"
-                  />
-                </div>
-                  
-                <div className="host-selection__dropdown-group">
-                  <label>Subnet (Host2):</label>
-                  <input
-                    type="text"
-                    className="host-selection__dropdown"
-                    value={link.staticRoute2?.subnet || ''}
-                    onChange={(e) =>
-                      handleChange(
-                        index,
-                        { group: 'staticRoute2', key: 'subnet' },
-                        e.target.value
-                      )
-                    }
-                    placeholder="Enter Subnet Mask (e.g., 255.255.255.0)"
-                  />
-                </div>
-                  
-                <div className="host-selection__dropdown-group">
-                  <label>Next Hop (Host2):</label>
-                  <input
-                    type="text"
-                    className="host-selection__dropdown"
-                    value={link.staticRoute2?.nextHop || ''}
-                    onChange={(e) =>
-                      handleChange(
-                        index,
-                        { group: 'staticRoute2', key: 'nextHop' },
-                        e.target.value
-                      )
-                    }
-                    placeholder="Enter Next Hop IP Address"
-                  />
-                </div>
-              </div>
-            </>
-          )}
-
+            ))}
           </div>
-        ))}
 
-        <button className="buttont-sw-sw" onClick={handleSubmitAll}>
-          Submit All
-        </button>
-        {error && <div className="error">Error: {error}</div>}
+          <div className="line-container">
+            <div className="line"></div>
+            <button 
+              onClick={handleAddLink} 
+              className={`button-sw-sw-add ${loading ? 'loading' : ''}`} 
+              // disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Spinner color="white" size="small" /> {/* Spinner in front of the text */}
+                  <span className="fetching-text">Fetching Data...</span>
+                </>
+              ) : (
+                "+ Add Router-Router Link"
+              )}
+            </button>
+            <div className="line"></div>
+          </div>
+        </div>
+
+        
+
+
+        <div className="submit-sw-sw-container">
+          <button className="button-sw-sw-submit" onClick={handleSubmitAll}>
+            Submit All
+          </button>
+        </div>
+
+        {error && <div className="error-sw-sw">Error: {error}</div>}
+
       </div>
     </div>
   );
