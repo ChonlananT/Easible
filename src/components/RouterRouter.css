@@ -1,129 +1,72 @@
-.pair {
-    display: flex; /* Use flexbox layout */
-    flex-direction: row; /* Ensure blocks are placed in a row */
-    justify-content: space-between; /* Add space between blocks */
-    align-items: flex-start; /* Align items vertically at the top */
-    gap: 24px; /* Increased space between blocks for better separation */
-    padding: 20px; /* Add padding around the pair */
+.content-align-rt-rt{
+    width: 100%;
+    gap: 10px;
 }
-
-.block {
-    flex: 1; /* Make blocks take up equal width */
-    max-width: 100%; /* Ensure responsiveness */
-    padding: 40px; /* Adjust padding for better spacing inside */
-    border: 1px solid #dcdcdc; /* Light border for structure */
-    box-sizing: border-box; /* Include padding in width calculation */
-    border-radius: 16px; /* Rounded corners for the blocks */
-    background-color: #ffffff; /* White background for contrast */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
-    transition: transform 0.2s, box-shadow 0.2s; /* Smooth transitions for hover effects */
-    margin: 16px 0; /* Consistent vertical spacing */
-}
-
-/* .block:hover {
-    transform: scale(1.03); 
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); 
-    } 
-*/
-
-
-
-
-
-.dropdown {
-    display: flex; /* Flexbox for alignment */
-    flex-direction: row; /* Place dropdowns side by side */
-    justify-content: flex-start; /* Align items starting from the left */
-    gap: 85px; /* Add space between dropdowns */
-    margin-bottom: 24px; /* Add spacing below dropdowns */
-    flex-wrap: wrap; /* Optional: Allow wrapping on smaller screens */
-}
-
-.dropdown select {
-    flex: 1; /* Allow dropdowns to grow as needed */
-    padding: 8px 12px; /* Add padding inside dropdowns */
-    font-size: 14px; /* Adjust font size */
-    color: #585858;
-    border: 1px solid #ccc; /* Light border for dropdowns */
-    border-radius: 8px; /* Rounded corners for dropdowns */
-    background-color: #f9f9f9; /* Light background */
-    transition: border-color 0.2s; /* Smooth transition on focus */
-    min-width: 150px; /* Set a minimum width to ensure the dropdown is wider */
-    max-width: 300px; /* Optional: Set a maximum width for better responsiveness */
-}
-
-.dropdown select:focus {
-    border-color: #007bff; /* Highlight border on focus */
-    outline: none; /* Remove default outline */
+  
+.host-section-rt-rt {
+    display: flex;
+    flex-direction: row;
+    gap: 30px;
+    width: 100%;
+    justify-content: center; /* Align horizontally to the center */
 }
 
 
 
 
 
-.text {
-    display: flex; /* Flexbox for alignment */
-    flex-direction: row; /* Stack text inputs vertically */
-    gap: 12px; /* Add space between inputs */
-}
-
-.text input {
-    padding: 10px 12px; /* Add padding inside inputs */
-    font-size: 16px; /* Adjust font size */
-    border: 1px solid #ccc; /* Light border for inputs */
-    border-radius: 8px; /* Rounded corners for inputs */
-    background-color: #f9f9f9; /* Light background */
-    transition: border-color 0.2s; /* Smooth transition on focus */
-}
-
-.text input:focus {
-    border-color: #007bff; /* Highlight border on focus */
-    outline: none; /* Remove default outline */
+.ip-subnet-group{
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    width: 100%;
 }
 
 
 
 
 
-.field {
-    display: flex; /* Use flexbox layout */
-    flex-direction: column; /* Stack label and input/select vertically */
-    align-items: flex-start; /* Align everything to the left */
-    gap: 4px; /* Add space between the label and input/select */
-    margin-bottom: 16px; /* Add space below each field for separation */
-}
-
-.field label {
-    font-weight: bold; /* Optional: Make labels stand out */
-    font-size: 14px; /* Adjust label font size */
-    margin-bottom: 4px; /* Add spacing below the label */
-    text-align: left; /* Explicitly align text to the left */
-    color: #585858;
-}
-
-.field select,
-.field input {
-    width: 100%; /* Make the inputs/selects occupy full width of the parent */
-    padding: 8px 12px; /* Add padding inside inputs/selects */
-    border: 1px solid #ccc; /* Light border */
-    border-radius: 8px; /* Rounded corners */
-    background-color: #f9f9f9; /* Light background */
-    box-sizing: border-box; /* Ensure padding doesn’t affect width calculation */
+.connect-pic-rt-rt{
+    width: 33%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
 }
 
 
 
 
 
-.single {
-    width: 50%; /* Adjust the width to make the block smaller */
-    max-width: 200px; /* Set a maximum width */
-    padding: 16px; /* Reduced padding for a smaller block */
-    border: 1px solid #dcdcdc; /* Light border for structure */
-    box-sizing: border-box; /* Include padding in width calculation */
-    border-radius: 16px; /* Rounded corners */
-    background-color: #ffffff; /* White background */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
-    transition: transform 0.2s, box-shadow 0.2s; /* Smooth transitions */
-    margin: 16px auto; /* Center horizontally */
+.protocol-card{
+    margin-top: 50px;
+    width: 60%;
+    display: flex; /* Enable flexbox layout */
+    flex-direction: row; /* Ensure items are stacked vertically */
+    justify-content: center; /* Center content vertically */
+    align-items: center; /* Center content horizontally */
+    background: #ebf2f9;
+    padding: 18px;
+    border-radius: 12px;
+    border: 2px solid #aad3f0;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease-in-out;
+    animation: spreadFromCenter 0.2s ease; /* Apply the animation */
+    transform-origin: center;
+}
+
+.line-vertical-rt-rt{
+    height: 340px; /* Add a unit like px to define a valid height */
+    width: 2px;
+    background-color: #aad3f0; /* Adjust the color to your preference */
+    border-radius: 20px;
+    margin: 0 30px;
+}
+
+.protocal-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center; /* optional, to make sure the content is centered in the viewport */
 }

@@ -52,7 +52,6 @@
 .content-section {
     display: flex;
     flex-direction: column;
-    gap: 20px;
     align-items: flex-start; /* Align items to the top */
     justify-content: left;
     width: 100%;
@@ -70,7 +69,7 @@
     gap: 20px;
     align-items: center;
     justify-content: center;
-    padding: 18px;
+    padding: 16px;
     border: 2px solid #d4c9ed; /* Softer border color */
     background: #f6f4ff;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Slightly stronger shadow for depth */
@@ -80,13 +79,13 @@
 }
 
 .host-selection-container {
-    padding: 20px;
+    /* padding: 20px; */
     display: flex;
     /* border: 1px solid #e0e0e0;
     background: linear-gradient(to top right, #fafafa, #ffffff);
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
     border-radius: 16px; */
-    gap: 20px;
+    gap: 10px;
     flex-direction: column;
     width: 100%;
     /* border: 1px solid rgb(99, 46, 46); */
@@ -122,6 +121,7 @@
 
 
 .command-section{
+    margin-top: 40px;
     padding: 0 150px 0 150px;
     display: flex;
     width: 100%;
@@ -186,12 +186,22 @@
 
 
 
+.host-sw-sw {
+    margin-bottom: 80px;
+}
 
-.connect-pic{
+
+
+
+
+
+.connect-pic-sw-sw{
+    width: 33%;
     display: flex;
-    justify-content: center; /* Centers the element horizontally */
-    align-items: center; /* Centers the element vertically */
-    width: 10%;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
 }
 
 
@@ -263,7 +273,7 @@
 .host-selection__hosts{
     display: flex;
     flex-direction: row;
-    /* gap: 20px; */
+    gap: 50px;
     align-items: center;
     justify-content: center;
     padding: 0 70px 0 70px;
@@ -281,6 +291,7 @@
     align-items: center;
     justify-content: center;
     margin-top: 10px;
+    margin-bottom: 10px;
     padding: 0 300px 0 300px;
 }
 
@@ -467,3 +478,10 @@
     font-weight: 500;
     text-align: right;
 }
+
+
+
+
+
+
+
