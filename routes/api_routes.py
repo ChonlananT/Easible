@@ -7,6 +7,9 @@ from services.ansible_playbook import generate_playbook
 from services.database import add_device, fetch_all_devices, delete_device
 from services.generate_inventory import generate_inventory_content
 from services.sh_ip_int_br import sh_ip_int_br
+from services.cidr import cidr_to_subnet_mask
+from services.parse import parse_switchport
+from services.calculate_network_id import calculate_network_id
 
 api_bp = Blueprint('api', __name__)
 
@@ -451,6 +454,9 @@ def create_playbook_routerrouter():
             # ตรวจสอบค่าเบื้องต้น
             if not (hostname1 and hostname2 and interface1 and interface2 and ip1 and ip2 and cidr):
                 return jsonify({"error": f"Link #{idx}: missing required fields"}), 400
+            
+            subnet1 = cidr_to_subnet_mask(static_route1['cidr']) if protocol and protocol.lower() == 'static' and static_route1 else cidr_to_subnet_mask(cidr)
+            subnet2 = cidr_to_subnet_mask(static_route2['cidr']) if protocol and protocol.lower() == 'static' and static_route2 else cidr_to_subnet_mask(cidr)
 
             # คำนวณ Subnet Mask (เช่น /24 -> 255.255.255.0)
             try:
@@ -548,19 +554,34 @@ def create_playbook_routerrouter():
                         return jsonify({"error": f"Link #{idx}: Incomplete staticRoute details"}), 400
 
                     prefix1 = static_route1.get("prefix")
-                    subnet1 = static_route1.get("subnet")
+                    cidr1 = static_route1.get("cidr")
                     nextHop1 = static_route1.get("nextHop")
+                    subnet_route1 = cidr_to_subnet_mask(cidr1)
 
                     prefix2 = static_route2.get("prefix")
-                    subnet2 = static_route2.get("subnet")
+                    cidr2 = static_route2.get("cidr")
                     nextHop2 = static_route2.get("nextHop")
+                    subnet_route2 = cidr_to_subnet_mask(cidr2)
+
+                    # คำนวณ Network ID สำหรับ Static Route
+                    try:
+                        network_static1 = calculate_network_id(static_route1['prefix'], static_route1['cidr'])
+                        subnet_static1 = str(ipaddress.IPv4Network(f"{static_route1['prefix']}/{static_route1['cidr']}", strict=False).netmask)
+                    except ValueError as e:
+                        return jsonify({"error": f"Link #{idx} staticRoute1 error: {e}"}), 400
+
+                    try:
+                        network_static2 = calculate_network_id(static_route2['prefix'], static_route2['cidr'])
+                        subnet_static2 = str(ipaddress.IPv4Network(f"{static_route2['prefix']}/{static_route2['cidr']}", strict=False).netmask)
+                    except ValueError as e:
+                        return jsonify({"error": f"Link #{idx} staticRoute2 error: {e}"}), 400
 
                     # สร้าง task สำหรับ Static Route บน Host1
                     playbook_content += f"""
   - name: "[Link#{idx}] Configure Static Route on {hostname1}"
     ios_config:
       lines:
-        - ip route {prefix1} {subnet1} {nextHop1}
+        - ip route {network_static1} {subnet_static1} {static_route1['nextHop']}
       when: inventory_hostname == "{hostname1}"
 """
 
@@ -569,7 +590,7 @@ def create_playbook_routerrouter():
   - name: "[Link#{idx}] Configure Static Route on {hostname2}"
     ios_config:
       lines:
-        - ip route {prefix2} {subnet2} {nextHop2}
+        - ip route {network_static2} {subnet_static2} {static_route2['nextHop']}
       when: inventory_hostname == "{hostname2}"
 """
                 else:
@@ -591,6 +612,257 @@ def create_playbook_routerrouter():
         return jsonify({
             "message": "Router-Router playbook created successfully",
             "playbook": playbook_content
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@api_bp.route('/api/create_playbook_configdevice', methods=['POST'])
+def create_playbook_configdevice():
+    try:
+        # 1) ดึงข้อมูลจาก request
+        data = request.json
+        print(data)
+
+        # สมมติว่า frontend ส่งมาเป็น array (หลายคำสั่ง)
+        # ถ้าเป็น single command แบบเดิมจะเป็น dict ธรรมดา -> ควรรองรับได้ทั้งสองแบบ
+        if isinstance(data, dict):
+            # แปลงให้เป็น list 1 ตัว เพื่อใช้ logic เดียวกัน
+            data = [data]
+        elif not isinstance(data, list):
+            return jsonify({"error": "Invalid data format. Expected a list of command configurations."}), 400
+
+        # ส่วนหัวของ playbook
+        playbook_content = """---
+- name: Configure Device Commands
+  hosts: all
+  gather_facts: no
+  tasks:
+"""
+
+        # ใช้ set เพื่อเก็บ interface ที่ถูกกำหนดเป็น trunk แล้ว
+        trunked_interfaces = set()
+
+        # 2) สะสม tasks จากแต่ละคำสั่ง
+        for idx, cmd in enumerate(data, start=1):
+            cmd_type = cmd.get("command")  # เปลี่ยนจาก "type" เป็น "command"
+            device_type = cmd.get("deviceType")
+            host = cmd.get("hostname")  # เปลี่ยนจาก "host" เป็น "hostname"
+
+            if not cmd_type or not device_type or not host:
+                return jsonify({"error": f"Command #{idx}: Missing command, deviceType, or hostname field."}), 400
+
+            if device_type not in ["switch", "router"]:
+                return jsonify({"error": f"Command #{idx}: Unsupported deviceType '{device_type}'."}), 400
+
+            if cmd_type == "vlan":
+                if device_type != "switch":
+                    return jsonify({"error": f"Command #{idx}: VLAN command is only applicable to switches."}), 400
+
+                vlan_data = cmd.get("vlanData", {})
+                vlan_id = vlan_data.get("vlanId")
+                vlan_name = vlan_data.get("vlanName")
+                ip_address = vlan_data.get("ipAddress")
+                cidr = vlan_data.get("cidr")
+                interface = vlan_data.get("interface")
+                switchport_mode = vlan_data.get("mode")  # เปลี่ยนจาก "switchportMode" เป็น "mode"
+
+                # Validation
+                if not vlan_id or not interface or not switchport_mode:
+                    return jsonify({"error": f"Command #{idx}: VLAN ID, Interface, and Mode are required."}), 400
+
+                # หากกำหนด IP Address ต้องกำหนด CIDR ด้วย
+                if ip_address and not cidr:
+                    return jsonify({"error": f"Command #{idx}: CIDR is required when IP Address is specified."}), 400
+
+                # คำนวณ Network ID จาก Prefix และ CIDR (สำหรับ IP Address)
+                network_id = ""
+                subnet_mask = ""
+                if ip_address and cidr:
+                    try:
+                        network_id = calculate_network_id(ip_address, cidr)
+                        subnet_mask = str(ipaddress.IPv4Network(f"{ip_address}/{cidr}", strict=False).netmask)
+                    except ValueError as e:
+                        return jsonify({"error": f"Command #{idx}: {str(e)}"}), 400
+
+                # สร้าง Playbook Checker สำหรับตรวจสอบ Switchport Mode
+                playbook_content_checker = f"""
+- name: check VLAN on specific host
+  hosts: {host}
+  gather_facts: no
+  tasks:
+"""
+
+                if interface:
+                    playbook_content_checker += f"""
+  - name: Run 'show run interface {interface}' command on {host}
+    ios_command:
+      commands:
+        - show run interface {interface}
+    register: interface_output
+
+  - name: Filter interface details on {host}
+    debug:
+      msg: "{{{{ interface_output.stdout_lines }}}}"
+    when: interface_output is defined
+"""
+
+                # เขียน playbook_checker ลงไฟล์
+                ssh, username = create_ssh_connection()
+                inventory_path = f"/home/{username}/inventory/inventory.ini"
+                playbook_checker_path = f"/home/{username}/playbook/vlanchecker_{idx}.yml"
+                sftp = ssh.open_sftp()
+                with sftp.open(playbook_checker_path, "w") as playbook_file:
+                    playbook_file.write(playbook_content_checker)
+                sftp.close()
+
+                # รัน playbook_checker
+                ansible_command = f"ansible-playbook -i {inventory_path} {playbook_checker_path}"
+                stdin, stdout, stderr = ssh.exec_command(ansible_command)
+                output = stdout.read().decode("utf-8")
+                error = stderr.read().decode("utf-8")
+                ssh.close()
+
+                # แยกผลลัพธ์จาก playbook_checker
+                parse_result = parse_switchport(output)
+
+                print(parse_result)
+
+                # ตรวจสอบ Switchport Mode และกำหนดคำสั่ง switchport ตามที่ต้องการ
+                for result in parse_result:
+                    host_result = result['hostname']
+                    switchport = result['switchport']
+                    interface_result = result['interface']
+
+                    # กำหนดคำสั่งสำหรับ VLAN
+                    playbook_content += f"""
+  - name: "[Command#{idx}] Configure VLAN {vlan_id} on {host_result}"
+    ios_config:
+      lines:
+        - vlan {vlan_id}
+"""
+                    if vlan_name:
+                        playbook_content += f"        - name {vlan_name}\n"
+
+                    if ip_address and subnet_mask:
+                        playbook_content += f"""        - interface vlan {vlan_id}
+        - ip address {ip_address} {subnet_mask}
+"""
+
+                    playbook_content += f"""    when: inventory_hostname == "{host_result}"
+"""
+
+                    # กำหนดคำสั่ง Switchport Mode ตาม Switchport Mode ที่ตรวจสอบได้
+                    if switchport_mode == "access":
+                        # ถ้าเป็น access, ไม่ต้องเพิ่ม switchport trunk allowed vlan
+                        playbook_content += f"""
+  - name: "[Command#{idx}] Configure Switchport Access Mode on {interface_result}"
+    ios_config:
+      parents: interface {interface_result}
+      lines:
+        - switchport mode access
+    when: inventory_hostname == "{host_result}"
+"""
+                    elif switchport_mode == "trunk":
+                        # ถ้าเป็น trunk, เพิ่ม switchport trunk allowed vlan add {vlan_id}
+                        if (host_result, interface_result) in trunked_interfaces:
+                            playbook_content += f"""
+  - name: "[Command#{idx}] Add VLAN {vlan_id} to existing trunk on {interface_result}"
+    ios_config:
+      parents: interface {interface_result}
+      lines:
+        - switchport trunk allowed vlan add {vlan_id}
+    when: inventory_hostname == "{host_result}"
+"""
+                        else:
+                            playbook_content += f"""
+  - name: "[Command#{idx}] Set trunk mode and allow VLAN {vlan_id} on {interface_result}"
+    ios_config:
+      parents: interface {interface_result}
+      lines:
+        - switchport mode trunk
+        - switchport trunk allowed vlan {vlan_id}
+    when: inventory_hostname == "{host_result}"
+"""
+                            trunked_interfaces.add((host_result, interface_result))
+
+            elif cmd_type == "bridge_priority":
+                if device_type != "switch":
+                    return jsonify({"error": f"Command #{idx}: Bridge Priority command is only applicable to switches."}), 400
+
+                bridge_priority = cmd.get("bridgePriority", {})
+                vlan = bridge_priority.get("vlan")
+                priority = bridge_priority.get("priority")
+
+                # Validation
+                if vlan is None or priority is None:
+                    return jsonify({"error": f"Command #{idx}: VLAN and Priority are required."}), 400
+
+                # กำหนดคำสั่งสำหรับ Bridge Priority
+                playbook_content += f"""
+  - name: "[Command#{idx}] Set Bridge Priority for VLAN {vlan} on {host}"
+    ios_config:
+      lines:
+        - spanning-tree vlan {vlan} priority {priority}
+    when: inventory_hostname == "{host}"
+"""
+
+            elif cmd_type == "config_ip_router":
+                # คำสั่งนี้สามารถใช้ได้กับทั้ง switch และ router
+                config_ip = cmd.get("configIp", {})
+                interface = config_ip.get("interface")
+                ip_address = config_ip.get("ipAddress")
+                cidr = config_ip.get("cidr")
+
+                # Validation
+                if not interface or not ip_address or not cidr:
+                    return jsonify({"error": f"Command #{idx}: Interface, IP Address, and CIDR are required."}), 400
+
+                # คำนวณ Network ID จาก Prefix และ CIDR
+                try:
+                    network_id = calculate_network_id(ip_address, cidr)
+                    subnet_mask = str(ipaddress.IPv4Network(f"{ip_address}/{cidr}", strict=False).netmask)
+                except ValueError as e:
+                    return jsonify({"error": f"Command #{idx}: {str(e)}"}), 400
+
+                # กำหนดคำสั่ง Config IP Router
+                playbook_content += f"""
+  - name: "[Command#{idx}] Configure IP Address on Interface {interface} on {host}"
+    ios_config:
+      lines:
+        - interface {interface}
+        - ip address {ip_address} {subnet_mask}
+    when: inventory_hostname == "{host}"
+"""
+
+            else:
+                return jsonify({"error": f"Command #{idx}: Unsupported command type '{cmd_type}'."}), 400
+
+        # 3) หลังจากรวม tasks ของทุกคำสั่งแล้ว -> เขียน playbook ลงไปบนเซิร์ฟเวอร์ และเรียก ansible-playbook
+        ssh, username = create_ssh_connection()
+        playbook_path = f"/home/{username}/playbook/configdevice_playbook.yml"
+        inventory_path = f"/home/{username}/inventory/inventory.ini"
+
+        sftp = ssh.open_sftp()
+        with sftp.open(playbook_path, "w") as playbook_file:
+            playbook_file.write(playbook_content)
+        sftp.close()
+
+        # สามารถเลือกที่จะรัน Playbook ทันทีได้โดย uncomment ส่วนนี้
+        # stdin, stdout, stderr = ssh.exec_command(f"ansible-playbook -i {inventory_path} {playbook_path}")
+        # output = stdout.read().decode("utf-8")
+        # error = stderr.read().decode("utf-8")
+        # if error:
+        #     return jsonify({"error": f"Ansible Playbook Error: {error}"}), 500
+
+        ssh.close()
+
+        # return playbook_content หรือ output กลับไป
+        return jsonify({
+            "message": "Playbook created successfully",
+            "playbook": playbook_content,
+            # "output": output,       # ถ้าคุณรัน ansible-playbook ไปแล้ว
+            # "errors": error         # ถ้าคุณรัน ansible-playbook ไปแล้ว
         }), 200
 
     except Exception as e:
