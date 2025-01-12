@@ -1,7 +1,7 @@
 .config-command-section{
     margin-top: 30px;
     margin-bottom: 10px;
-    padding: 0 150px 0 150px;
+    padding: 0 50px 0 50px;
     display: flex;
     width: 100%;
     flex-direction: column;
@@ -11,7 +11,7 @@
 }
 
 .config-command-board{
-    width: 50%;
+    width: 90%;
     display: flex; /* Enable flexbox layout */
     flex-direction: column; /* Ensure items are stacked vertically */
     justify-content: center; /* Center content vertically */
@@ -30,6 +30,23 @@
 
 
 
+
+.ip-text{
+    margin: 5px;
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+}
+
+.ip-text label {
+    margin-bottom: 5px; /* Adds spacing below the label */
+}
+
+.ip-text input {
+    padding: 12px 14px; /* Adds padding inside the input field */
+    border: 1px solid #ccc; /* Creates a subtle border for the input */
+    border-radius: 16px; /* Slightly rounds the corners of the input field */
+}
 
 .config-device-input-text {
     margin: 5px;
@@ -52,4 +69,55 @@
     border-color: #0096bb; /* Changes border color when the input is focused */
     outline: none; /* Removes the default focus outline */
     box-shadow: 0 0 5px rgba(0, 208, 255, 0.5); /* Adds a subtle glow for focus */
+}
+
+
+
+
+
+
+.vlan-config-content{
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+}
+
+.vlan-name-id{
+    width: 90%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.ip-subnet-group-confdev {
+    width: 92%;
+    display: flex;
+    gap: 5px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+
+.vlan-config-device{
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+
+
+
+
+.line-vertical-confdev{
+    height: 270px; /* Add a unit like px to define a valid height */
+    width: 2px;
+    background-color: #aad3f0; /* Adjust the color to your preference */
+    border-radius: 20px;
 }

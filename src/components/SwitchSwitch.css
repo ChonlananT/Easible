@@ -121,7 +121,7 @@
 
 
 .command-section{
-    margin-top: 40px;
+    margin-top: 20px;
     padding: 0 150px 0 150px;
     display: flex;
     width: 100%;
@@ -199,7 +199,6 @@
     width: 33%;
     display: flex;
     flex-direction: column;
-    gap: 10px;
     align-items: center;
     justify-content: center;
 }
@@ -271,6 +270,7 @@
 
 
 .host-selection__hosts{
+    margin-top: 10px;
     display: flex;
     flex-direction: row;
     gap: 50px;

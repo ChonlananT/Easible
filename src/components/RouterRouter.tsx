@@ -462,9 +462,9 @@ function RouterRouter() {
               <div className="protocal-section">
                 <div className='protocol-card'>
                   <div className='static-route-section'>
-                    <h5>Static Route Configuration for {link.selectedHost1}</h5>
+                    <h5>Static Route for Host 1</h5>
                     <div className="host-selection__dropdown-group">
-                      <label>Prefix (Host1):</label>
+                      <label>Prefix:</label>
                       <input
                         type="text"
                         className="host-selection__dropdown"
@@ -481,7 +481,7 @@ function RouterRouter() {
                     </div>
                       
                     <div className="host-selection__dropdown-group">
-                      <label>CIDR (Host1):</label>
+                      <label>Subnet:</label>
                       <input
                         type="text"
                         className="host-selection__dropdown"
@@ -498,7 +498,7 @@ function RouterRouter() {
                     </div>
                       
                     <div className="host-selection__dropdown-group">
-                      <label>Next Hop (Host1):</label>
+                      <label>Next Hop:</label>
                       <input
                         type="text"
                         className="host-selection__dropdown"
@@ -516,9 +516,9 @@ function RouterRouter() {
                   </div>
                   <div className="line-vertical-rt-rt"></div>
                   <div className='static-route-section'>
-                    <h5>Static Route Configuration for {link.selectedHost2}</h5>
+                    <h5>Static Route for Host 2</h5>
                     <div className="host-selection__dropdown-group">
-                      <label>Prefix (Host2):</label>
+                      <label>Prefix:</label>
                       <input
                         type="text"
                         className="host-selection__dropdown"
@@ -535,7 +535,7 @@ function RouterRouter() {
                     </div>
                       
                     <div className="host-selection__dropdown-group">
-                      <label>CIDR (Host2):</label>
+                      <label>Subnet:</label>
                       <input
                         type="text"
                         className="host-selection__dropdown"
@@ -552,7 +552,7 @@ function RouterRouter() {
                     </div>
                       
                     <div className="host-selection__dropdown-group">
-                      <label>Next Hop (Host2):</label>
+                      <label>Next Hop:</label>
                       <input
                         type="text"
                         className="host-selection__dropdown"
