@@ -475,8 +475,8 @@ def create_playbook_routerrouter():
             playbook_content += f"""
   - name: "[Link#{idx}] Config IP on {hostname1}"
     ios_config:
+      parents: interface {interface1}
       lines:
-        - interface {interface1}
         - ip address {ip1} {netmask1}
         - no shutdown
     when: inventory_hostname == "{hostname1}"
@@ -486,8 +486,8 @@ def create_playbook_routerrouter():
             playbook_content += f"""
   - name: "[Link#{idx}] Config IP on {hostname2}"
     ios_config:
+      parents: interface {interface2}
       lines:
-        - interface {interface2}
         - ip address {ip2} {netmask2}
         - no shutdown
     when: inventory_hostname == "{hostname2}"
@@ -508,7 +508,7 @@ def create_playbook_routerrouter():
         - router rip
         - version 2
         - network {netaddr1}
-      when: inventory_hostname == "{hostname1}"
+    when: inventory_hostname == "{hostname1}"
 """
 
                     playbook_content += f"""
@@ -518,7 +518,7 @@ def create_playbook_routerrouter():
         - router rip
         - version 2
         - network {netaddr2}
-      when: inventory_hostname == "{hostname2}"
+    when: inventory_hostname == "{hostname2}"
 """
 
                 elif protocol.lower() == "ospf":
@@ -535,7 +535,7 @@ def create_playbook_routerrouter():
       lines:
         - router ospf 1
         - network {ip1} 0.0.0.0 area 0
-      when: inventory_hostname == "{hostname1}"
+    when: inventory_hostname == "{hostname1}"
 """
 
                     playbook_content += f"""
@@ -544,7 +544,7 @@ def create_playbook_routerrouter():
       lines:
         - router ospf 1
         - network {ip2} 0.0.0.0 area 0
-      when: inventory_hostname == "{hostname2}"
+    when: inventory_hostname == "{hostname2}"
 """
 
                 elif protocol.lower() == "static":
@@ -582,7 +582,7 @@ def create_playbook_routerrouter():
     ios_config:
       lines:
         - ip route {network_static1} {subnet_static1} {static_route1['nextHop']}
-      when: inventory_hostname == "{hostname1}"
+    when: inventory_hostname == "{hostname1}"
 """
 
                     # สร้าง task สำหรับ Static Route บน Host2
@@ -591,7 +591,7 @@ def create_playbook_routerrouter():
     ios_config:
       lines:
         - ip route {network_static2} {subnet_static2} {static_route2['nextHop']}
-      when: inventory_hostname == "{hostname2}"
+    when: inventory_hostname == "{hostname2}"
 """
                 else:
                     # ถ้า protocol ไม่รู้จัก ก็ข้าม หรือ return error
