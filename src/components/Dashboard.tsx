@@ -14,7 +14,7 @@ function Dashboard() {
           <li className="center sub-topic"><a href="/routerswitch">router-switch</a></li>
           <li className="center sub-topic"><a href="/switchswitch">switch-switch</a></li>
           <li className="center sub-topic"><a href="/configdevice">config device</a></li>
-          <li className="center"><a href="/topology">Topology</a></li>
+          <li className="center"><a href="/topology">Lab Check</a></li>
       </ul>
     </div>
   );

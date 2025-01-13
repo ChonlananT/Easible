@@ -395,7 +395,7 @@ function ConfigDevice() {
         <li className="center sub-topic"><a href="/routerswitch">router-switch</a></li>
         <li className="center sub-topic"><a href="/switchswitch">switch-switch</a></li>
         <li className="center sub-topic"><a href="/configdevice" style={{ color: '#8c94dc' }}>config device</a></li>
-        <li className="center"><a href="/topology">Topology</a></li>
+        <li className="center"><a href="/topology">Lab Check</a></li>
       </ul>
 
       <div className="content">
@@ -536,7 +536,7 @@ function ConfigDevice() {
                               </div>
 
                               <div className="config-device-input-text">
-                                <label>CIDR:</label>
+                                <label>Subnet:</label>
                                 <input
                                   type="number"
                                   min={1}
@@ -668,7 +668,7 @@ function ConfigDevice() {
                       </div>
 
                       <div className="config-device-input-text">
-                        <label>CIDR:</label>
+                        <label>Subnet:</label>
                         <input
                           type="number"
                           min={1}

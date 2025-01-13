@@ -4,7 +4,8 @@
   font-size: 14px; /* Slightly larger for better readability */
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) scale(0.8); /* Start with a slight shrink */
+  opacity: 0; /* Start invisible */
   width: 80%; /* Increase width for balanced spacing */
   max-width: 500px; /* Limit maximum size */
   background-color: #fff; /* Pure white for a clean look */
@@ -13,7 +14,20 @@
   padding: 30px; /* Adequate inner spacing for content */
   z-index: 1000;
   box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2); /* Enhanced shadow for depth */
+  animation: showPopup 0.3s ease forwards; /* Define animation with name, duration, and easing */
 }
+
+@keyframes showPopup {
+  from {
+    transform: translate(-50%, -50%) scale(0.8); /* Start slightly smaller */
+    opacity: 0; /* Fully transparent */
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1); /* Full size */
+    opacity: 1; /* Fully visible */
+  }
+}
+
 
 /* Popup Content */
 .popup-content {
