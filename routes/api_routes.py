@@ -10,6 +10,7 @@ from services.sh_ip_int_br import sh_ip_int_br
 from services.cidr import cidr_to_subnet_mask
 from services.parse import parse_switchport
 from services.calculate_network_id import calculate_network_id
+from services.sh_ip_int_br_rt import sh_ip_int_br_rt
 
 api_bp = Blueprint('api', __name__)
 
@@ -72,11 +73,49 @@ def create_inventory():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@api_bp.route('/api/show_detail', methods=['POST'])
+@api_bp.route('/api/show_detail_switch', methods=['POST'])
 def show_interface_brief():
     try:
         # Generate playbook content
         playbook_content = sh_ip_int_br()
+
+        # Create SSH connection to the VM
+        ssh, username = create_ssh_connection()
+
+        # Define paths for inventory and playbook inside the VM
+        inventory_path = f"/home/{username}/inventory/inventory.ini"
+        playbook_path = f"/home/{username}/playbook/interface.yml"
+
+        # Write the playbook content to a file on the VM
+        sftp = ssh.open_sftp()
+        with sftp.open(playbook_path, "w") as playbook_file:
+            playbook_file.write(playbook_content)
+        sftp.close()
+
+        # Define the ansible command to run on the VM
+        ansible_command = f"ansible-playbook -i {inventory_path} {playbook_path}"
+
+        # Execute the command on the VM
+        stdout, stderr = ssh.exec_command(ansible_command)[1:]
+        output = stdout.read().decode("utf-8")
+        error = stderr.read().decode("utf-8")
+
+        # Parse the interface data
+        parsed_result = parse_interface(output)
+        print(parse_result)
+        ssh.close()
+
+        # Return the structured data
+        return jsonify({"parsed_result": parsed_result})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@api_bp.route('/api/show_detail_router', methods=['POST'])
+def show_interface_brief_router():
+    try:
+        # Generate playbook content
+        playbook_content = sh_ip_int_br_rt()
 
         # Create SSH connection to the VM
         ssh, username = create_ssh_connection()
