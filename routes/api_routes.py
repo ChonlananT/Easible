@@ -4,7 +4,7 @@ from flask import Blueprint, request, jsonify
 from services.ssh_service import create_ssh_connection
 from services.parse import parse_result, parse_interface, parse_switchport
 from services.ansible_playbook import generate_playbook
-from services.database import add_device, fetch_all_devices, delete_device
+from services.database import add_device, fetch_all_devices, delete_device, assign_group_to_hosts, delete_group
 from services.generate_inventory import generate_inventory_content
 from services.sh_ip_int_br import sh_ip_int_br
 from services.cidr import cidr_to_subnet_mask
@@ -21,7 +21,49 @@ def get_hosts():
         return jsonify(devices), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@api_bp.route('/api/add_group', methods=['POST'])
+def add_group():
+    """
+    ตัวอย่าง JSON ที่ส่งมา:
+    {
+        "group_name": "Routers",
+        "hostnames": ["R101", "R102"]
+    }
+    """
+    data = request.json
+    group_name = data.get('group_name')
+    hostnames = data.get('hostnames', [])
+
+    if not group_name or not isinstance(hostnames, list):
+        return jsonify({"error": "Invalid data"}), 400
+
+    success = assign_group_to_hosts(group_name, hostnames)
+    if success:
+        return jsonify({"message": "Group assigned successfully."}), 200
+    else:
+        return jsonify({"error": "Error assigning group."}), 500
     
+@api_bp.route('/api/delete_group', methods=['DELETE'])
+def api_delete_group():
+    """
+    ตัวอย่าง JSON ที่ส่งมา:
+    {
+        "group_name": "Routers"
+    }
+    """
+    data = request.json
+    group_name = data.get('group_name')
+
+    if not group_name:
+        return jsonify({"error": "Group name is required."}), 400
+
+    success, message = delete_group(group_name)
+    if success:
+        return jsonify({"message": message}), 200
+    else:
+        return jsonify({"error": message}), 400
+
 @api_bp.route('/api/delete_host', methods=['DELETE'])
 def delete_host():
     try:
@@ -42,7 +84,7 @@ def add_host():
             data['ipAddress'],
             data['username'],
             data['password'],
-            data['enablePassword']
+            data['enablePassword'],
         )
         return jsonify(data), 200
     except Exception as e:
@@ -51,8 +93,14 @@ def add_host():
 @api_bp.route('/api/create_inventory', methods=['POST'])
 def create_inventory():
     try:
-        # Generate inventory content
-        inventory_content = generate_inventory_content()
+        data = request.json
+        selected_groups = data.get('groups', [])
+
+        if not selected_groups:
+            return jsonify({"error": "No groups selected for inventory creation."}), 400
+
+        # Generate inventory content based on selected groups
+        inventory_content = generate_inventory_content(selected_groups)
 
         # Create SSH connection and get the username
         ssh, username = create_ssh_connection()
@@ -76,7 +124,7 @@ def create_inventory():
 @api_bp.route('/api/show_detail_switch', methods=['POST'])
 def show_interface_brief():
     try:
-        # Generate playbook content
+        # Generate playbook content based on selected groups
         playbook_content = sh_ip_int_br()
 
         # Create SSH connection to the VM
@@ -96,14 +144,19 @@ def show_interface_brief():
         ansible_command = f"ansible-playbook -i {inventory_path} {playbook_path}"
 
         # Execute the command on the VM
-        stdout, stderr = ssh.exec_command(ansible_command)[1:]
+        stdin, stdout, stderr = ssh.exec_command(ansible_command)
         output = stdout.read().decode("utf-8")
         error = stderr.read().decode("utf-8")
 
         # Parse the interface data
-        parsed_result = parse_interface(output)
-        print(parse_result)
+        parsed_result = parse_interface(output)  # สมมติว่ามีฟังก์ชัน parse_interface
+
+        # ปิดการเชื่อมต่อ SSH
         ssh.close()
+
+        # ตรวจสอบว่าเกิด error หรือไม่
+        if error:
+            return jsonify({"error": error}), 500
 
         # Return the structured data
         return jsonify({"parsed_result": parsed_result})

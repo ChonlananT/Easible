@@ -1,28 +1,75 @@
 from services.database import fetch_all_devices
 
-def generate_inventory_content():
+def generate_inventory_content(selected_groups):
+    # ตรวจสอบว่ามีการเลือกกลุ่มอย่างน้อยหนึ่งกลุ่ม
+    if not selected_groups:
+        raise ValueError("No groups selected for inventory creation.")
+
     # Fetch devices from the database
     devices = fetch_all_devices()
 
     # Initialize the inventory content string
     inventory_content = ""
 
-    # Iterate through the devices and generate the inventory content
+    # Initialize a dictionary to map group names to hostnames
+    groups = {}
+
+    # Initialize a set to keep track of all hostnames
+    all_hostnames = set()
+
+    # Iterate through the devices to populate groups and all_hostnames
     for device in devices:
-        # Extracting relevant information from each device
-        device_type = device.get("deviceType")
         hostname = device.get("hostname")
+        all_hostnames.add(hostname)
+
+        # Assign the host to each group it belongs to
+        for group in device.get("groups", []):
+            if group not in groups:
+                groups[group] = []
+            groups[group].append(hostname)
+
+    # แปลง selected_groups เป็น set สำหรับประสิทธิภาพในการค้นหา
+    selected_groups_set = set(selected_groups)
+
+    # ตรวจสอบว่ามีการเลือก "All Devices" หรือไม่
+    include_all_devices = "All Devices" in selected_groups_set
+
+    # Initialize a set of hostnames to include based on selected groups
+    selected_hostnames = set()
+
+    # Add hosts from selected groups
+    for group in selected_groups_set:
+        if group == "All Devices":
+            continue  # Handle "All Devices" separately
+        selected_hostnames.update(groups.get(group, []))
+
+    # If "All Devices" is selected, include all hosts
+    if include_all_devices:
+        selected_hostnames = all_hostnames.copy()
+
+    # Define a new group name "selectedgroup"
+    new_group_name = "selectedgroup"
+
+    # เพิ่มกลุ่ม "selectedgroup" ลงใน groups
+    groups[new_group_name] = sorted(selected_hostnames)
+
+    # First, define each host with its variables, only if it's included
+    for device in devices:
+        hostname = device.get("hostname")
+        if hostname not in selected_hostnames:
+            continue  # Skip hosts not in selected groups
+
         ip_address = device.get("ipAddress")
         enable_password = device.get("enablePassword")
         username = device.get("username")
         password = device.get("password")
 
         # Start by adding device block
-        inventory_content += f"[{device['hostname']}]\n"
+        inventory_content += f"[{hostname}]\n"
         inventory_content += f"{hostname} ansible_host={ip_address}\n"
 
-        # Add variables if there is an enablePassword
-        inventory_content += f"\n[{device['hostname']}:vars]\n"
+        # Add variables for the host
+        inventory_content += f"\n[{hostname}:vars]\n"
         inventory_content += f"ansible_network_os=ios\n"
         inventory_content += f"ansible_user={username}\n"
         inventory_content += f"ansible_password={password}\n"
@@ -38,6 +85,12 @@ def generate_inventory_content():
             inventory_content += "ansible_become=no\n"
 
         inventory_content += "\n"
+
+    # Next, define the "selectedgroup" and assign hosts to it
+    inventory_content += f"[{new_group_name}]\n"
+    for hostname in sorted(groups[new_group_name]):
+        inventory_content += f"{hostname}\n"
+    inventory_content += "\n"
 
     # Return the generated inventory content
     return inventory_content
