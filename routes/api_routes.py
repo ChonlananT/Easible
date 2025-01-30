@@ -10,6 +10,7 @@ from services.sh_ip_int_br import sh_ip_int_br
 from services.cidr import cidr_to_subnet_mask
 from services.parse import parse_switchport
 from services.calculate_network_id import calculate_network_id
+from services.sh_ip_int_br_rt import sh_ip_int_br_rt
 
 api_bp = Blueprint('api', __name__)
 
@@ -72,11 +73,49 @@ def create_inventory():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@api_bp.route('/api/show_detail', methods=['POST'])
+@api_bp.route('/api/show_detail_switch', methods=['POST'])
 def show_interface_brief():
     try:
         # Generate playbook content
         playbook_content = sh_ip_int_br()
+
+        # Create SSH connection to the VM
+        ssh, username = create_ssh_connection()
+
+        # Define paths for inventory and playbook inside the VM
+        inventory_path = f"/home/{username}/inventory/inventory.ini"
+        playbook_path = f"/home/{username}/playbook/interface.yml"
+
+        # Write the playbook content to a file on the VM
+        sftp = ssh.open_sftp()
+        with sftp.open(playbook_path, "w") as playbook_file:
+            playbook_file.write(playbook_content)
+        sftp.close()
+
+        # Define the ansible command to run on the VM
+        ansible_command = f"ansible-playbook -i {inventory_path} {playbook_path}"
+
+        # Execute the command on the VM
+        stdout, stderr = ssh.exec_command(ansible_command)[1:]
+        output = stdout.read().decode("utf-8")
+        error = stderr.read().decode("utf-8")
+
+        # Parse the interface data
+        parsed_result = parse_interface(output)
+        print(parse_result)
+        ssh.close()
+
+        # Return the structured data
+        return jsonify({"parsed_result": parsed_result})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@api_bp.route('/api/show_detail_router', methods=['POST'])
+def show_interface_brief_router():
+    try:
+        # Generate playbook content
+        playbook_content = sh_ip_int_br_rt()
 
         # Create SSH connection to the VM
         ssh, username = create_ssh_connection()
@@ -475,8 +514,8 @@ def create_playbook_routerrouter():
             playbook_content += f"""
   - name: "[Link#{idx}] Config IP on {hostname1}"
     ios_config:
+      parents: interface {interface1}
       lines:
-        - interface {interface1}
         - ip address {ip1} {netmask1}
         - no shutdown
     when: inventory_hostname == "{hostname1}"
@@ -486,8 +525,8 @@ def create_playbook_routerrouter():
             playbook_content += f"""
   - name: "[Link#{idx}] Config IP on {hostname2}"
     ios_config:
+      parents: interface {interface2}
       lines:
-        - interface {interface2}
         - ip address {ip2} {netmask2}
         - no shutdown
     when: inventory_hostname == "{hostname2}"
@@ -508,7 +547,7 @@ def create_playbook_routerrouter():
         - router rip
         - version 2
         - network {netaddr1}
-      when: inventory_hostname == "{hostname1}"
+    when: inventory_hostname == "{hostname1}"
 """
 
                     playbook_content += f"""
@@ -518,7 +557,7 @@ def create_playbook_routerrouter():
         - router rip
         - version 2
         - network {netaddr2}
-      when: inventory_hostname == "{hostname2}"
+    when: inventory_hostname == "{hostname2}"
 """
 
                 elif protocol.lower() == "ospf":
@@ -535,7 +574,7 @@ def create_playbook_routerrouter():
       lines:
         - router ospf 1
         - network {ip1} 0.0.0.0 area 0
-      when: inventory_hostname == "{hostname1}"
+    when: inventory_hostname == "{hostname1}"
 """
 
                     playbook_content += f"""
@@ -544,7 +583,7 @@ def create_playbook_routerrouter():
       lines:
         - router ospf 1
         - network {ip2} 0.0.0.0 area 0
-      when: inventory_hostname == "{hostname2}"
+    when: inventory_hostname == "{hostname2}"
 """
 
                 elif protocol.lower() == "static":
@@ -582,7 +621,7 @@ def create_playbook_routerrouter():
     ios_config:
       lines:
         - ip route {network_static1} {subnet_static1} {static_route1['nextHop']}
-      when: inventory_hostname == "{hostname1}"
+    when: inventory_hostname == "{hostname1}"
 """
 
                     # สร้าง task สำหรับ Static Route บน Host2
@@ -591,7 +630,7 @@ def create_playbook_routerrouter():
     ios_config:
       lines:
         - ip route {network_static2} {subnet_static2} {static_route2['nextHop']}
-      when: inventory_hostname == "{hostname2}"
+    when: inventory_hostname == "{hostname2}"
 """
                 else:
                     # ถ้า protocol ไม่รู้จัก ก็ข้าม หรือ return error
