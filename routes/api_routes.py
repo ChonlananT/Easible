@@ -154,10 +154,6 @@ def show_interface_brief():
         # ปิดการเชื่อมต่อ SSH
         ssh.close()
 
-        # ตรวจสอบว่าเกิด error หรือไม่
-        if error:
-            return jsonify({"error": error}), 500
-
         # Return the structured data
         return jsonify({"parsed_result": parsed_result})
 
@@ -226,7 +222,7 @@ def create_playbook():
         trunked_interfaces = set()
         playbook_content = """---
 - name: Configure multiple links
-  hosts: all
+  hosts: selectedgroup
   gather_facts: no
   tasks:
 """
@@ -525,7 +521,7 @@ def create_playbook_routerrouter():
         # ส่วนหัวของ playbook
         playbook_content = """---
 - name: Configure router-router links
-  hosts: all
+  hosts: selectedgroup
   gather_facts: no
   tasks:
 """
@@ -727,7 +723,7 @@ def create_playbook_configdevice():
         # ส่วนหัวของ playbook
         playbook_content = """---
 - name: Configure Device Commands
-  hosts: all
+  hosts: selectedgroup
   gather_facts: no
   tasks:
 """
@@ -926,7 +922,36 @@ def create_playbook_configdevice():
         - ip address {ip_address} {subnet_mask}
     when: inventory_hostname == "{host}"
 """
+            elif cmd_type == "loopback":
+                if device_type != "router":
+                    return jsonify({"error": f"Command #{idx}: Loopback command is only applicable to routers."}), 400
 
+                loopback_data = cmd.get("loopbackData", {})
+                loopback_num = loopback_data.get("loopbackNumber")
+                ip_address = loopback_data.get("ipAddress")
+
+                # Validation
+                if not loopback_num or not ip_address:
+                    return jsonify({"error": f"Command #{idx}: Loopback Number and IP Address are required."}), 400
+
+                # Fixed subnet mask for loopback is /32
+                subnet_mask = "255.255.255.255"
+
+                # Optionally, validate IP address format
+                try:
+                    ip_obj = ipaddress.IPv4Address(ip_address)
+                except ipaddress.AddressValueError:
+                    return jsonify({"error": f"Command #{idx}: Invalid IP address '{ip_address}'."}), 400
+
+                # Add playbook task for configuring loopback
+                playbook_content += f"""
+  - name: "[Command#{idx}] Configure Loopback {loopback_num} on {host}"
+    ios_config:
+      lines:
+        - interface loopback {loopback_num}
+        - ip address {ip_address} {subnet_mask}
+    when: inventory_hostname == "{host}"
+    """
             else:
                 return jsonify({"error": f"Command #{idx}: Unsupported command type '{cmd_type}'."}), 400
 
