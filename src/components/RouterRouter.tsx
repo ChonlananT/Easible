@@ -3,6 +3,7 @@ import './Bar.css';
 import './RouterRouter.css'; // สมมติ reuse style เดิม หรือเปลี่ยนชื่อไฟล์ใหม่
 import './SwitchSwitch.css'; // สมมติ reuse style เดิม หรือเปลี่ยนชื่อไฟล์ใหม่
 import Spinner from './bootstrapSpinner.tsx';
+import { ArrowLeftFromLine, Menu } from 'lucide-react';
 
 type DropdownOption = {
   hostname: string;
@@ -51,6 +52,11 @@ function RouterRouter() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState<boolean>(true);
 
+  // New states for popup
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupData, setPopupData] = useState([]);
+  const [isClosing, setIsClosing] = useState(false);
+
   // protocol ที่มีให้เลือก
   const protocols = [
     { label: 'None (Only IP Address)', value: 'none' },
@@ -58,6 +64,55 @@ function RouterRouter() {
     { label: 'OSPF', value: 'ospf' },
     { label: 'Static Route', value: 'static' },
   ];
+
+
+  //example data
+  const r1TableData = [
+    {
+      subnet: '192.168.0.0/30',
+      outgoing_interface: 'GigabitEthernet0/0',
+      protocol: 'Connected',
+      metric: 0,
+      nexthop: 'directly',
+      link: 'R1-R2',
+    },
+    {
+      subnet: '192.168.1.0/30',
+      outgoing_interface: 'GigabitEthernet0/0',
+      protocol: 'OSPF',
+      metric: 1,
+      nexthop: '192.168.0.2',
+      link: 'R2-R3',
+    },
+    {
+      subnet: '192.168.3.0/30',
+      outgoing_interface: 'GigabitEthernet0/0',
+      protocol: 'OSPF',
+      metric: 1,
+      nexthop: '192.168.0.2',
+      link: 'R2-R4',
+    },
+    {
+      subnet: '192.168.2.0/30',
+      outgoing_interface: 'GigabitEthernet0/0',
+      protocol: 'OSPF',
+      metric: 2,
+      nexthop: '192.168.0.2',
+      link: 'R3-R4',
+    },
+  ];
+
+
+  
+  const [isNavOpen, setIsNavOpen] = useState(() => {
+    const savedNavState = localStorage.getItem('isNavOpen');
+    return savedNavState === 'true';  // Convert to boolean
+  });
+  
+  useEffect(() => {
+    localStorage.setItem('isNavOpen', isNavOpen.toString());
+  }, [isNavOpen]);
+  
 
   // useEffect: ดึงข้อมูล Hosts/Interfaces จาก backend
   useEffect(() => {
@@ -180,7 +235,6 @@ function RouterRouter() {
   // ฟังก์ชัน Submit ทั้งหมด
   const handleSubmitAll = () => {
     setError('');
-  
     // ตรวจว่าเลือก host, interface, ipAddress, cidr ครบหรือไม่
     for (let link of links) {
       if (
@@ -212,7 +266,6 @@ function RouterRouter() {
         }
       }
     }
-  
     // สร้าง payload ส่งไป backend
     const requestData = links.map((link) => ({
       hostname1: link.selectedHost1,
@@ -229,6 +282,9 @@ function RouterRouter() {
     }));
   
     console.log('Sending data to backend (router-router):', requestData);
+
+    setPopupData(requestData);
+    setShowPopup(true);
   
     fetch('/api/create_playbook_rttort', {
       method: 'POST',
@@ -249,24 +305,69 @@ function RouterRouter() {
         console.error('Error:', err);
       });
   };
+
+  const handleClosePopup = () => {
+    // Trigger closing animation
+    setIsClosing(true);
+    // After the animation duration, remove the popup from the DOM
+    setTimeout(() => {
+      setShowPopup(false);
+      setIsClosing(false); // Reset closing state for future use
+    },); // 500ms should match the duration in the CSS animation
+  };
   
 
   return (
     <div className="App">
-      <ul className="nav-links">
-        <img src="/easible-name.png" alt="" className="dashboard-icon" />
+      <div className={`nav-links-container ${isNavOpen ? "" : "closed"}`}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', paddingRight: '10px', paddingTop: '10px'  }}>
+          <button
+            style={{
+              marginBottom: '16px',
+              padding: '8px',
+              color: '#7b7b7b',
+              borderRadius: '8px',
+              zIndex: 50,
+              border: 'none',
+              background: '#f5f7f9'
+            }}
+            onClick={() => setIsNavOpen(false)}
+          >
+            <ArrowLeftFromLine size={24} />
+          </button>
+          <img src="/easible-name.png" alt="" className="dashboard-icon" />
+        </div>
+        <ul className="nav-links">
+          {/* <img src="/easible-name.png" alt='Logo' className="dashboard-icon" /> */}
           <li className="center"><a href="/dashboard">Dashboard</a></li>
-          <li className="center"><a href="/hosts">Hosts</a></li>
+          <li className="center"><a href="/hosts">Devices</a></li>
           <li className="center"><a href="/jobs">Configuration</a></li>
           <li className="center sub-topic"><a href="/routerrouter" style={{ color: '#8c94dc' }}>router-router</a></li>
           <li className="center sub-topic"><a href="/routerswitch">router-switch</a></li>
           <li className="center sub-topic"><a href="/switchswitch">switch-switch</a></li>
           <li className="center sub-topic"><a href="/configdevice">config device</a></li>
           <li className="center"><a href="/topology">Lab Check</a></li>
-      </ul>
+        </ul>
+      </div>
 
-      <div className="content">
-        <div className="content-topic">
+      <div className={`content ${isNavOpen ? "expanded" : "full-width"}`}>
+        <div className='content-topic'>
+          {!isNavOpen && (
+            <button
+              style={{
+                padding: '8px',
+                color: 'black',
+                borderRadius: '8px',
+                zIndex: 50,
+                border: 'none',
+                background: 'white',
+                marginRight: '8px'
+              }}
+              onClick={() => setIsNavOpen(true)}
+            >
+              <Menu size={24} />
+            </button>
+          )}
           Configuration
           <span className="content-topic-small"> (Router-Router)</span>
         </div>
@@ -610,6 +711,105 @@ function RouterRouter() {
           <button className="button-sw-sw-submit" onClick={handleSubmitAll}>
             Submit All
           </button>
+          {/* Popup Summary */}
+          {showPopup && (
+            <div className="popup-overlay">
+              <div className="popup-preview">
+              <h1 style={{ fontSize: '32px' }}>Summary</h1>
+                <div className='topology-prev'>
+                  Network Topology
+                  <img src="/topo.png" alt="" height={100}/>
+                </div>
+                <div className='popup-table-section'>
+                  <div className='popup-table'>
+                    R1 Routing table
+                    <div className="popup-table-wrapper">
+                      <table border={1} style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <thead>
+                          <tr>
+                            <th>Destination Network</th>
+                            <th>Next Hop</th>
+                            <th>Outgoing Interface</th>
+                            <th>Link</th>
+                            <th>Protocol</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {r1TableData.map((row, index) => (
+                            <tr key={index}>
+                              <td>{row.subnet}</td>
+                              <td>{row.nexthop}</td>
+                              <td>{row.outgoing_interface}</td>
+                              <td>{row.link}</td>
+                              <td>{row.protocol}</td>                  
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                  <div className='popup-table'>
+                    R2 Routing table
+                    <div className="popup-table-wrapper">
+                      <table border={1} style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <thead>
+                          <tr>
+                            <th>Destination Network</th>
+                            <th>Next Hop</th>
+                            <th>Outgoing Interface</th>
+                            <th>Link</th>
+                            <th>Protocol</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {r1TableData.map((row, index) => (
+                            <tr key={index}>
+                              <td>{row.subnet}</td>
+                              <td>{row.nexthop}</td>
+                              <td>{row.outgoing_interface}</td>
+                              <td>{row.link}</td>
+                              <td>{row.protocol}</td>                  
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                  <div className='popup-table'>
+                    R3 Routing table
+                    <div className="popup-table-wrapper">
+                      <table border={1} style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <thead>
+                          <tr>
+                            <th>Destination Network</th>
+                            <th>Next Hop</th>
+                            <th>Outgoing Interface</th>
+                            <th>Link</th>
+                            <th>Protocol</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {r1TableData.map((row, index) => (
+                            <tr key={index}>
+                              <td>{row.subnet}</td>
+                              <td>{row.nexthop}</td>
+                              <td>{row.outgoing_interface}</td>
+                              <td>{row.link}</td>
+                              <td>{row.protocol}</td>                  
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+                <div className='button-prev-section'>
+                  <button className='button-cancel-prev' onClick={handleClosePopup}>Cancel</button>
+                  <button className='button-confirm-prev'>Confirm</button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {error && <div className="error-sw-sw">Error: {error}</div>}

@@ -86,3 +86,159 @@
     font-size: 0.9em;
   }
   
+
+
+
+
+/* preview */
+.popup-preview {
+  background-color: white;
+  padding: 20px 30px;
+  border-radius: 14px;
+  height: 93%;
+  animation: popupAnimation 0.3s ease-in-out; /* If using 500ms */
+  width: 70%;
+}
+
+.popup-preview.closing {
+  animation: popupCloseAnimation 0.3s ease-in-out forwards;
+}
+
+@keyframes popupAnimation {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes popupCloseAnimation {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+
+
+
+
+
+/* topology */
+.topology-prev {
+  height: 30%;
+  width: 90%;
+  padding: 10px;
+  margin: 20px auto;
+  border: 2px solid #bebebe;
+  border-radius: 10px;
+  display: flex;            /* Enables flexbox */
+  flex-direction: column;   /* Stacks items vertically */
+}
+
+.popup-table{
+  padding: 10px;
+}
+
+.popup-table-wrapper {
+  margin-top: 5px;
+  border: 2px solid #ccc; /* Keeps the border */
+  border-radius: 8px; /* Rounds the corners */
+  overflow: hidden; /* Ensures rounded corners apply */
+  display: inline-block; /* Ensures proper styling */
+  width: 100%;
+}
+
+.popup-table table {
+  width: 100%;
+  font-size: 12px;
+  border-radius: 8px; /* Rounds the corners */
+  overflow: hidden; /* Ensures border-radius applies */
+  text-align: center; /* Centers content */
+}
+
+.popup-table th, .popup-table td {
+  padding: 10px;
+  border-bottom: 1px solid #ccc;
+  text-align: center;
+}
+
+.popup-table thead {
+  background-color: #f2f2f2;
+}
+
+/* .popup-table tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.popup-table tbody tr:nth-child(odd) {
+  background-color: #fff;
+} */
+
+
+
+
+
+/* table */
+.popup-table-section {
+  border: 2px solid #bebebe;
+  border-radius: 10px;
+  width: 80%;
+  padding: 10px 25px;
+  margin: 5px auto;
+  max-height: 52%; /* Max height for scroll */
+  overflow-y: auto; /* Vertical scrollbar */
+  overflow-x: auto; /* Horizontal scrollbar */
+}
+
+
+
+
+
+/* button */
+.button-prev-section {
+  margin: 15px 10px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end; /* Aligns buttons to the right */
+  gap: 10px;
+}
+
+.button-cancel-prev {
+  border: none;
+  border-radius: 16px;
+  font-size: 14px;
+  padding: 4px 10px;
+  background-color: #8b8b8b;
+  color: #f2f2f2;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.button-cancel-prev:hover {
+  background-color: #6f6f6f; /* Darker gray on hover */
+  transform: scale(1.05); /* Slightly enlarges the button */
+}
+
+.button-confirm-prev {
+  border: none;
+  border-radius: 16px;
+  font-size: 14px;
+  padding: 4px 10px;
+  background-color: #2AC9AE;
+  color: #f2f2f2;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.button-confirm-prev:hover {
+  background-color: #22a38e; /* Darker teal on hover */
+  transform: scale(1.05);
+}
+

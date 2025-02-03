@@ -175,6 +175,7 @@ body {
 .content.full-width {
   margin-left: 0; /* Expand content to full width when sidebar is closed */
   margin-top: 0;
+  padding-bottom: 38px;
   padding-top: 12px;
 }
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Menu } from "lucide-react";
+import { ArrowLeftFromLine, Menu } from "lucide-react";
 import './Bar.css';
 
 function RouterSwitch() {
@@ -15,19 +15,20 @@ function RouterSwitch() {
   return (
     <div className="App">
       <div className={`nav-links-container ${isNavOpen ? "" : "closed"}`}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', paddingLeft: '10px', paddingTop: '10px'  }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', paddingRight: '10px', paddingTop: '10px'  }}>
           <button
             style={{
               marginBottom: '16px',
               padding: '8px',
-              color: 'black',
+              color: '#7b7b7b',
               borderRadius: '8px',
               zIndex: 50,
               border: 'none',
+              background: '#f5f7f9'
             }}
             onClick={() => setIsNavOpen(false)}
           >
-            <Menu size={24} />
+            <ArrowLeftFromLine size={24} />
           </button>
           <img src="/easible-name.png" alt="" className="dashboard-icon" />
         </div>
@@ -35,7 +36,7 @@ function RouterSwitch() {
           <li className="center">
             <a href="/dashboard">Dashboard</a>
           </li>
-          <li className="center"><a href="/hosts">Hosts</a></li>
+          <li className="center"><a href="/hosts">Devices</a></li>
           <li className="center"><a href="/jobs">Configuration</a></li>
           <li className="center sub-topic"><a href="/routerrouter">router-router</a></li>
           <li className="center sub-topic"><a href="/routerswitch" style={{ color: '#8c94dc' }}>router-switch</a></li>

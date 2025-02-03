@@ -4,6 +4,7 @@ import './RouterRouter.css';
 import './ConfigDevice.css';
 import './SwitchSwitch.css'; // สมมติ reuse style เดิม หรือเปลี่ยนชื่อไฟล์ใหม่
 import Spinner from './bootstrapSpinner.tsx';
+import { ArrowLeftFromLine, Menu } from 'lucide-react';
 
 // Type Definitions
 type GetHostsData = {
@@ -384,22 +385,65 @@ function ConfigDevice() {
       });
   };
 
+  const [isNavOpen, setIsNavOpen] = useState(() => {
+    const savedNavState = localStorage.getItem('isNavOpen');
+    return savedNavState === 'true';  // Convert to boolean
+  });
+  
+  useEffect(() => {
+    localStorage.setItem('isNavOpen', isNavOpen.toString());
+  }, [isNavOpen]);
+
   return (
     <div className="App">
-      <ul className="nav-links">
-        <img src="/easible-name.png" alt="" className="dashboard-icon" />
-        <li className="center"><a href="/dashboard">Dashboard</a></li>
-        <li className="center"><a href="/hosts">Hosts</a></li>
-        <li className="center"><a href="/jobs">Configuration</a></li>
-        <li className="center sub-topic"><a href="/routerrouter">router-router</a></li>
-        <li className="center sub-topic"><a href="/routerswitch">router-switch</a></li>
-        <li className="center sub-topic"><a href="/switchswitch">switch-switch</a></li>
-        <li className="center sub-topic"><a href="/configdevice" style={{ color: '#8c94dc' }}>config device</a></li>
-        <li className="center"><a href="/topology">Lab Check</a></li>
-      </ul>
+      <div className={`nav-links-container ${isNavOpen ? "" : "closed"}`}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', paddingRight: '10px', paddingTop: '10px'  }}>
+          <button
+            style={{
+              marginBottom: '16px',
+              padding: '8px',
+              color: '#7b7b7b',
+              borderRadius: '8px',
+              zIndex: 50,
+              border: 'none',
+              background: '#f5f7f9'
+            }}
+            onClick={() => setIsNavOpen(false)}
+          >
+            <ArrowLeftFromLine size={24} />
+          </button>
+          <img src="/easible-name.png" alt="" className="dashboard-icon" />
+        </div>
+        <ul className="nav-links">
+          <li className="center"><a href="/dashboard">Dashboard</a></li>
+          <li className="center"><a href="/hosts">Devices</a></li>
+          <li className="center"><a href="/jobs">Configuration</a></li>
+          <li className="center sub-topic"><a href="/routerrouter">router-router</a></li>
+          <li className="center sub-topic"><a href="/routerswitch">router-switch</a></li>
+          <li className="center sub-topic"><a href="/switchswitch">switch-switch</a></li>
+          <li className="center sub-topic"><a href="/configdevice" style={{ color: '#8c94dc' }}>config device</a></li>
+          <li className="center"><a href="/topology">Lab Check</a></li>
+        </ul>
+      </div>
 
-      <div className="content">
+      <div className={`content ${isNavOpen ? "expanded" : "full-width"}`}>
         <div className='content-topic'>
+          {!isNavOpen && (
+            <button
+              style={{
+                padding: '8px',
+                color: 'black',
+                borderRadius: '8px',
+                zIndex: 50,
+                border: 'none',
+                background: 'white',
+                marginRight: '8px'
+              }}
+              onClick={() => setIsNavOpen(true)}
+            >
+              <Menu size={24} />
+            </button>
+          )}
           Configuration 
           <span className='content-topic-small'> (Config Device)</span>
         </div>

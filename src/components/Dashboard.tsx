@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Menu, X } from "lucide-react";
+import { ArrowLeftFromLine, ArrowRightFromLine, Menu, X } from "lucide-react";
 import "./Bar.css";
 import "./Dashboard.css";
 
@@ -23,7 +23,7 @@ function Dashboard() {
             style={{
               marginBottom: '16px',
               padding: '8px',
-              color: 'black',
+              color: '#7b7b7b',
               borderRadius: '8px',
               zIndex: 50,
               border: 'none',
@@ -31,7 +31,7 @@ function Dashboard() {
             }}
             onClick={() => setIsNavOpen(false)}
           >
-            <X size={24} />
+            <ArrowLeftFromLine size={24} />
           </button>
           <img src="/easible-name.png" alt="" className="dashboard-icon" />
         </div>
@@ -39,7 +39,7 @@ function Dashboard() {
           <li className="center">
             <a href="/dashboard" style={{ color: "#8c94dc" }}>Dashboard</a>
           </li>
-          <li className="center"><a href="/hosts">Hosts</a></li>
+          <li className="center"><a href="/hosts">Devices</a></li>
           <li className="center"><a href="/jobs">Configuration</a></li>
           <li className="center sub-topic"><a href="/routerrouter">router-router</a></li>
           <li className="center sub-topic"><a href="/routerswitch">router-switch</a></li>
