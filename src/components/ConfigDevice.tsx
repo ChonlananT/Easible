@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './Bar.css';
 import './RouterRouter.css';
 import './ConfigDevice.css';
-import './SwitchSwitch.css'; // สมมติ reuse style เดิม หรือเปลี่ยนชื่อไฟล์ใหม่
+import './SwitchSwitch.css'; // Assume reuse style or rename as needed
 import Spinner from './bootstrapSpinner.tsx';
 
 // Type Definitions
@@ -59,6 +59,11 @@ type ConfigIpData = {
   cidr: number;
 };
 
+type LoopbackData = {
+  loopbackNumber: number;
+  ipAddress: string;
+};
+
 // HostConfig Type
 type HostConfig = {
   deviceType: string;
@@ -67,6 +72,7 @@ type HostConfig = {
   vlanData?: VlanData;
   bridgePriority?: BridgePriorityData;
   configIp?: ConfigIpData;
+  loopbackData?: LoopbackData;
 };
 
 function ConfigDevice() {
@@ -79,7 +85,7 @@ function ConfigDevice() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState<boolean>(true);
 
-  // คำสั่งที่มีให้เลือก โดยจะแตกต่างกันตาม DeviceType
+  // Commands available by device type
   const commandsByDeviceType: { [key: string]: { label: string; value: string }[] } = {
     switch: [
       { label: 'VLAN', value: 'vlan' },
@@ -87,22 +93,23 @@ function ConfigDevice() {
     ],
     router: [
       { label: 'Config IP Router', value: 'config_ip_router' },
-      // เพิ่มคำสั่งอื่นๆ สำหรับ Router ได้ที่นี่
+      { label: 'Loopback', value: 'loopback' }, // Added Loopback
+      // Add other router commands here
     ],
   };
 
-  // DeviceTypes ที่มีให้เลือก
+  // DeviceTypes available
   const deviceTypes = [
     { label: '-- Select Device Type --', value: '' },
     { label: 'Switch', value: 'switch' },
     { label: 'Router', value: 'router' },
-    // เพิ่ม DeviceType อื่นๆ ถ้ามี
+    // Add other DeviceTypes if any
   ];
 
-  // useEffect: ดึงข้อมูลจาก backend ทั้งสอง API และใช้ secondHalf ของ show_detail
+  // Fetch hosts and show_detail data
   useEffect(() => {
     setLoading(true);
-    // ดึงข้อมูลจาก get_hosts และ show_detail พร้อมกัน
+    // Fetch data from get_hosts and show_detail APIs concurrently
     Promise.all([
       fetch('http://localhost:5000/api/get_hosts', {
         method: 'GET',
@@ -123,11 +130,11 @@ function ConfigDevice() {
         setHostsFromGetHosts(getHostsData);
         setHostsFromShowDetail(showDetailData.parsed_result);
 
-        // เลือก secondHalf ของ parsed_result
+        // Select second half of parsed_result
         const halfLength = Math.floor(showDetailData.parsed_result.length / 2);
         const secondHalf = showDetailData.parsed_result.slice(halfLength);
 
-        // รวมข้อมูลจาก get_hosts และ secondHalf โดยใช้ hostname เป็นตัวเชื่อม
+        // Combine data from get_hosts and secondHalf using hostname as key
         const combined = getHostsData
           .map((host) => {
             const detail = secondHalf.find((d: ShowDetailData) => d.hostname === host.hostname);
@@ -149,14 +156,14 @@ function ConfigDevice() {
 
         setCombinedHosts(combined);
 
-        // สร้าง mapping สำหรับ VLAN
+        // Create VLAN mapping
         const tempVlans: { [key: string]: number[] } = {};
         combined.forEach((host) => {
           tempVlans[host.hostname] = host.vlan_ids || [];
         });
         setVlans(tempVlans);
 
-        // เริ่มด้วย HostConfig เปล่า 1 HostConfig
+        // Initialize with one empty HostConfig
         setLinks([
           {
             deviceType: '',
@@ -169,12 +176,10 @@ function ConfigDevice() {
       .finally(() => setLoading(false));
   }, []);
 
-  // ----------------------------------------------------------------
-  // ฟังก์ชันเปลี่ยนค่าทั่วไปใน HostConfig
-  // ----------------------------------------------------------------
+  // Handle changes in HostConfig
   const handleHostChange = (
     hostIndex: number,
-    field: keyof HostConfig | { group: 'vlanData' | 'bridgePriority' | 'configIp'; key: string },
+    field: keyof HostConfig | { group: 'vlanData' | 'bridgePriority' | 'configIp' | 'loopbackData'; key: string },
     value: string | number
   ) => {
     setLinks((prevLinks) => {
@@ -182,58 +187,56 @@ function ConfigDevice() {
       const hostConfig = { ...newLinks[hostIndex] };
 
       if (typeof field === 'string') {
-        // กรณี field เป็น string ปกติ (เช่น 'selectedHost' หรือ 'deviceType')
+        // Handle simple fields
         (hostConfig as any)[field] = value;
 
-        // ถ้า command เปลี่ยนเป็น 'vlan' ให้ initialize vlanData
-        if (field === 'selectedCommand' && value === 'vlan') {
-          hostConfig.vlanData = {
-            vlanId: '',
-            vlanName: '',
-            ipAddress: '',
-            cidr: 24,
-            interface: '',
-            mode: '',
-          };
+        // Initialize specific command data
+        if (field === 'selectedCommand') {
+          if (value === 'vlan') {
+            hostConfig.vlanData = {
+              vlanId: '',
+              vlanName: '',
+              ipAddress: '',
+              cidr: 24,
+              interface: '',
+              mode: '',
+            };
+          } else if (value === 'bridge_priority') {
+            hostConfig.bridgePriority = {
+              vlan: 1, // Default VLAN ID
+              priority: 4096, // Default priority
+            };
+          } else if (value === 'config_ip_router') {
+            hostConfig.configIp = {
+              interface: '',
+              ipAddress: '',
+              cidr: 24,
+            };
+          } else if (value === 'loopback') {
+            hostConfig.loopbackData = {
+              loopbackNumber: 0,
+              ipAddress: '',
+            };
+          } else {
+            // Remove all optional fields if command is not recognized
+            delete hostConfig.vlanData;
+            delete hostConfig.bridgePriority;
+            delete hostConfig.configIp;
+            delete hostConfig.loopbackData;
+          }
         }
 
-        // ถ้า command เปลี่ยนเป็น 'bridge_priority' ให้ initialize bridgePriority
-        if (field === 'selectedCommand' && value === 'bridge_priority') {
-          hostConfig.bridgePriority = {
-            vlan: 1, // เริ่มต้นเป็น VLAN ID แรก
-            priority: 4096, // ค่าเริ่มต้น
-          };
-        }
-
-        // ถ้า command เปลี่ยนเป็น 'config_ip_router' ให้ initialize configIp
-        if (field === 'selectedCommand' && value === 'config_ip_router') {
-          hostConfig.configIp = {
-            interface: '',
-            ipAddress: '',
-            cidr: 24,
-          };
-        }
-
-        // ถ้า command เปลี่ยนเป็นอื่นๆ หรือไม่เลือก command ให้ลบค่าเดิม
-        if (
-          field === 'selectedCommand' &&
-          !['vlan', 'bridge_priority', 'config_ip_router'].includes(value as string)
-        ) {
-          delete hostConfig.vlanData;
-          delete hostConfig.bridgePriority;
-          delete hostConfig.configIp;
-        }
-
-        // ถ้า DeviceType เปลี่ยน, reset selectedHost และ command
+        // Reset selectedHost and command if deviceType changes
         if (field === 'deviceType') {
           hostConfig.selectedHost = '';
           hostConfig.selectedCommand = '';
           delete hostConfig.vlanData;
           delete hostConfig.bridgePriority;
           delete hostConfig.configIp;
+          delete hostConfig.loopbackData;
         }
       } else {
-        // กรณี field เป็น group (เช่น group = 'vlanData', key = 'vlanId')
+        // Handle grouped fields
         if (field.group === 'vlanData') {
           hostConfig.vlanData = {
             ...hostConfig.vlanData!,
@@ -249,6 +252,11 @@ function ConfigDevice() {
             ...hostConfig.configIp!,
             [field.key]: value,
           };
+        } else if (field.group === 'loopbackData') {
+          hostConfig.loopbackData = {
+            ...hostConfig.loopbackData!,
+            [field.key]: value,
+          };
         }
       }
 
@@ -257,17 +265,13 @@ function ConfigDevice() {
     });
   };
 
-  // ----------------------------------------------------------------
-  // ฟังก์ชันดึง list ของ interface ใน host
-  // ----------------------------------------------------------------
+  // Get interfaces for a specific host
   const getInterfacesForHost = (hostname: string) => {
     const host = combinedHosts.find((item) => item.hostname === hostname);
     return host ? host.interfaces : [];
   };
 
-  // ----------------------------------------------------------------
-  // ปุ่ม Add HostConfig
-  // ----------------------------------------------------------------
+  // Add a new HostConfig
   const handleAddHost = () => {
     setLinks((prevLinks) => [
       ...prevLinks,
@@ -279,20 +283,16 @@ function ConfigDevice() {
     ]);
   };
 
-  // ----------------------------------------------------------------
-  // ปุ่ม Remove HostConfig
-  // ----------------------------------------------------------------
+  // Remove a HostConfig
   const handleRemoveHost = (hostIndex: number) => {
     setLinks((prevLinks) => prevLinks.filter((_, i) => i !== hostIndex));
   };
 
-  // ----------------------------------------------------------------
-  // Submit ทั้งหมด
-  // ----------------------------------------------------------------
+  // Submit all configurations
   const handleSubmitAll = () => {
     setError('');
 
-    // ตรวจสอบว่ามี HostConfig ไหนที่ยังเลือกไม่ครบหรือไม่
+    // Validate all HostConfigs
     for (let i = 0; i < links.length; i++) {
       const link = links[i];
       if (!link.deviceType || !link.selectedHost || !link.selectedCommand) {
@@ -300,7 +300,7 @@ function ConfigDevice() {
         return;
       }
 
-      // ตรวจสอบข้อมูลเพิ่มเติมสำหรับแต่ละ command
+      // Validate based on command type
       if (link.selectedCommand === 'vlan') {
         const vlan = link.vlanData;
         if (!vlan || !vlan.vlanId || !vlan.interface || !vlan.mode) {
@@ -324,9 +324,17 @@ function ConfigDevice() {
           return;
         }
       }
+
+      if (link.selectedCommand === 'loopback') {
+        const loopback = link.loopbackData;
+        if (!loopback || !loopback.loopbackNumber || !loopback.ipAddress) {
+          setError(`Please fill all required Loopback fields for entry ${i + 1}.`);
+          return;
+        }
+      }
     }
 
-    // สร้าง request data
+    // Create request data
     const requestData = links.map((link) => ({
       deviceType: link.deviceType,
       hostname: link.selectedHost,
@@ -357,6 +365,14 @@ function ConfigDevice() {
               interface: link.configIp.interface,
               ipAddress: link.configIp.ipAddress,
               cidr: link.configIp.cidr,
+            },
+          }
+        : {}),
+      ...(link.selectedCommand === 'loopback' && link.loopbackData
+        ? {
+            loopbackData: {
+              loopbackNumber: link.loopbackData.loopbackNumber,
+              ipAddress: link.loopbackData.ipAddress,
             },
           }
         : {}),
@@ -426,71 +442,70 @@ function ConfigDevice() {
                       </button>
                     )}
                   </div>
-              </div>
-              <div className="content-section">
-                <div className="host-selection-container">
-                  <div className="host-selection__hosts">
-                    <div className="host-selection__dropdown-group">
-                      <label>Select Device Type:</label>
-                      <select
-                        className="host-selection__dropdown"
-                        value={link.deviceType}
-                        onChange={(e) => handleHostChange(index, 'deviceType', e.target.value)}
-                      >
-                        {deviceTypes.map((dt) => (
-                          <option key={dt.value} value={dt.value}>
-                            {dt.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                </div>
+                <div className="content-section">
+                  <div className="host-selection-container">
+                    <div className="host-selection__hosts">
+                      {/* Select Device Type */}
+                      <div className="host-selection__dropdown-group">
+                        <label>Select Device Type:</label>
+                        <select
+                          className="host-selection__dropdown"
+                          value={link.deviceType}
+                          onChange={(e) => handleHostChange(index, 'deviceType', e.target.value)}
+                        >
+                          {deviceTypes.map((dt) => (
+                            <option key={dt.value} value={dt.value}>
+                              {dt.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
 
-                    {/* เลือก Host */}
-                    <div className="host-selection__dropdown-group">
-                      <label>Select Host:</label>
-                      <select
-                        className="host-selection__dropdown"
-                        value={link.selectedHost}
-                        onChange={(e) => handleHostChange(index, 'selectedHost', e.target.value)}
-                        disabled={!link.deviceType} // disable ถ้ายังไม่ได้เลือก DeviceType
-                      >
-                        <option value="">-- Select a Host --</option>
-                        <option value="test">test</option>
-                        {!loading &&
-                          combinedHosts
+                      {/* Select Host */}
+                      <div className="host-selection__dropdown-group">
+                        <label>Select Host:</label>
+                        <select
+                          className="host-selection__dropdown"
+                          value={link.selectedHost}
+                          onChange={(e) => handleHostChange(index, 'selectedHost', e.target.value)}
+                          disabled={!link.deviceType} // Disable if DeviceType not selected
+                        >
+                          <option value="">-- Select a Host --</option>
+                          <option value="router">test</option>
+                          {combinedHosts
                             .filter((host) => host.deviceType === link.deviceType)
                             .map((host: DropdownOption) => (
                               <option key={host.hostname} value={host.hostname}>
                                 {host.hostname}
                               </option>
                             ))}
-                      </select>
-                      {/* {loading ? <Spinner color="primary" size="large" /> : null} */}
-                    </div>
+                        </select>
+                      </div>
 
-                    {/* เลือก Command */}
-                    <div className="host-selection__dropdown-group">
-                      <label>Select Command:</label>
-                      <select
-                        className="host-selection__dropdown"
-                        value={link.selectedCommand}
-                        onChange={(e) => handleHostChange(index, 'selectedCommand', e.target.value)}
-                        disabled={!link.selectedHost} // disable ถ้ายังไม่ได้เลือก Host
-                      >
-                        <option value="">-- Select a Command --</option>
-                        {link.deviceType && commandsByDeviceType[link.deviceType].map((command) => (
-                          <option key={command.value} value={command.value}>
-                            {command.label}
-                          </option>
-                        ))}
-                      </select>
+                      {/* Select Command */}
+                      <div className="host-selection__dropdown-group">
+                        <label>Select Command:</label>
+                        <select
+                          className="host-selection__dropdown"
+                          value={link.selectedCommand}
+                          onChange={(e) => handleHostChange(index, 'selectedCommand', e.target.value)}
+                          disabled={!link.selectedHost} // Disable if Host not selected
+                        >
+                          <option value="">-- Select a Command --</option>
+                          {link.deviceType && commandsByDeviceType[link.deviceType].map((command) => (
+                            <option key={command.value} value={command.value}>
+                              {command.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="config-command-section">
-                  {/* ถ้าเลือก command = vlan */}
-                  {link.selectedCommand === 'vlan' && link.vlanData && (
-                    <div className="config-command-board">
+                  <div className="config-command-section">
+                    {/* VLAN Configuration */}
+                    {link.selectedCommand === 'vlan' && link.vlanData && (
+                      <div className="config-command-board">
                         <div className="vlan-config-topic">
                           <h5>VLAN Configuration</h5>
                         </div>
@@ -585,103 +600,135 @@ function ConfigDevice() {
                             </div>
                           </div>
                         </div>
-                    </div>
-                  )}
+                      </div>
+                    )}
 
-                  {/* ถ้าเลือก command = bridge_priority */}
-                  {link.selectedCommand === 'bridge_priority' && link.bridgePriority && (
-                    <div className="config-command-board">
-                      <h5>Bridge Priority Configuration</h5>
-                      <div className="host-selection__dropdown-group">
-                        <label>Select VLAN:</label>
-                        <select
-                          className="host-selection__dropdown"
-                          value={link.bridgePriority.vlan}
-                          onChange={(e) =>
-                            handleHostChange(index, { group: 'bridgePriority', key: 'vlan' }, parseInt(e.target.value, 10))
-                          }
-                        >
-                          <option value="">-- Select VLAN --</option>
-                          {link.selectedHost &&
-                            vlans[link.selectedHost].map((vlan) => (
-                              <option key={vlan} value={vlan}>
-                                {vlan}
+                    {/* Bridge Priority Configuration */}
+                    {link.selectedCommand === 'bridge_priority' && link.bridgePriority && (
+                      <div className="config-command-board">
+                        <h5>Bridge Priority Configuration</h5>
+                        <div className="host-selection__dropdown-group">
+                          <label>Select VLAN:</label>
+                          <select
+                            className="host-selection__dropdown"
+                            value={link.bridgePriority.vlan}
+                            onChange={(e) =>
+                              handleHostChange(index, { group: 'bridgePriority', key: 'vlan' }, parseInt(e.target.value, 10))
+                            }
+                          >
+                            <option value="">-- Select VLAN --</option>
+                            {link.selectedHost &&
+                              vlans[link.selectedHost].map((vlan) => (
+                                <option key={vlan} value={vlan}>
+                                  {vlan}
+                                </option>
+                              ))}
+                          </select>
+                        </div>
+
+                        <div className="host-selection__dropdown-group">
+                          <label>Bridge Priority:</label>
+                          <select
+                            className="host-selection__dropdown"
+                            value={link.bridgePriority.priority}
+                            onChange={(e) =>
+                              handleHostChange(index, { group: 'bridgePriority', key: 'priority' }, parseInt(e.target.value, 10))
+                            }
+                          >
+                            <option value="">-- Select Priority --</option>
+                            {/* Create options from 0 to 4096 in steps of 256 */}
+                            {Array.from({ length: 17 }, (_, i) => i * 256).map((priority) => (
+                              <option key={priority} value={priority}>
+                                {priority}
                               </option>
                             ))}
-                        </select>
+                          </select>
+                        </div>
                       </div>
+                    )}
 
-                      <div className="host-selection__dropdown-group">
-                        <label>Bridge Priority:</label>
-                        <select
-                          className="host-selection__dropdown"
-                          value={link.bridgePriority.priority}
-                          onChange={(e) =>
-                            handleHostChange(index, { group: 'bridgePriority', key: 'priority' }, parseInt(e.target.value, 10))
-                          }
-                        >
-                          <option value="">-- Select Priority --</option>
-                          {/* สร้าง option จาก 0 ถึง 4096 ด้วยขั้นตอน 256 */}
-                          {Array.from({ length: 16 }, (_, i) => i * 4096).map((priority) => (
-                            <option key={priority} value={priority}>
-                              {priority}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                  )}
+                    {/* Config IP Router */}
+                    {link.selectedCommand === 'config_ip_router' && link.configIp && (
+                      <div className="config-command-board">
+                        <h4>Config IP Router</h4>
+                        <div className="host-selection__dropdown-group">
+                          <label>Select Interface:</label>
+                          <select
+                            className="host-selection__dropdown"
+                            value={link.configIp.interface}
+                            onChange={(e) =>
+                              handleHostChange(index, { group: 'configIp', key: 'interface' }, e.target.value)
+                            }
+                          >
+                            <option value="">-- Select Interface --</option>
+                            {link.selectedHost &&
+                              getInterfacesForHost(link.selectedHost).map((intf) => (
+                                <option key={intf.interface} value={intf.interface}>
+                                  {intf.interface} ({intf.status})
+                                </option>
+                              ))}
+                          </select>
+                        </div>
 
-                  {/* ถ้าเลือก command = config_ip_router */}
-                  {link.selectedCommand === 'config_ip_router' && link.configIp && (
-                    <div className="config-command-board">
-                      <h4>Config IP Router</h4>
-                      <div className="host-selection__dropdown-group">
-                        <label>Select Interface:</label>
-                        <select
-                          className="host-selection__dropdown"
-                          value={link.configIp.interface}
-                          onChange={(e) =>
-                            handleHostChange(index, { group: 'configIp', key: 'interface' }, e.target.value)
-                          }
-                        >
-                          <option value="">-- Select Interface --</option>
-                          {link.selectedHost &&
-                            getInterfacesForHost(link.selectedHost).map((intf) => (
-                              <option key={intf.interface} value={intf.interface}>
-                                {intf.interface} ({intf.status})
-                              </option>
-                            ))}
-                        </select>
-                      </div>
+                        <div className="config-device-input-text">
+                          <label>IP Address:</label>
+                          <input
+                            type="text"
+                            value={link.configIp.ipAddress}
+                            onChange={(e) =>
+                              handleHostChange(index, { group: 'configIp', key: 'ipAddress' }, e.target.value)
+                            }
+                            placeholder="Enter IP Address"
+                          />
+                        </div>
 
-                      <div className="config-device-input-text">
-                        <label>IP Address:</label>
-                        <input
-                          type="text"
-                          value={link.configIp.ipAddress}
-                          onChange={(e) =>
-                            handleHostChange(index, { group: 'configIp', key: 'ipAddress' }, e.target.value)
-                          }
-                          placeholder="Enter IP Address"
-                        />
+                        <div className="config-device-input-text">
+                          <label>Subnet:</label>
+                          <input
+                            type="number"
+                            min={1}
+                            max={32}
+                            value={link.configIp.cidr}
+                            onChange={(e) =>
+                              handleHostChange(index, { group: 'configIp', key: 'cidr' }, parseInt(e.target.value, 10))
+                            }
+                            placeholder="Enter CIDR (e.g., 24)"
+                          />
+                        </div>
                       </div>
+                    )}
 
-                      <div className="config-device-input-text">
-                        <label>Subnet:</label>
-                        <input
-                          type="number"
-                          min={1}
-                          max={32}
-                          value={link.configIp.cidr}
-                          onChange={(e) =>
-                            handleHostChange(index, { group: 'configIp', key: 'cidr' }, parseInt(e.target.value, 10))
-                          }
-                          placeholder="Enter CIDR (e.g., 24)"
-                        />
+                    {/* Loopback Configuration */}
+                    {link.selectedCommand === 'loopback' && link.loopbackData && (
+                      <div className="config-command-board">
+                        <h5>Loopback Configuration</h5>
+                        <div className="loopback-config-content">
+                          <div className="host-selection__dropdown-group">
+                            <label>Loopback Number:</label>
+                            <input
+                              type="text"
+                              value={link.loopbackData.loopbackNumber}
+                              onChange={(e) =>
+                                handleHostChange(index, { group: 'loopbackData', key: 'loopbackNumber' }, e.target.value)
+                              }
+                              placeholder="Enter Loopback Number"
+                            />
+                          </div>
+
+                          <div className="config-device-input-text">
+                            <label>IP Address:</label>
+                            <input
+                              type="text"
+                              value={link.loopbackData.ipAddress}
+                              onChange={(e) =>
+                                handleHostChange(index, { group: 'loopbackData', key: 'ipAddress' }, e.target.value)
+                              }
+                              placeholder="Enter IP Address"
+                            />
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
                   </div>
                 </div>
               </div>

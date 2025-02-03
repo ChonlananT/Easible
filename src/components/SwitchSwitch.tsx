@@ -76,7 +76,7 @@ function SwitchSwitch() {
   // useEffect: ดึงข้อมูลจาก backend
   useEffect(() => {
     setLoading(true);
-    fetch('/api/show_detail', {
+    fetch('/api/show_detail_switch', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     })
@@ -324,7 +324,7 @@ function SwitchSwitch() {
 
     console.log('Sending data to backend:', requestData);
 
-    fetch('/api/create_playbook', {
+    fetch('/api/create_playbook_swtosw', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(requestData),
