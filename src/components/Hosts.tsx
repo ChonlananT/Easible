@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import './Bar.css';
 import './Host.css';
 import './Popup.css'; // สมมติว่ามีไฟล์ CSS สำหรับ Popup
-import { ArrowLeftFromLine, Menu } from 'lucide-react';
+import { ArchiveX, ArrowLeftFromLine, Menu } from 'lucide-react';
 
 function Hosts() {
-  const [hosts, setHosts] = useState([]);
+  const [hosts, setHosts] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState(''); // สำหรับการค้นหา
   const [showAddHostPopup, setShowAddHostPopup] = useState(false);
   const [formData, setFormData] = useState({
@@ -26,13 +26,13 @@ function Hosts() {
   // -------------------------
   const [showAddGroupPopup, setShowAddGroupPopup] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
-  const [selectedHostnames, setSelectedHostnames] = useState([]);
+  const [selectedHostnames, setSelectedHostnames] = useState<string[]>([]);
   const [groupError, setGroupError] = useState('');
 
   // -------------------------
   // State สำหรับ Delete Group
   // -------------------------
-  const [groupToDelete, setGroupToDelete] = useState(null);
+  const [groupToDelete, setGroupToDelete] = useState<string | null>(null);
 
   // -------------------------
   // State สำหรับ Inventory Popup
@@ -69,12 +69,19 @@ function Hosts() {
   // -------------------------
   // ฟังก์ชันจัดการการเปลี่ยนแปลงในฟอร์ม Add Host
   // -------------------------
+  const [hostnameError, setHostnameError] = useState("");
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
     if (name === 'ipAddress') {
       validateIp(value);
+    }
+
+    if (name === 'hostname') {
+      // Check if hostname already exists
+      const isDuplicate = hosts.some((host) => host.hostname === value);
+      setHostnameError(isDuplicate ? "Hostname already exists!" : "");
     }
   };
 
@@ -94,7 +101,7 @@ function Hosts() {
   // ฟังก์ชันบันทึก Host ใหม่
   // -------------------------
   const handleSaveHost = async () => {
-    if (ipError) {
+    if (ipError || hostnameError) {
       return;
     }
 
@@ -226,7 +233,7 @@ function Hosts() {
       });
 
       if (response.ok) {
-        alert('Group added successfully!');
+        // alert('Group added successfully!');
         // รีเฟรชข้อมูล hosts เพื่อแสดง Group ใหม่
         await fetchHosts();
         setShowAddGroupPopup(false);
@@ -245,9 +252,9 @@ function Hosts() {
   // ฟังก์ชันลบ Group
   // -------------------------
   const handleDeleteGroup = async (groupName) => {
-    if (!window.confirm(`Are you sure you want to delete the group "${groupName}"?`)) {
-      return;
-    }
+    // if (!window.confirm(`Are you sure you want to delete the group "${groupName}"?`)) {
+    //   return;
+    // }
 
     try {
       const response = await fetch('/api/delete_group', {
@@ -257,9 +264,10 @@ function Hosts() {
       });
 
       if (response.ok) {
-        alert('Group deleted successfully!');
+        // alert('Group deleted successfully!');
         // รีเฟรชข้อมูล hosts เพื่ออัปเดตการแสดงผล
         await fetchHosts();
+        setGroupToDelete(null);
       } else {
         const errorData = await response.json();
         alert(`Failed to delete group: ${errorData.error || 'Unknown error'}`);
@@ -300,7 +308,7 @@ function Hosts() {
   // -------------------------
   // สร้าง Mapping ของ Groups
   // -------------------------
-  const groupMapping = {};
+  const groupMapping: { [key: string]: any[] } = {};
 
   filteredHosts.forEach((host) => {
     if (host.groups && host.groups.length > 0) {
@@ -333,11 +341,31 @@ function Hosts() {
   // -------------------------
   // Render Popup Add Group
   // -------------------------
+  const handleDeviceToggle = (hostname) => {
+    setSelectedHostnames((prevSelected) =>
+      prevSelected.includes(hostname)
+        ? prevSelected.filter((h) => h !== hostname)
+        : [...prevSelected, hostname]
+    );
+  };
+  
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredHostsGroup, setFilteredHostsGroup] = useState<any[]>([]);
+  
+  useEffect(() => {
+    setFilteredHostsGroup(
+      hosts.filter((host) =>
+        host.hostname.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    );
+  }, [searchTerm, hosts]);
+  
   const renderAddGroupPopup = () => {
     if (!showAddGroupPopup) return null;
     return (
       <div className="popup-overlay">
-        <div className="popup-content">
+        <div className="popup-content-host">
           <h2>Add Group</h2>
           <label>
             Group Name:
@@ -348,22 +376,31 @@ function Hosts() {
               placeholder="Enter group name"
             />
           </label>
-          <div className="hosts-checkbox-container">
-            <h3>Select Hosts:</h3>
-            <ul className="hosts-checkbox-list">
-              {hosts.map((host) => (
-                <li key={host.hostname}>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={selectedHostnames.includes(host.hostname)}
-                      onChange={() => handleCheckboxChange(host.hostname)}
-                    />
+          <div className="hosts-toggle-container">
+            <label>Select Devices:</label>
+            
+            <div className="hosts-toggle-list">
+              {filteredHostsGroup.length > 0 ? (
+                filteredHostsGroup.map((host) => (
+                  <button
+                    key={host.hostname}
+                    className={`host-toggle-button ${selectedHostnames.includes(host.hostname) ? "selected" : ""}`}
+                    onClick={() => handleDeviceToggle(host.hostname)}
+                  >
                     {host.hostname}
-                  </label>
-                </li>
-              ))}
-            </ul>
+                  </button>
+                ))
+              ) : (
+                <div className='no-matching-devices'>No matching devices found</div>
+              )}
+            </div>
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search devices..."
+              className="search-input"
+            />
           </div>
           {groupError && <p className="error-text">{groupError}</p>}
           <div className="popup-buttons">
@@ -382,7 +419,7 @@ function Hosts() {
     if (!showAddHostPopup) return null;
     return (
       <div className="popup-overlay">
-        <div className="popup-content">
+        <div className="popup-content-host">
           <h2>Add Host</h2>
           <label>
             Device Type:
@@ -400,6 +437,7 @@ function Hosts() {
               onChange={handleInputChange}
               placeholder="Enter hostname"
             />
+            {hostnameError && <span className="error-text">{hostnameError}</span>}
           </label>
           <label>
             IP Address:
@@ -445,7 +483,7 @@ function Hosts() {
           </label>
 
           <div className="popup-buttons">
-            <button onClick={handleSaveHost} disabled={ipError} className="save-btn">Save Host</button>
+            <button onClick={handleSaveHost} disabled={!!ipError} className="save-btn">Save Host</button>
             <button onClick={() => setShowAddHostPopup(false)} className="cancel-btn">Cancel</button>
           </div>
         </div>
@@ -460,9 +498,9 @@ function Hosts() {
     if (!showInventoryPopup) return null;
     return (
       <div className="popup-overlay">
-        <div className="popup-content">
+        <div className="popup-content-host">
           <p>Inventory has been created!</p>
-          <button className="close-btn" onClick={closeInventoryPopup}>Close</button>
+          <button className="save-btn" onClick={closeInventoryPopup}>Close</button>
         </div>
       </div>
     );
@@ -475,9 +513,13 @@ function Hosts() {
     if (!groupToDelete) return null;
     return (
       <div className="popup-overlay">
-        <div className="popup-content">
+        <div className="popup-content-host">
           <h2>Delete Group</h2>
-          <p>Are you sure you want to delete the group "{groupToDelete}"?</p>
+          <p>
+            Are you sure you want to delete the group 
+            <span style={{ color: 'red', fontWeight: 'bold' }}> "{groupToDelete}" </span>?
+          </p>
+
           <div className="popup-buttons">
             <button onClick={() => handleDeleteGroup(groupToDelete)} className="save-btn">Yes, Delete</button>
             <button onClick={() => setGroupToDelete(null)} className="cancel-btn">Cancel</button>
@@ -524,7 +566,7 @@ function Hosts() {
           เนื้อหา (Content)
       ------------------------- */}
       <div className={`content ${isNavOpen ? "expanded" : "full-width"}`}>
-        <div className='content-topic'>
+        <div className='content-topic-host'>
           {!isNavOpen && (
             <button
               style={{
@@ -541,88 +583,172 @@ function Hosts() {
               <Menu size={24} />
             </button>
           )}     
-          Hosts</div>
-        <div className="search-bar">
-          <input
-            type="text"
-            placeholder="Search by hostname..."
-            value={searchQuery}
-            onChange={handleSearchChange}
-          />
+          Devices
+          <div className="search-bar-wrapper">
+            <div className="search-bar">
+              <input
+                type="text"
+                placeholder="Search by hostname..."
+                value={searchQuery}
+                onChange={handleSearchChange}
+              />
+            </div>
+          </div>
         </div>
+        
 
         {/* -------------------------
             ตาราง Hosts แบ่งตาม Groups
         ------------------------- */}
-        <div className="groups-container">
-          {Object.keys(groupMapping).map((group) => (
-            <div key={group} className="group-section">
-              <div className="group-header">
-                <div>
-                  <input
-                    type="radio"
-                    name="selectedGroup"
-                    value={group}
-                    checked={selectedGroup === group}
-                    onChange={() => handleGroupSelect(group)}
-                  />
-                  <h3
-                    className="group-heading"
-                    onClick={() => toggleGroup(group)}
-                    style={{ cursor: 'pointer', display: 'inline', marginLeft: '8px' }}
-                  >
-                    {group}
-                  </h3>
-                </div>
-                {/* ไม่แสดง "All Devices" เพื่อไม่ให้มีปุ่มลบกลุ่ม */}
-                {group !== 'All Devices' && (
-                  <button
-                    className="delete-group-btn"
-                    onClick={() => setGroupToDelete(group)}
-                  >
-                    Delete Group
-                  </button>
+        <div className="content-board-host">
+          
+
+          <div className="table-section">
+            <div className="device-section">
+              <div className='section-topic'>
+                All Devices
+              </div>
+
+              <div className="device-one-wrapper">
+                {/* Render "All Devices" group separately */}
+                {"All Devices" in groupMapping && groupMapping["All Devices"]?.length > 0 && (
+                  <div className="device-one">
+                    <div className="group-header">
+                      <div>
+                        <input
+                          type="radio"
+                          name="selectedGroup"
+                          value="All Devices"
+                          checked={selectedGroup === "All Devices"}
+                          onChange={() => handleGroupSelect("All Devices")}
+                        />
+                        <h3
+                          className="group-heading"
+                          onClick={() => toggleGroup("All Devices")}
+                          style={{ cursor: "pointer", display: "inline", marginLeft: "8px" }}
+                        >
+                          All Devices
+                        </h3>
+                      </div>
+                    </div>
+                    {!collapsedGroups["All Devices"] && groupMapping["All Devices"]?.length > 0 &&(
+                      
+                      <table className="hosts-table">
+                        <thead>
+                          <tr>
+                            <th>Hostname</th>
+                            <th>Device Type</th>
+                            <th>IP Address</th>
+                            <th>Username</th>
+                            <th></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {groupMapping["All Devices"].map((host) => (
+                            <tr key={`AllDevices-${host.id}`}>
+                              <td>{host.hostname}</td>
+                              <td>{host.deviceType}</td>
+                              <td>{host.ipAddress}</td>
+                              <td>{host.username}</td>
+                              <td>
+                                <ArchiveX style={{ color: 'red' ,cursor: 'pointer' }} onClick={() => handleDeleteHost(host.hostname)}>Delete</ArchiveX>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
                 )}
               </div>
-              {/* แสดงตาราง Hosts ถ้ากลุ่มไม่ถูกปิด */}
-              {!collapsedGroups[group] && (
-                <table className="hosts-table">
-                  <thead>
-                    <tr>
-                      <th>Hostname</th>
-                      <th>Device Type</th>
-                      <th>IP Address</th>
-                      <th>Username</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {groupMapping[group].map((host) => (
-                      <tr key={`${group}-${host.id}`}>
-                        <td>{host.hostname}</td>
-                        <td>{host.deviceType}</td>
-                        <td>{host.ipAddress}</td>
-                        <td>{host.username}</td>
-                        <td>
-                          <button onClick={() => handleDeleteHost(host.hostname)}>Delete</button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          ))}
-        </div>
 
+              <div className="button-hosts">
+                <button className="green-round" onClick={() => setShowAddHostPopup(true)}>+ Add Device</button>
+              </div>
+            </div>
+
+            <div className="line-vertical-host"></div>
+            
+            <div className='group-section'>
+              <div className='section-topic'>
+                Groups
+              </div>
+              <div className="group-one-wrapper">
+                {/* Render all other groups except "All Devices" */}
+                {Object.keys(groupMapping)
+                  .filter((group) => group !== "All Devices")
+                  .map((group, index, arr) => (
+                    <div key={group} className="group-one">
+                      <div className="group-header">
+                        <div>
+                          <input
+                            type="radio"
+                            name="selectedGroup"
+                            value={group}
+                            checked={selectedGroup === group}
+                            onChange={() => handleGroupSelect(group)}
+                          />
+                          <h3
+                            className="group-heading"
+                            onClick={() => toggleGroup(group)}
+                            style={{ cursor: "pointer", display: "inline", marginLeft: "8px" }}
+                          >
+                            {group}
+                          </h3>
+                        </div>
+                        <button
+                          className="delete-group-btn"
+                          onClick={() => setGroupToDelete(group)}
+                        >
+                          Delete Group
+                        </button>
+                      </div>
+                      {!collapsedGroups[group] && (
+                        <table className="hosts-table-g">
+                          <thead>
+                            <tr>
+                              <th>Hostname</th>
+                              <th>Device Type</th>
+                              <th>IP Address</th>
+                              <th>Username</th>
+                              <th></th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {groupMapping[group].map((host) => (
+                              <tr key={`${group}-${host.id}`}>
+                                <td>{host.hostname}</td>
+                                <td>{host.deviceType}</td>
+                                <td>{host.ipAddress}</td>
+                                <td>{host.username}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      )}
+                      {/* Apply the line only if this is not the last group */}
+                      {index !== arr.length - 1 && (
+                        <div className='line-container-host'>
+                          <div className='line'></div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+              </div>
+              <div className="button-hosts">
+                <button className="blue-round" onClick={handleOpenAddGroupPopup}>+ Add Group</button>
+              </div>
+            </div>
+
+
+          </div>
+
+        </div>
         {/* -------------------------
             ปุ่ม Add Host, Add Group และ Create Inventory
         ------------------------- */}
         <div className="button-hosts">
-          <button className="green-round" onClick={() => setShowAddHostPopup(true)}>Add Host</button>
           <button className="purple-round" onClick={handleCreateInventory}>Create Inventory</button>
-          <button className="blue-round" onClick={handleOpenAddGroupPopup}>Add Group</button>
-
           {/* Popup สำหรับ Inventory Created */}
           {renderInventoryPopup()}
         </div>
