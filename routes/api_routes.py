@@ -2,15 +2,15 @@ import re
 import ipaddress
 from flask import Blueprint, request, jsonify
 from services.ssh_service import create_ssh_connection
-from services.parse import parse_result, parse_interface, parse_switchport
+from services.parse import parse_result, parse_interface, parse_switchport, parse_configd
 from services.ansible_playbook import generate_playbook
-from services.database import add_device, fetch_all_devices, delete_device
+from services.database import add_device, fetch_all_devices, delete_device, assign_group_to_hosts, delete_group
 from services.generate_inventory import generate_inventory_content
 from services.sh_ip_int_br import sh_ip_int_br
 from services.cidr import cidr_to_subnet_mask
-from services.parse import parse_switchport
 from services.calculate_network_id import calculate_network_id
 from services.sh_ip_int_br_rt import sh_ip_int_br_rt
+from services.sh_config_sw import sh_config
 
 api_bp = Blueprint('api', __name__)
 
@@ -21,7 +21,49 @@ def get_hosts():
         return jsonify(devices), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@api_bp.route('/api/add_group', methods=['POST'])
+def add_group():
+    """
+    ตัวอย่าง JSON ที่ส่งมา:
+    {
+        "group_name": "Routers",
+        "hostnames": ["R101", "R102"]
+    }
+    """
+    data = request.json
+    group_name = data.get('group_name')
+    hostnames = data.get('hostnames', [])
+
+    if not group_name or not isinstance(hostnames, list):
+        return jsonify({"error": "Invalid data"}), 400
+
+    success = assign_group_to_hosts(group_name, hostnames)
+    if success:
+        return jsonify({"message": "Group assigned successfully."}), 200
+    else:
+        return jsonify({"error": "Error assigning group."}), 500
     
+@api_bp.route('/api/delete_group', methods=['DELETE'])
+def api_delete_group():
+    """
+    ตัวอย่าง JSON ที่ส่งมา:
+    {
+        "group_name": "Routers"
+    }
+    """
+    data = request.json
+    group_name = data.get('group_name')
+
+    if not group_name:
+        return jsonify({"error": "Group name is required."}), 400
+
+    success, message = delete_group(group_name)
+    if success:
+        return jsonify({"message": message}), 200
+    else:
+        return jsonify({"error": message}), 400
+
 @api_bp.route('/api/delete_host', methods=['DELETE'])
 def delete_host():
     try:
@@ -42,7 +84,7 @@ def add_host():
             data['ipAddress'],
             data['username'],
             data['password'],
-            data['enablePassword']
+            data['enablePassword'],
         )
         return jsonify(data), 200
     except Exception as e:
@@ -51,8 +93,14 @@ def add_host():
 @api_bp.route('/api/create_inventory', methods=['POST'])
 def create_inventory():
     try:
-        # Generate inventory content
-        inventory_content = generate_inventory_content()
+        data = request.json
+        selected_groups = data.get('groups', [])
+
+        if not selected_groups:
+            return jsonify({"error": "No groups selected for inventory creation."}), 400
+
+        # Generate inventory content based on selected groups
+        inventory_content = generate_inventory_content(selected_groups)
 
         # Create SSH connection and get the username
         ssh, username = create_ssh_connection()
@@ -76,7 +124,7 @@ def create_inventory():
 @api_bp.route('/api/show_detail_switch', methods=['POST'])
 def show_interface_brief():
     try:
-        # Generate playbook content
+        # Generate playbook content based on selected groups
         playbook_content = sh_ip_int_br()
 
         # Create SSH connection to the VM
@@ -96,13 +144,14 @@ def show_interface_brief():
         ansible_command = f"ansible-playbook -i {inventory_path} {playbook_path}"
 
         # Execute the command on the VM
-        stdout, stderr = ssh.exec_command(ansible_command)[1:]
+        stdin, stdout, stderr = ssh.exec_command(ansible_command)
         output = stdout.read().decode("utf-8")
         error = stderr.read().decode("utf-8")
 
         # Parse the interface data
-        parsed_result = parse_interface(output)
-        print(parse_result)
+        parsed_result = parse_interface(output)  # สมมติว่ามีฟังก์ชัน parse_interface
+
+        # ปิดการเชื่อมต่อ SSH
         ssh.close()
 
         # Return the structured data
@@ -173,7 +222,7 @@ def create_playbook():
         trunked_interfaces = set()
         playbook_content = """---
 - name: Configure multiple links
-  hosts: all
+  hosts: selectedgroup
   gather_facts: no
   tasks:
 """
@@ -472,7 +521,7 @@ def create_playbook_routerrouter():
         # ส่วนหัวของ playbook
         playbook_content = """---
 - name: Configure router-router links
-  hosts: all
+  hosts: selectedgroup
   gather_facts: no
   tasks:
 """
@@ -674,7 +723,7 @@ def create_playbook_configdevice():
         # ส่วนหัวของ playbook
         playbook_content = """---
 - name: Configure Device Commands
-  hosts: all
+  hosts: selectedgroup
   gather_facts: no
   tasks:
 """
@@ -873,7 +922,36 @@ def create_playbook_configdevice():
         - ip address {ip_address} {subnet_mask}
     when: inventory_hostname == "{host}"
 """
+            elif cmd_type == "loopback":
+                if device_type != "router":
+                    return jsonify({"error": f"Command #{idx}: Loopback command is only applicable to routers."}), 400
 
+                loopback_data = cmd.get("loopbackData", {})
+                loopback_num = loopback_data.get("loopbackNumber")
+                ip_address = loopback_data.get("ipAddress")
+
+                # Validation
+                if not loopback_num or not ip_address:
+                    return jsonify({"error": f"Command #{idx}: Loopback Number and IP Address are required."}), 400
+
+                # Fixed subnet mask for loopback is /32
+                subnet_mask = "255.255.255.255"
+
+                # Optionally, validate IP address format
+                try:
+                    ip_obj = ipaddress.IPv4Address(ip_address)
+                except ipaddress.AddressValueError:
+                    return jsonify({"error": f"Command #{idx}: Invalid IP address '{ip_address}'."}), 400
+
+                # Add playbook task for configuring loopback
+                playbook_content += f"""
+  - name: "[Command#{idx}] Configure Loopback {loopback_num} on {host}"
+    ios_config:
+      lines:
+        - interface loopback {loopback_num}
+        - ip address {ip_address} {subnet_mask}
+    when: inventory_hostname == "{host}"
+    """
             else:
                 return jsonify({"error": f"Command #{idx}: Unsupported command type '{cmd_type}'."}), 400
 
@@ -903,6 +981,45 @@ def create_playbook_configdevice():
             # "output": output,       # ถ้าคุณรัน ansible-playbook ไปแล้ว
             # "errors": error         # ถ้าคุณรัน ansible-playbook ไปแล้ว
         }), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@api_bp.route('/api/show_detail_switch_configdevice', methods=['POST'])
+def show_interface_brief():
+    try:
+        # Generate playbook content based on selected groups
+        playbook_content = sh_config()
+
+        # Create SSH connection to the VM
+        ssh, username = create_ssh_connection()
+
+        # Define paths for inventory and playbook inside the VM
+        inventory_path = f"/home/{username}/inventory/inventory.ini"
+        playbook_path = f"/home/{username}/playbook/configd_switch.yml"
+
+        # Write the playbook content to a file on the VM
+        sftp = ssh.open_sftp()
+        with sftp.open(playbook_path, "w") as playbook_file:
+            playbook_file.write(playbook_content)
+        sftp.close()
+
+        # Define the ansible command to run on the VM
+        ansible_command = f"ansible-playbook -i {inventory_path} {playbook_path}"
+
+        # Execute the command on the VM
+        stdin, stdout, stderr = ssh.exec_command(ansible_command)
+        output = stdout.read().decode("utf-8")
+        error = stderr.read().decode("utf-8")
+
+        # Parse the interface data
+        parsed_result = parse_configd(output)  # สมมติว่ามีฟังก์ชัน parse_interface
+
+        # ปิดการเชื่อมต่อ SSH
+        ssh.close()
+
+        # Return the structured data
+        return jsonify({"parsed_result": parsed_result})
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
