@@ -83,6 +83,21 @@
   transition: transform 0.4s ease, background-color 0.5s ease;
 }
 
+.popup-content-created{
+  background-color: #fff;
+  padding: 25px;
+  border-radius: 8px;
+  width: 70%;
+  height: 70%;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-content: center;
+  animation: showPopup 0.3s ease forwards;
+  gap: 15px;
+}
+
 /* Styles for the Save Host button */
 .save-btn {
   background: linear-gradient(90deg, #5e6ec0, #8e39e9); /* Gradient for Save button */
@@ -286,7 +301,7 @@
 
 
 .hosts-table tbody tr:nth-child(even) {
-  background-color: #f9f9f9;
+  background-color: #f3f3f3;
 }
 
 .hosts-table td button {
@@ -319,6 +334,7 @@
   padding-right: 5px;
 }
 
+
 /*for group*/
 .hosts-table-g {
   width: 100%;
@@ -328,7 +344,7 @@
   overflow: hidden;
   font-family: 'Poppins', sans-serif;
   font-size: 14px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 10px;
 }
 
 .hosts-table-g th,
@@ -346,10 +362,8 @@
   letter-spacing: 0.5px;
 }
 
-
-
 .hosts-table-g tbody tr:nth-child(even) {
-  background-color: #f9f9f9;
+  background-color: #f3f3f3;
 }
 
 .hosts-table-g td button {
@@ -490,8 +504,26 @@
 /*group-header*/
 .group-header{
   display: flex;
+  cursor: pointer;
+  padding: 5px 15px;
 }
 
+.archive-x{
+  color: red;
+  transition: transform 0.2s ease;
+}
+
+.archive-x:hover{
+  transform: translateY(-2px);
+  cursor: pointer;
+}
+
+.header-del{
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
 
 
 
@@ -591,18 +623,18 @@
   background-color: #f1f1f1; /* Light gray corner */
 }
 /*group-one*/
-.group-one{
+.group-one {
   display: flex;
   flex-direction: column;
-  padding: 10px 20px;
+  padding: 15px;
   width: 100%;
+  border: 2px solid #cbcbcb;
+  border-radius: 16px;
+  margin: 10px 0;
+  background: linear-gradient(135deg, #ffffff, #ffffff); /* Subtle gradient background */
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); /* Softer shadow for a more polished look */
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Add smooth hover effects */
 }
-
-
-
-
-
-
 
 /*radio button */
 input[type="radio"] {
@@ -648,7 +680,7 @@ input[type="radio"]:checked:before {
 
 /* Hover effect for group heading */
 .group-heading:hover {
-  color: #4CAF50;
+  /* color: #0e74bc; */
 }
 
 /* Styling the delete button */

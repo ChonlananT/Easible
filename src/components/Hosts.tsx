@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './Bar.css';
 import './Host.css';
 import './Popup.css'; // สมมติว่ามีไฟล์ CSS สำหรับ Popup
-import { ArchiveX, ArrowLeftFromLine, Menu } from 'lucide-react';
+import { ArchiveX, ArrowLeftFromLine, ChevronDown, ChevronLeft, ChevronRight, Menu, Pointer } from 'lucide-react';
 
 function Hosts() {
   const [hosts, setHosts] = useState<any[]>([]);
@@ -42,7 +42,7 @@ function Hosts() {
   // -------------------------
   // State สำหรับจัดการกลุ่มที่ถูกเลือกในการสร้าง Inventory
   // -------------------------
-  const [selectedGroup, setSelectedGroup] = useState(null);
+  const [selectedGroup, setSelectedGroup] = useState<string>('');
 
   useEffect(() => {
     fetchHosts();
@@ -163,7 +163,6 @@ function Hosts() {
 
       if (response.ok) {
         const data = await response.json();
-        alert(data.message);
         setShowInventoryPopup(true);
       } else {
         const errorData = await response.json();
@@ -177,6 +176,7 @@ function Hosts() {
 
   const closeInventoryPopup = () => {
     setShowInventoryPopup(false); // ซ่อน Popup
+    setIsPopupVisible(false);
   };
 
   // -------------------------
@@ -498,8 +498,8 @@ function Hosts() {
     if (!showInventoryPopup) return null;
     return (
       <div className="popup-overlay">
-        <div className="popup-content-host">
-          <p>Inventory has been created!</p>
+        <div className="popup-content-created">
+          <h4 style={{textAlign: 'center'}}>Inventory has been created!</h4>
           <button className="save-btn" onClick={closeInventoryPopup}>Close</button>
         </div>
       </div>
@@ -527,6 +527,20 @@ function Hosts() {
         </div>
       </div>
     );
+  };
+
+  const [isPopupVisible, setIsPopupVisible] = useState(false);
+
+  const handleCreateInventoryButtonClick = () => {
+    // Your inventory creation logic
+  };
+
+  const handleShowPopupButtonClick = () => {
+    setIsPopupVisible(true);
+  };
+
+  const handleClosePopupButtonClick = () => {
+    setIsPopupVisible(false);
   };
 
   return (
@@ -613,24 +627,6 @@ function Hosts() {
                 {/* Render "All Devices" group separately */}
                 {"All Devices" in groupMapping && groupMapping["All Devices"]?.length > 0 && (
                   <div className="device-one">
-                    <div className="group-header">
-                      <div>
-                        <input
-                          type="radio"
-                          name="selectedGroup"
-                          value="All Devices"
-                          checked={selectedGroup === "All Devices"}
-                          onChange={() => handleGroupSelect("All Devices")}
-                        />
-                        <h3
-                          className="group-heading"
-                          onClick={() => toggleGroup("All Devices")}
-                          style={{ cursor: "pointer", display: "inline", marginLeft: "8px" }}
-                        >
-                          All Devices
-                        </h3>
-                      </div>
-                    </div>
                     {!collapsedGroups["All Devices"] && groupMapping["All Devices"]?.length > 0 &&(
                       
                       <table className="hosts-table">
@@ -651,7 +647,7 @@ function Hosts() {
                               <td>{host.ipAddress}</td>
                               <td>{host.username}</td>
                               <td>
-                                <ArchiveX style={{ color: 'red' ,cursor: 'pointer' }} onClick={() => handleDeleteHost(host.hostname)}>Delete</ArchiveX>
+                                <ArchiveX className='archive-x' onClick={() => handleDeleteHost(host.hostname)}>Delete</ArchiveX>
                               </td>
                             </tr>
                           ))}
@@ -679,59 +675,57 @@ function Hosts() {
                   .filter((group) => group !== "All Devices")
                   .map((group, index, arr) => (
                     <div key={group} className="group-one">
-                      <div className="group-header">
-                        <div>
-                          <input
-                            type="radio"
-                            name="selectedGroup"
-                            value={group}
-                            checked={selectedGroup === group}
-                            onChange={() => handleGroupSelect(group)}
-                          />
+                      <div className="group-header" style={{ cursor: "pointer"}} onClick={() => toggleGroup(group)}>
+                        <div style={{ display: "flex", alignItems: "center", gap: '10px' }}>
+                          <ChevronDown style={{color: 'gray'}}/>
                           <h3
                             className="group-heading"
-                            onClick={() => toggleGroup(group)}
-                            style={{ cursor: "pointer", display: "inline", marginLeft: "8px" }}
+                            style={{ display: "inline", marginRight: "20px" }}
                           >
                             {group}
                           </h3>
                         </div>
-                        <button
-                          className="delete-group-btn"
-                          onClick={() => setGroupToDelete(group)}
-                        >
-                          Delete Group
-                        </button>
+                        <div className='header-del'>
+                          <ArchiveX className='archive-x'
+                            onClick={() => setGroupToDelete(group)}
+                          >
+                            Delete Group
+                          </ArchiveX>
+                        </div>
                       </div>
                       {!collapsedGroups[group] && (
-                        <table className="hosts-table-g">
-                          <thead>
-                            <tr>
-                              <th>Hostname</th>
-                              <th>Device Type</th>
-                              <th>IP Address</th>
-                              <th>Username</th>
-                              <th></th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {groupMapping[group].map((host) => (
-                              <tr key={`${group}-${host.id}`}>
-                                <td>{host.hostname}</td>
-                                <td>{host.deviceType}</td>
-                                <td>{host.ipAddress}</td>
-                                <td>{host.username}</td>
+                        <div>
+                          {/* <p></p>
+                          <div className='line'></div> */}
+                          <table className="hosts-table-g">
+                            <thead>
+                              <tr>
+                                <th>Hostname</th>
+                                <th>Device Type</th>
+                                <th>IP Address</th>
+                                <th>Username</th>
+                                <th></th>
                               </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                            </thead>
+                            <tbody>
+                              {groupMapping[group].map((host) => (
+                                <tr key={`${group}-${host.id}`}>
+                                  <td>{host.hostname}</td>
+                                  <td>{host.deviceType}</td>
+                                  <td>{host.ipAddress}</td>
+                                  <td>{host.username}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
                       )}
                       {/* Apply the line only if this is not the last group */}
-                      {index !== arr.length - 1 && (
+                      {/* {index !== arr.length - 1 && (
                         <div className='line-container-host'>
                           <div className='line'></div>
                         </div>
-                      )}
+                      )} */}
                     </div>
                   ))}
               </div>
@@ -748,9 +742,36 @@ function Hosts() {
             ปุ่ม Add Host, Add Group และ Create Inventory
         ------------------------- */}
         <div className="button-hosts">
-          <button className="purple-round" onClick={handleCreateInventory}>Create Inventory</button>
-          {/* Popup สำหรับ Inventory Created */}
-          {renderInventoryPopup()}
+          <button className="purple-round" onClick={handleShowPopupButtonClick}>Create Inventory</button>
+          {isPopupVisible && (
+            <div className="popup-overlay">
+              <div className="popup-content-host">
+                <h2>Choose a group</h2>
+                <div>
+                  <select
+                    value={selectedGroup}
+                    onChange={(e) => handleGroupSelect(e.target.value)}
+                    style={{ padding: "8px", fontSize: "16px" }}
+                  >
+                    <option value="All Devices">All Devices</option>
+                    {Object.keys(groupMapping)
+                      .filter((group) => group !== "All Devices")
+                      .map((group) => (
+                        <option key={group} value={group}>
+                          {group}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              {/* Popup สำหรับ Inventory Created */}
+                {renderInventoryPopup()}
+                <p></p>
+                  <button className="save-btn" onClick={handleCreateInventory}>Confirm</button>
+                  <button className="cancel-btn" onClick={handleClosePopupButtonClick}>Close</button>
+              </div>
+            </div>
+          )}
+            
         </div>
 
         {/* -------------------------
