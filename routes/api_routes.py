@@ -710,7 +710,6 @@ def create_playbook_configdevice():
     try:
         # 1) ดึงข้อมูลจาก request
         data = request.json
-        print(data)
 
         # สมมติว่า frontend ส่งมาเป็น array (หลายคำสั่ง)
         # ถ้าเป็น single command แบบเดิมจะเป็น dict ธรรมดา -> ควรรองรับได้ทั้งสองแบบ
@@ -985,18 +984,22 @@ def create_playbook_configdevice():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@api_bp.route('/api/show_detail_switch_configdevice', methods=['POST'])
-def show_interface_brief():
+@api_bp.route('/api/show_detail_configdevice', methods=['POST'])
+def show_configd():
     try:
-        # Generate playbook content based on selected groups
-        playbook_content = sh_config()
+        # รับข้อมูล deviceType จาก request
+        data = request.get_json()
+        device_type = data.get('deviceType', '').lower()
+
+        # Generate playbook content โดยส่ง device_type ไปที่ sh_config
+        playbook_content = sh_config(device_type)
 
         # Create SSH connection to the VM
         ssh, username = create_ssh_connection()
 
         # Define paths for inventory and playbook inside the VM
         inventory_path = f"/home/{username}/inventory/inventory.ini"
-        playbook_path = f"/home/{username}/playbook/configd_switch.yml"
+        playbook_path = f"/home/{username}/playbook/configd.yml"
 
         # Write the playbook content to a file on the VM
         sftp = ssh.open_sftp()
@@ -1013,9 +1016,9 @@ def show_interface_brief():
         error = stderr.read().decode("utf-8")
 
         # Parse the interface data
-        parsed_result = parse_configd(output)  # สมมติว่ามีฟังก์ชัน parse_interface
+        parsed_result = parse_configd(output)
 
-        # ปิดการเชื่อมต่อ SSH
+        # Close the SSH connection
         ssh.close()
 
         # Return the structured data

@@ -37,21 +37,24 @@ def generate_inventory_content(selected_groups):
     # Initialize a set of hostnames to include based on selected groups
     selected_hostnames = set()
 
-    # Add hosts from selected groups
+    # Add hosts from selected groups (ยกเว้น "All Devices" ซึ่งจะเพิ่มทีหลัง)
     for group in selected_groups_set:
         if group == "All Devices":
             continue  # Handle "All Devices" separately
         selected_hostnames.update(groups.get(group, []))
 
-    # If "All Devices" is selected, include all hosts
+    # ถ้าเลือก "All Devices" ให้เพิ่ม host ทั้งหมด
     if include_all_devices:
         selected_hostnames = all_hostnames.copy()
 
     # Define a new group name "selectedgroup"
     new_group_name = "selectedgroup"
-
-    # เพิ่มกลุ่ม "selectedgroup" ลงใน groups
+    # เพิ่มกลุ่ม "selectedgroup" ลงใน groups (สำหรับทุก host ที่เลือก)
     groups[new_group_name] = sorted(selected_hostnames)
+
+    # เตรียมตัวแปรสำหรับเก็บ hostnames ตามประเภท device_type
+    selectedgroup_router = set()
+    selectedgroup_switch = set()
 
     # First, define each host with its variables, only if it's included
     for device in devices:
@@ -63,6 +66,13 @@ def generate_inventory_content(selected_groups):
         enable_password = device.get("enablePassword")
         username = device.get("username")
         password = device.get("password")
+
+        # ตรวจสอบ device_type โดยใช้ key "deviceType" จาก database
+        device_type = device.get("deviceType", "").lower()
+        if device_type == "router":
+            selectedgroup_router.add(hostname)
+        elif device_type == "switch":
+            selectedgroup_switch.add(hostname)
 
         # Start by adding device block
         inventory_content += f"[{hostname}]\n"
@@ -89,6 +99,20 @@ def generate_inventory_content(selected_groups):
     # Next, define the "selectedgroup" and assign hosts to it
     inventory_content += f"[{new_group_name}]\n"
     for hostname in sorted(groups[new_group_name]):
+        inventory_content += f"{hostname}\n"
+    inventory_content += "\n"
+
+    # เพิ่มกลุ่มสำหรับ router
+    new_group_router = "selectedgrouprouter"
+    inventory_content += f"[{new_group_router}]\n"
+    for hostname in sorted(selectedgroup_router):
+        inventory_content += f"{hostname}\n"
+    inventory_content += "\n"
+
+    # เพิ่มกลุ่มสำหรับ switch
+    new_group_switch = "selectedgroupswitch"
+    inventory_content += f"[{new_group_switch}]\n"
+    for hostname in sorted(selectedgroup_switch):
         inventory_content += f"{hostname}\n"
     inventory_content += "\n"
 
