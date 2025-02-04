@@ -1,5 +1,3 @@
-from services.database import fetch_all_devices
-
 def sh_ip_int_br_rt():
     hosts_line = "selectedgroup"
     
