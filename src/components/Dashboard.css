@@ -1,3 +1,147 @@
-
+/* สำหรับ DonutChart Component */
+.donut-chart-container {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+    height: 100%;
+    margin: 10px;
+  }
   
+  .donut-label {
+    font-weight: bold;
+  }
+  
+  .donut-row {
+    display: flex;
+    align-items: center;
+    margin-top: 8px;
+  }
+  
+  .donut {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    /* dynamic background ของ donut จะถูก set ผ่าน inline style จาก React */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .donut-hole {
+    width: 85px;
+    height: 85px;
+    border-radius: 50%;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* กำหนดขนาดรูปให้อยู่ใน donut-hole */
+  .donut-image {
+    width: 40px;   /* ปรับความกว้างตามต้องการ */
+    height: 40px;  /* ปรับความสูงตามต้องการ */
+    object-fit: contain;
+  }
+  
+  .donut-text {
+    margin-left: 8px;
+  }
+  
+  .online-text {
+    color: green;
+  }
+  
+  .offline-text {
+    color: red;
+  }
+  
+  /* สำหรับปุ่มและการจัดวางใน Navigation */
+  .nav-top {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    padding: 10px 10px 0 0;
+  }
+  
+  .nav-close-btn {
+    margin-bottom: 16px;
+    padding: 8px;
+    color: #7b7b7b;
+    border-radius: 8px;
+    border: none;
+    background: #f5f7f9;
+    z-index: 50;
+  }
+  
+  .nav-open-btn {
+    padding: 8px;
+    color: black;
+    border-radius: 8px;
+    border: none;
+    background: white;
+    margin-right: 8px;
+    z-index: 50;
+  }
+  
+  /* สำหรับการจัดวาง Donut Chart ใน Header Row */
+  .donut-chart-row {
+    display: flex;
+    width: 100%;
+    gap: 0; /* ไม่มีระยะห่าง */
+    justify-content: space-between;
+    margin: 10px 0;
+  }
+  
+  .donut-chart-wrapper {
+    flex: 1; /* ให้แต่ละ wrapper มีความกว้างเท่า ๆ กัน */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  /* สำหรับ Device Detail Section */
+  .device-details-row {
+    display: flex;
+    flex-direction: row;
+    margin: 10px;
+  }
+  
+  .device-detail {
+    flex: 1;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 8px;
+    text-align: left;
+  }
+  
+  .device-detail:first-child {
+    margin-right: 5px;
+  }
+  
+  .device-detail:last-child {
+    margin-left: 5px;
+  }
+  
+  /* สำหรับข้อความ Error */
+  .error-text {
+    color: red;
+  }
+  
+  /* สำหรับสถานะ Online/Offline */
+  .status-online {
+    color: green;
+    margin-left: 8px;
+    font-weight: bold;
+  }
+  
+  .status-offline {
+    color: red;
+    margin-left: 8px;
+    font-weight: bold;
+  }
   
