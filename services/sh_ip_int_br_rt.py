@@ -1,5 +1,5 @@
 def sh_ip_int_br_rt():
-    hosts_line = "selectedgroup"
+    hosts_line = "selectedgrouprouter"
     
     # สร้างเนื้อหา Playbook โดยใช้ hostname ที่กรองแล้ว
     playbook_content = f"""

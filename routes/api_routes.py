@@ -2,7 +2,7 @@ import re
 import ipaddress
 from flask import Blueprint, request, jsonify
 from services.ssh_service import create_ssh_connection
-from services.parse import parse_result, parse_interface, parse_switchport, parse_configd
+from services.parse import parse_result, parse_interface, parse_switchport, parse_configd, parse_dashboard
 from services.ansible_playbook import generate_playbook
 from services.database import add_device, fetch_all_devices, delete_device, assign_group_to_hosts, delete_group
 from services.generate_inventory import generate_inventory_content
@@ -11,6 +11,7 @@ from services.cidr import cidr_to_subnet_mask
 from services.calculate_network_id import calculate_network_id
 from services.sh_ip_int_br_rt import sh_ip_int_br_rt
 from services.sh_config_sw import sh_config
+from services.sh_dashboard import sh_dashboard
 
 api_bp = Blueprint('api', __name__)
 
@@ -1022,6 +1023,65 @@ def show_configd():
         ssh.close()
 
         # Return the structured data
+        return jsonify({"parsed_result": parsed_result})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@api_bp.route('/api/dashboard', methods=['POST'])
+def dashboard():
+    try:
+        # Generate playbook content based on selected groups
+        playbook_content = sh_dashboard()
+
+        # Create SSH connection to the VM
+        ssh, username = create_ssh_connection()
+
+        # Define paths for inventory and playbook inside the VM
+        inventory_path = f"/home/{username}/inventory/inventory.ini"
+        playbook_path = f"/home/{username}/playbook/dashboard.yml"
+
+        # Write the playbook content to a file on the VM
+        sftp = ssh.open_sftp()
+        with sftp.open(playbook_path, "w") as playbook_file:
+            playbook_file.write(playbook_content)
+        sftp.close()
+
+        # Define the ansible command to run on the VM
+        ansible_command = f"ansible-playbook -i {inventory_path} {playbook_path}"
+
+        # Execute the command on the VM
+        stdin, stdout, stderr = ssh.exec_command(ansible_command)
+        output = stdout.read().decode("utf-8")
+        error = stderr.read().decode("utf-8")
+
+        # Parse the interface data
+        parsed_result = parse_dashboard(output)  # สมมติว่ามีฟังก์ชัน parse_dashboard
+
+        # Close the SSH connection
+        ssh.close()
+
+        # Fetch all devices from the database
+        devices = fetch_all_devices()  # Assumes this returns a list of dicts
+        # Create a mapping from hostname to deviceType
+        device_mapping = {}
+        for device in devices:
+            hostname = device.get("hostname")
+            device_type = device.get("deviceType")
+            if hostname:
+                device_mapping[hostname] = device_type
+
+        # Update the parsed_result to include deviceType for hostnames found in the database
+        for key in ["ok", "fatal"]:
+            updated_list = []
+            for hostname in parsed_result.get(key, []):
+                updated_list.append({
+                    "hostname": hostname,
+                    "deviceType": device_mapping.get(hostname)  # Will be None if not found
+                })
+            parsed_result[key] = updated_list
+
+        # Return the structured data with device type information
         return jsonify({"parsed_result": parsed_result})
 
     except Exception as e:
