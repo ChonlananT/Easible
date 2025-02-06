@@ -537,15 +537,15 @@ def create_playbook_routerrouter():
             ip2 = link.get("ipAddress2")
             cidr = link.get("cidr")
             protocol = link.get("protocol")
-            static_route1 = link.get("staticRoute1")
-            static_route2 = link.get("staticRoute2")
+            # static_route1 = link.get("staticRoute1")
+            # static_route2 = link.get("staticRoute2")
 
             # ตรวจสอบค่าเบื้องต้น
             if not (hostname1 and hostname2 and interface1 and interface2 and ip1 and ip2 and cidr):
                 return jsonify({"error": f"Link #{idx}: missing required fields"}), 400
             
-            subnet1 = cidr_to_subnet_mask(static_route1['cidr']) if protocol and protocol.lower() == 'static' and static_route1 else cidr_to_subnet_mask(cidr)
-            subnet2 = cidr_to_subnet_mask(static_route2['cidr']) if protocol and protocol.lower() == 'static' and static_route2 else cidr_to_subnet_mask(cidr)
+            # subnet1 = cidr_to_subnet_mask(static_route1['cidr']) if protocol and protocol.lower() == 'static' and static_route1 else cidr_to_subnet_mask(cidr)
+            # subnet2 = cidr_to_subnet_mask(static_route2['cidr']) if protocol and protocol.lower() == 'static' and static_route2 else cidr_to_subnet_mask(cidr)
 
             # คำนวณ Subnet Mask (เช่น /24 -> 255.255.255.0)
             try:
@@ -636,52 +636,52 @@ def create_playbook_routerrouter():
     when: inventory_hostname == "{hostname2}"
 """
 
-                elif protocol.lower() == "static":
-                    # ตรวจสอบว่ามี staticRoute1 และ staticRoute2 หรือไม่
-                    if not (static_route1 and static_route1.get("prefix") and static_route1.get("subnet") and static_route1.get("nextHop") and
-                            static_route2 and static_route2.get("prefix") and static_route2.get("subnet") and static_route2.get("nextHop")):
-                        return jsonify({"error": f"Link #{idx}: Incomplete staticRoute details"}), 400
+#                 elif protocol.lower() == "static":
+#                     # ตรวจสอบว่ามี staticRoute1 และ staticRoute2 หรือไม่
+#                     if not (static_route1 and static_route1.get("prefix") and static_route1.get("subnet") and static_route1.get("nextHop") and
+#                             static_route2 and static_route2.get("prefix") and static_route2.get("subnet") and static_route2.get("nextHop")):
+#                         return jsonify({"error": f"Link #{idx}: Incomplete staticRoute details"}), 400
 
-                    prefix1 = static_route1.get("prefix")
-                    cidr1 = static_route1.get("cidr")
-                    nextHop1 = static_route1.get("nextHop")
-                    subnet_route1 = cidr_to_subnet_mask(cidr1)
+#                     prefix1 = static_route1.get("prefix")
+#                     cidr1 = static_route1.get("cidr")
+#                     nextHop1 = static_route1.get("nextHop")
+#                     subnet_route1 = cidr_to_subnet_mask(cidr1)
 
-                    prefix2 = static_route2.get("prefix")
-                    cidr2 = static_route2.get("cidr")
-                    nextHop2 = static_route2.get("nextHop")
-                    subnet_route2 = cidr_to_subnet_mask(cidr2)
+#                     prefix2 = static_route2.get("prefix")
+#                     cidr2 = static_route2.get("cidr")
+#                     nextHop2 = static_route2.get("nextHop")
+#                     subnet_route2 = cidr_to_subnet_mask(cidr2)
 
-                    # คำนวณ Network ID สำหรับ Static Route
-                    try:
-                        network_static1 = calculate_network_id(static_route1['prefix'], static_route1['cidr'])
-                        subnet_static1 = str(ipaddress.IPv4Network(f"{static_route1['prefix']}/{static_route1['cidr']}", strict=False).netmask)
-                    except ValueError as e:
-                        return jsonify({"error": f"Link #{idx} staticRoute1 error: {e}"}), 400
+#                     # คำนวณ Network ID สำหรับ Static Route
+#                     try:
+#                         network_static1 = calculate_network_id(static_route1['prefix'], static_route1['cidr'])
+#                         subnet_static1 = str(ipaddress.IPv4Network(f"{static_route1['prefix']}/{static_route1['cidr']}", strict=False).netmask)
+#                     except ValueError as e:
+#                         return jsonify({"error": f"Link #{idx} staticRoute1 error: {e}"}), 400
 
-                    try:
-                        network_static2 = calculate_network_id(static_route2['prefix'], static_route2['cidr'])
-                        subnet_static2 = str(ipaddress.IPv4Network(f"{static_route2['prefix']}/{static_route2['cidr']}", strict=False).netmask)
-                    except ValueError as e:
-                        return jsonify({"error": f"Link #{idx} staticRoute2 error: {e}"}), 400
+#                     try:
+#                         network_static2 = calculate_network_id(static_route2['prefix'], static_route2['cidr'])
+#                         subnet_static2 = str(ipaddress.IPv4Network(f"{static_route2['prefix']}/{static_route2['cidr']}", strict=False).netmask)
+#                     except ValueError as e:
+#                         return jsonify({"error": f"Link #{idx} staticRoute2 error: {e}"}), 400
 
-                    # สร้าง task สำหรับ Static Route บน Host1
-                    playbook_content += f"""
-  - name: "[Link#{idx}] Configure Static Route on {hostname1}"
-    ios_config:
-      lines:
-        - ip route {network_static1} {subnet_static1} {static_route1['nextHop']}
-    when: inventory_hostname == "{hostname1}"
-"""
+#                     # สร้าง task สำหรับ Static Route บน Host1
+#                     playbook_content += f"""
+#   - name: "[Link#{idx}] Configure Static Route on {hostname1}"
+#     ios_config:
+#       lines:
+#         - ip route {network_static1} {subnet_static1} {static_route1['nextHop']}
+#     when: inventory_hostname == "{hostname1}"
+# """
 
-                    # สร้าง task สำหรับ Static Route บน Host2
-                    playbook_content += f"""
-  - name: "[Link#{idx}] Configure Static Route on {hostname2}"
-    ios_config:
-      lines:
-        - ip route {network_static2} {subnet_static2} {static_route2['nextHop']}
-    when: inventory_hostname == "{hostname2}"
-"""
+#                     # สร้าง task สำหรับ Static Route บน Host2
+#                     playbook_content += f"""
+#   - name: "[Link#{idx}] Configure Static Route on {hostname2}"
+#     ios_config:
+#       lines:
+#         - ip route {network_static2} {subnet_static2} {static_route2['nextHop']}
+#     when: inventory_hostname == "{hostname2}"
+# """
                 else:
                     # ถ้า protocol ไม่รู้จัก ก็ข้าม หรือ return error
                     pass
@@ -952,6 +952,28 @@ def create_playbook_configdevice():
         - ip address {ip_address} {subnet_mask}
     when: inventory_hostname == "{host}"
     """
+            elif cmd_type == "static_route":
+                if device_type != "router":
+                    return jsonify({"error": f"Command #{idx}: Static Route command is only applicable to routers."}), 400
+                staticRoute_Data = cmd.get("staticRouteData", {})
+                prefix = staticRoute_Data.get("prefix")
+                cidr = staticRoute_Data.get("cidr")
+                nextHop = staticRoute_Data.get("nextHop")
+
+                try:
+                        network_static = calculate_network_id(prefix, cidr)
+                        subnet_static = str(ipaddress.IPv4Network(f"{prefix}/{cidr}", strict=False).netmask)
+                except ValueError as e:
+                        return jsonify({"error": f"Link #{idx} staticRoute error: {e}"}), 400
+
+                playbook_content += f"""
+  - name: "[Link#{idx}] Configure Static Route on {host}"
+    ios_config:
+      lines:
+        - ip route {network_static} {subnet_static} {nextHop}
+    when: inventory_hostname == "{host}"
+"""
+                    
             else:
                 return jsonify({"error": f"Command #{idx}: Unsupported command type '{cmd_type}'."}), 400
 
