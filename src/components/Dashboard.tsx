@@ -145,7 +145,7 @@ function Dashboard() {
             <a href="/configdevice">config device</a>
           </li>
           <li className="center">
-            <a href="/topology">Lab Check</a>
+            <a href="/lab">Lab Check</a>
           </li>
         </ul>
       </div>

@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import Dashboard from './components/Dashboard.tsx';
 import Hosts from './components/Hosts.tsx';
 import './App.css';
-import Topology from './components/Topology.tsx';
 import Jobs from './components/Jobs.tsx';
 import RouterRouter from './components/RouterRouter.tsx';
 import RouterSwitch from './components/RouterSwitch.tsx';
 import SwitchSwitch from './components/SwitchSwitch.tsx';
 import ConfigDevice from './components/ConfigDevice.tsx';
+import Lab from './components/Topology.tsx';
 
 function App() {
   const [user, setUser] = useState('');
@@ -64,7 +64,7 @@ function App() {
   } else if (route === '/configdevice') {
     return <ConfigDevice />;
   }else {
-    return <Topology />;
+    return <Lab />;
   }
 
   // return (
