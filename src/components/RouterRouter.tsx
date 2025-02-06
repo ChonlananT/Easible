@@ -356,15 +356,13 @@ function RouterRouter() {
             <a>Configuration  </a>
             <ChevronDown className={isNavDropdownOpen ? "chevron-nav rotated" : "chevron-nav"}/>
           </li>
-          {isNavDropdownOpen && (
-            <>
+          <ul className={`nav-dropdown ${isNavDropdownOpen ? "open" : ""}`}>
             <li className="center sub-topic"><a href="/routerrouter" style={{ color: '#8c94dc' }}>router-router</a></li>
             <li className="center sub-topic"><a href="/routerswitch">router-switch</a></li>
             <li className="center sub-topic"><a href="/switchswitch">switch-switch</a></li>
             <li className="center sub-topic"><a href="/switchhost">switch-host</a></li>
             <li className="center sub-topic"><a href="/configdevice">config device</a></li>
-            </>
-          )}
+          </ul>
           <li className="center"><a href="/lab">Lab Check</a></li>
         </ul>
       </div>

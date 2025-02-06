@@ -116,9 +116,7 @@ body {
 }
 
 .nav-links li.sub-topic {
-  margin-left: 60px; /* Indent to the right */
-  margin-top: 10px;
-  margin-bottom: 18px;
+  margin-bottom: 22px;
 }
 
 .nav-links li.sub-topic a {
@@ -239,5 +237,15 @@ body {
 
 .chevron-nav.rotated {
   transform: rotate(-810deg);
+}
+
+.nav-dropdown {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-in-out;
+}
+
+.nav-dropdown.open {
+  max-height: 240px; /* Adjust as needed */
 }
 
