@@ -4,7 +4,7 @@ import './RouterRouter.css';
 import './ConfigDevice.css';
 import './SwitchSwitch.css';
 import Spinner from './bootstrapSpinner.tsx';
-import { ArrowLeftFromLine, Menu } from 'lucide-react';
+import { ArrowLeftFromLine, ChevronDown, Menu } from 'lucide-react';
 
 // Type Definitions
 type GetHostsData = {
@@ -506,6 +506,12 @@ function ConfigDevice() {
     localStorage.setItem('isNavOpen', isNavOpen.toString());
   }, [isNavOpen]);
 
+
+  const [isNavDropdownOpen, setIsNavDropdownOpen] = useState(false);
+  const toggleNavDropdown = () =>{
+    setIsNavDropdownOpen(!isNavDropdownOpen);
+  }
+
   return (
     <div className="App">
       <div className={`nav-links-container ${isNavOpen ? "" : "closed"}`}>
@@ -537,12 +543,25 @@ function ConfigDevice() {
         <ul className="nav-links">
           <li className="center"><a href="/dashboard">Dashboard</a></li>
           <li className="center"><a href="/hosts">Devices</a></li>
-          <li className="center"><a href="/jobs">Configuration</a></li>
-          <li className="center sub-topic"><a href="/routerrouter">router-router</a></li>
-          <li className="center sub-topic"><a href="/routerswitch">router-switch</a></li>
-          <li className="center sub-topic"><a href="/switchswitch">switch-switch</a></li>
-          <li className="center sub-topic"><a href="/routerswitch">switch-host</a></li>
-          <li className="center sub-topic"><a href="/configdevice" style={{ color: '#8c94dc' }}>config device</a></li>
+          <li 
+            className="center" 
+            onClick={toggleNavDropdown} 
+            style={{ cursor: 'pointer', color: 'black' }} 
+            onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.color = '#8c94dc'} 
+            onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.color = 'black'}
+          >
+            <a>Configuration  </a>
+            <ChevronDown className={isNavDropdownOpen ? "chevron-nav rotated" : "chevron-nav"}/>
+          </li>
+          {isNavDropdownOpen && (
+            <>
+            <li className="center sub-topic"><a href="/routerrouter">router-router</a></li>
+            <li className="center sub-topic"><a href="/routerswitch">router-switch</a></li>
+            <li className="center sub-topic"><a href="/switchswitch">switch-switch</a></li>
+            <li className="center sub-topic"><a href="/switchhost">switch-host</a></li>
+            <li className="center sub-topic"><a href="/configdevice" style={{ color: '#8c94dc' }}>config device</a></li>
+            </>
+          )}
           <li className="center"><a href="/lab">Lab Check</a></li>
         </ul>
       </div>

@@ -26,7 +26,11 @@ const [isNavOpen, setIsNavOpen] = useState(() => {
     setExpanded(expanded === id ? null : id);
   }
 
-  
+
+  const [isNavDropdownOpen, setIsNavDropdownOpen] = useState(false);
+  const toggleNavDropdown = () =>{
+    setIsNavDropdownOpen(!isNavDropdownOpen);
+  }
   
   return (
     <div className="App">
@@ -53,12 +57,25 @@ const [isNavOpen, setIsNavOpen] = useState(() => {
             <a href="/dashboard">Dashboard</a>
           </li>
           <li className="center"><a href="/hosts">Devices</a></li>
-          <li className="center"><a href="/jobs">Configuration</a></li>
-          <li className="center sub-topic"><a href="/routerrouter">router-router</a></li>
-          <li className="center sub-topic"><a href="/routerswitch">router-switch</a></li>
-          <li className="center sub-topic"><a href="/switchswitch">switch-switch</a></li>
-          <li className="center sub-topic"><a href="/routerswitch">switch-host</a></li>
-          <li className="center sub-topic"><a href="/configdevice">config device</a></li>
+          <li 
+            className="center" 
+            onClick={toggleNavDropdown} 
+            style={{ cursor: 'pointer', color: 'black' }} 
+            onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.color = '#8c94dc'} 
+            onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.color = 'black'}
+          >
+            <a>Configuration  </a>
+            <ChevronDown className={isNavDropdownOpen ? "chevron-nav rotated" : "chevron-nav"}/>
+          </li>
+          {isNavDropdownOpen && (
+            <>
+            <li className="center sub-topic"><a href="/routerrouter">router-router</a></li>
+            <li className="center sub-topic"><a href="/routerswitch">router-switch</a></li>
+            <li className="center sub-topic"><a href="/switchswitch">switch-switch</a></li>
+            <li className="center sub-topic"><a href="/switchhost">switch-host</a></li>
+            <li className="center sub-topic"><a href="/configdevice">config device</a></li>
+            </>
+          )}
           <li className="center"><a href="/lab" style={{ color: '#8c94dc' }}>Lab Check</a></li>
         </ul>
       </div>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './Bar.css';
-import { ArrowLeftFromLine } from 'lucide-react';
+import { ArrowLeftFromLine, ChevronDown } from 'lucide-react';
 import { Menu } from 'lucide-react';
 import './Jobs.css';
 
@@ -25,6 +25,11 @@ function Jobs() {
     useEffect(() => {
         localStorage.setItem('isNavOpen', isNavOpen.toString());
       }, [isNavOpen]);
+    
+  const [isNavDropdownOpen, setIsNavDropdownOpen] = useState(false);
+  const toggleNavDropdown = () =>{
+    setIsNavDropdownOpen(!isNavDropdownOpen);
+  }
 
   return (
     <div className="App">
@@ -51,12 +56,25 @@ function Jobs() {
             <a href="/dashboard">Dashboard</a>
           </li>
           <li className="center"><a href="/hosts">Devices</a></li>
-          <li className="center"><a href="/jobs" style={{ color: '#8c94dc' }}>Configuration</a></li>
-          <li className="center sub-topic"><a href="/routerrouter">router-router</a></li>
-          <li className="center sub-topic"><a href="/routerswitch">router-switch</a></li>
-          <li className="center sub-topic"><a href="/switchswitch">switch-switch</a></li>
-          <li className="center sub-topic"><a href="/routerswitch">switch-host</a></li>
-          <li className="center sub-topic"><a href="/configdevice">config device</a></li>
+          <li 
+            className="center" 
+            onClick={toggleNavDropdown} 
+            style={{ cursor: 'pointer', color: 'black' }} 
+            onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.color = '#8c94dc'} 
+            onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.color = 'black'}
+          >
+            <a>Configuration  </a>
+            <ChevronDown className={isNavDropdownOpen ? "chevron-nav rotated" : "chevron-nav"}/>
+          </li>
+          {isNavDropdownOpen && (
+            <>
+            <li className="center sub-topic"><a href="/routerrouter">router-router</a></li>
+            <li className="center sub-topic"><a href="/routerswitch">router-switch</a></li>
+            <li className="center sub-topic"><a href="/switchswitch">switch-switch</a></li>
+            <li className="center sub-topic"><a href="/switchhost">switch-host</a></li>
+            <li className="center sub-topic"><a href="/configdevice">config device</a></li>
+            </>
+          )}
           <li className="center"><a href="/lab">Lab Check</a></li>
         </ul>
       </div>
