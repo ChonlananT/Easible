@@ -677,7 +677,11 @@ function Hosts() {
                     <div key={group} className="group-one">
                       <div className="group-header" style={{ cursor: "pointer"}} onClick={() => toggleGroup(group)}>
                         <div style={{ display: "flex", alignItems: "center", gap: '10px' }}>
-                          <ChevronDown style={{color: 'gray'}}/>
+                        {collapsedGroups[group] ? (
+                          <ChevronDown style={{ color: "gray" }} />
+                        ) : (
+                          <ChevronRight style={{ color: "gray" }} />
+                        )}
                           <h3
                             className="group-heading"
                             style={{ display: "inline", marginRight: "20px" }}

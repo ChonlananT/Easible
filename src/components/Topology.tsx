@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { ArrowLeftFromLine, Menu, X } from "lucide-react";
+import { ArrowLeftFromLine, ChevronDown, ChevronRight, ChevronRightCircle, Menu, X } from "lucide-react";
 import './Bar.css';
+import './Topology.css';
 
 function Lab() {
 const [isNavOpen, setIsNavOpen] = useState(() => {
@@ -11,6 +12,21 @@ const [isNavOpen, setIsNavOpen] = useState(() => {
   useEffect(() => {
       localStorage.setItem('isNavOpen', isNavOpen.toString());
     }, [isNavOpen]);
+
+  
+  const labs = [
+    { id: 1, title: "Lab 1 (Static Route)", content: "Details about Static Route" },
+    { id: 2, title: "Lab 2 (RIPv2)", content: "Details about RIPv2" },
+    { id: 3, title: "Lab 3 (OSPF)", content: "Details about OSPF" },
+    { id: 4, title: "Lab 4 (Spanning Tree Protocol)", content: "Details about STP" },
+    { id: 5, title: "Lab 5 (PTSD)", content: "Details about STP" }
+  ];
+  const [expanded, setExpanded] = useState<number | null>(null);
+  const toggleExpanded = (id) => {
+    setExpanded(expanded === id ? null : id);
+  }
+
+  
   
   return (
     <div className="App">
@@ -66,10 +82,72 @@ const [isNavOpen, setIsNavOpen] = useState(() => {
          Lab check
           </div>
         <div className="content-board-lab">
+          <div className="lab-topic">Choose lab</div>
+          <div className="lab-board-container">
+            <div className="lab-board">
+              {labs.map((lab) => (
+                <div key={lab.id}>
+                  <div className="lab-item">
+                    <div style={{width: '100%', cursor: 'pointer', fontSize: '20px', fontWeight: '450'}} onClick={() => toggleExpanded(lab.id)}>
+                      {lab.title}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '50px'}}>
+                      <div className="host-name-lab">
+                        Host 1:
+                        <div className="dropdown-lab">
+                          <select className="dropdown-select-lab">
+                            <option value="option1">Option 1</option>
+                            <option value="option2">Option 2</option>
+                            <option value="option3">Option 3</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div className="host-name-lab">
+                        Host 2:
+                        <div className="dropdown-lab">
+                          <select className="dropdown-select-lab">
+                            <option value="option1">Option 1</option>
+                            <option value="option2">Option 2</option>
+                            <option value="option3">Option 3</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div style={{width: '100%', height: '100%', cursor: 'pointer'}} onClick={() => toggleExpanded(lab.id)}>
+                        {expanded === lab.id 
+                        ? (<ChevronDown size={24} />) 
+                        : (<ChevronRight size={24} />)
+                        }
+                      </div>
+                    </div>
+                  </div>
+                  {expanded === lab.id && (
+                  <div className="lab-content">
+                    <div className="expect-container">
+                    <div className="expect-section">
+                      Expect host 1
+                      <div className="input-lab">
+                        <textarea className="expect-input" placeholder="Enter text..."></textarea>
+                      </div>
+                    </div>
 
+                      <div className="expect-section">
+                        Expect host 2
+                        <div className="input-lab">
+                          <textarea className="expect-input" placeholder="Enter text..."></textarea>
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{display:'flex', justifyContent:'flex-end', margin:'5px'}}>
+                      <button className="green-round-lab">Check</button>
+                    </div>
+                  </div>
+                )}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
-      
     </div>
   );
 }
