@@ -8,6 +8,7 @@ import RouterSwitch from './components/RouterSwitch.tsx';
 import SwitchSwitch from './components/SwitchSwitch.tsx';
 import ConfigDevice from './components/ConfigDevice.tsx';
 import Lab from './components/Topology.tsx';
+import SwitchHost from './components/SwitchHost.tsx';
 
 function App() {
   const [user, setUser] = useState('');
@@ -61,6 +62,8 @@ function App() {
     return <RouterSwitch />;
   } else if (route === '/switchswitch') {
     return <SwitchSwitch />;
+  }else if (route === '/switchhost') {
+    return <SwitchHost />;
   } else if (route === '/configdevice') {
     return <ConfigDevice />;
   }else {

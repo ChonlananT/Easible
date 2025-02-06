@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { ArrowLeftFromLine, Menu } from "lucide-react";
 import './Bar.css';
 
-function RouterSwitch() {
+function SwitchHost() {
   const [isNavOpen, setIsNavOpen] = useState(() => {
       const savedNavState = localStorage.getItem('isNavOpen');
       return savedNavState === 'true';  // Convert to boolean
@@ -39,9 +39,9 @@ function RouterSwitch() {
           <li className="center"><a href="/hosts">Devices</a></li>
           <li className="center"><a href="/jobs">Configuration</a></li>
           <li className="center sub-topic"><a href="/routerrouter">router-router</a></li>
-          <li className="center sub-topic"><a href="/routerswitch" style={{ color: '#8c94dc' }}>router-switch</a></li>
+          <li className="center sub-topic"><a href="/routerswitch">router-switch</a></li>
           <li className="center sub-topic"><a href="/switchswitch">switch-switch</a></li>
-          <li className="center sub-topic"><a href="/routerswitch">switch-host</a></li>
+          <li className="center sub-topic"><a href="/routerswitch" style={{ color: '#8c94dc' }}>switch-host</a></li>
           <li className="center sub-topic"><a href="/configdevice">config device</a></li>
           <li className="center"><a href="/lab">Lab Check</a></li>
         </ul>
@@ -64,7 +64,7 @@ function RouterSwitch() {
               <Menu size={24} />
             </button>
           )}
-         Configuration <span className='content-topic-small'>(Router-Switch)</span>
+         Configuration <span className='content-topic-small'>(Switch-Host)</span>
           </div>
         <div className="content-board"></div>
       </div>
@@ -73,5 +73,5 @@ function RouterSwitch() {
   );
 }
 
-export default RouterSwitch;
+export default SwitchHost;
 

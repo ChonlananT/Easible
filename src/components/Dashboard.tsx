@@ -141,6 +141,7 @@ function Dashboard() {
           <li className="center sub-topic">
             <a href="/switchswitch">switch-switch</a>
           </li>
+          <li className="center sub-topic"><a href="/routerswitch">switch-host</a></li>
           <li className="center sub-topic">
             <a href="/configdevice">config device</a>
           </li>

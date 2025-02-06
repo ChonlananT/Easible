@@ -571,6 +571,7 @@ function Hosts() {
           <li className="center sub-topic"><a href="/routerrouter">router-router</a></li>
           <li className="center sub-topic"><a href="/routerswitch">router-switch</a></li>
           <li className="center sub-topic"><a href="/switchswitch">switch-switch</a></li>
+          <li className="center sub-topic"><a href="/routerswitch">switch-host</a></li>
           <li className="center sub-topic"><a href="/configdevice">config device</a></li>
           <li className="center"><a href="/lab">Lab Check</a></li>
         </ul>
@@ -677,7 +678,11 @@ function Hosts() {
                     <div key={group} className="group-one">
                       <div className="group-header" style={{ cursor: "pointer"}} onClick={() => toggleGroup(group)}>
                         <div style={{ display: "flex", alignItems: "center", gap: '10px' }}>
-                          <ChevronDown style={{color: 'gray'}}/>
+                        {collapsedGroups[group] ? (
+                          <ChevronDown style={{ color: "gray" }} />
+                        ) : (
+                          <ChevronRight style={{ color: "gray" }} />
+                        )}
                           <h3
                             className="group-heading"
                             style={{ display: "inline", marginRight: "20px" }}
