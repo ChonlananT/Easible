@@ -57,6 +57,7 @@ const [isNavOpen, setIsNavOpen] = useState(() => {
           <li className="center sub-topic"><a href="/routerrouter">router-router</a></li>
           <li className="center sub-topic"><a href="/routerswitch">router-switch</a></li>
           <li className="center sub-topic"><a href="/switchswitch">switch-switch</a></li>
+          <li className="center sub-topic"><a href="/routerswitch">switch-host</a></li>
           <li className="center sub-topic"><a href="/configdevice">config device</a></li>
           <li className="center"><a href="/lab" style={{ color: '#8c94dc' }}>Lab Check</a></li>
         </ul>
