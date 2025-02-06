@@ -614,7 +614,6 @@ function ConfigDevice() {
                           disabled={!link.deviceType}
                         >
                           <option value="">-- Select a Host --</option>
-                          <option value="router">-- xxx --</option>
                           {combinedHosts
                             .filter((host) => host.deviceType === link.deviceType)
                             .map((host: DropdownOption) => (
