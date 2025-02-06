@@ -75,6 +75,12 @@ type LoopbackData = {
   ipAddress: string;
 };
 
+type StaticRouteData = {
+  prefix: string;
+  cidr: number;
+  nextHop: string
+};
+
 // HostConfig Type
 type HostConfig = {
   deviceType: string;
@@ -84,6 +90,7 @@ type HostConfig = {
   bridgePriority?: BridgePriorityData;
   configIp?: ConfigIpData;
   loopbackData?: LoopbackData;
+  staticRouteData?: StaticRouteData;
 };
 
 function ConfigDevice() {
@@ -106,6 +113,7 @@ function ConfigDevice() {
     router: [
       { label: 'Config IP Router', value: 'config_ip_router' },
       { label: 'Loopback', value: 'loopback' },
+      { label: 'Static Route', value: 'static_route' },
     ],
   };
 
@@ -219,7 +227,7 @@ function ConfigDevice() {
     hostIndex: number,
     field:
       | keyof HostConfig
-      | { group: 'vlanData' | 'bridgePriority' | 'configIp' | 'loopbackData'; key: string },
+      | { group: 'vlanData' | 'bridgePriority' | 'configIp' | 'loopbackData' | 'staticRouteData'; key: string },
     value: string | number
   ) => {
     setLinks((prevLinks) => {
@@ -237,6 +245,7 @@ function ConfigDevice() {
           delete hostConfig.bridgePriority;
           delete hostConfig.configIp;
           delete hostConfig.loopbackData;
+          delete hostConfig.staticRouteData;
 
           // ถ้า deviceType เป็น "switch" หรือ "router" ให้เรียก API show_detail_configdevice
           if (value === 'switch' || value === 'router') {
@@ -290,6 +299,12 @@ function ConfigDevice() {
               loopbackNumber: 0,
               ipAddress: '',
             };
+          } else if (value === 'static_route') {
+            hostConfig.staticRouteData = {
+              prefix: '',
+              cidr: 24,
+              nextHop: '',
+            };
           } else {
             delete hostConfig.vlanData;
             delete hostConfig.bridgePriority;
@@ -317,6 +332,11 @@ function ConfigDevice() {
         } else if (field.group === 'loopbackData') {
           hostConfig.loopbackData = {
             ...hostConfig.loopbackData!,
+            [field.key]: value,
+          };
+        } else if (field.group === 'staticRouteData') {
+          hostConfig.staticRouteData = {
+            ...hostConfig.staticRouteData!,
             [field.key]: value,
           };
         }
@@ -392,6 +412,14 @@ function ConfigDevice() {
           return;
         }
       }
+
+      if (link.selectedCommand === 'static_route') {
+        const static_route = link.staticRouteData;
+        if (!static_route || !static_route.prefix || !static_route.cidr || !static_route.nextHop) {
+          setError(`Please fill all required Static route fields for entry ${i + 1}.`);
+          return;
+        }
+      }
     }
 
     const requestData = links.map((link) => ({
@@ -433,6 +461,15 @@ function ConfigDevice() {
             loopbackData: {
               loopbackNumber: link.loopbackData.loopbackNumber,
               ipAddress: link.loopbackData.ipAddress,
+            },
+          }
+        : {}),
+      ...(link.selectedCommand === 'static_route' && link.staticRouteData
+        ? {
+            staticRouteData: {
+              prefix: link.staticRouteData.prefix,
+              cidr: link.staticRouteData.cidr,
+              nextHop: link.staticRouteData.nextHop
             },
           }
         : {}),
@@ -577,6 +614,7 @@ function ConfigDevice() {
                           disabled={!link.deviceType}
                         >
                           <option value="">-- Select a Host --</option>
+                          <option value="router">-- xxx --</option>
                           {combinedHosts
                             .filter((host) => host.deviceType === link.deviceType)
                             .map((host: DropdownOption) => (
@@ -832,7 +870,7 @@ function ConfigDevice() {
                       <div className="config-command-board">
                         <h5>Loopback Configuration</h5>
                         <div className="loopback-config-content">
-                          <div className="host-selection__dropdown-group">
+                          <div className="config-device-input-text">
                             <label>Loopback Number:</label>
                             <input
                               type="text"
@@ -852,6 +890,48 @@ function ConfigDevice() {
                                 handleHostChange(index, { group: 'loopbackData', key: 'ipAddress' }, e.target.value)
                               }
                               placeholder="Enter IP Address"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Static Route Configuration */}
+                    {link.selectedCommand === 'static_route' && link.staticRouteData && (
+                      <div className="config-command-board">
+                        <h5>Static Route Configuration</h5>
+                        <div className="loopback-config-content">
+                          <div className="config-device-input-text">
+                            <label>Prefix:</label>
+                            <input
+                              type="text"
+                              value={link.staticRouteData.prefix}
+                              onChange={(e) =>
+                                handleHostChange(index, { group: 'staticRouteData', key: 'prefix' }, e.target.value)
+                              }
+                              placeholder="Enter Prefix"
+                            />
+                          </div>
+                          <div className="config-device-input-text">
+                            <label>Subnet mask(CIDR):</label>
+                            <input
+                              type="text"
+                              value={link.staticRouteData.cidr}
+                              onChange={(e) =>
+                                handleHostChange(index, { group: 'staticRouteData', key: 'cidr' }, e.target.value)
+                              }
+                              placeholder="Enter Subnet mask"
+                            />
+                          </div>
+                          <div className="config-device-input-text">
+                            <label>Next Hop:</label>
+                            <input
+                              type="text"
+                              value={link.staticRouteData.nextHop}
+                              onChange={(e) =>
+                                handleHostChange(index, { group: 'staticRouteData', key: 'nextHop' }, e.target.value)
+                              }
+                              placeholder="Enter Next Hop"
                             />
                           </div>
                         </div>
