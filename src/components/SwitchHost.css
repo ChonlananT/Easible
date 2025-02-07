@@ -1,0 +1,78 @@
+.content-section-swh{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    width: 100%;
+}
+
+.command-section-swh{
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+    justify-content: center;
+}
+
+.host-selection-container-swh {
+    display: flex;
+    gap: 10px;
+    flex-direction: column;
+    width: 100%;
+    transition: transform 0.2s ease-in-out;
+}
+
+.host-selection-container-swh.move-left {
+    transform: translateX(-40px);
+}
+
+.host-selection__hosts-swh{
+    margin-top: 10px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.host-swh{
+    width: 50%;
+}
+
+.all-links-swh {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 50px;
+}
+
+.all-links-swh > *:not(:last-child)::after {
+    content: '';
+    display: block;
+    border-radius: 24px;
+    width: 100%;  /* Full width of the item */
+    height: 2px; /* Set height for the gap */
+    background-color: #ccc;  /* Set your desired color */
+}
+
+.host-selection__dropdown-swh {
+    margin-bottom: 10px;
+    width: 80%;
+}
+
+.host-selection__vlan-configuration-swh {
+    display: flex; /* Enable flexbox layout */
+    flex-direction: row; /* Ensure items are stacked vertically */
+    justify-content: center; /* Center content vertically */
+    align-items: center; /* Center content horizontally */
+    gap: 20px;
+    background: #ebf2f9;
+    padding: 18px;
+    border-radius: 12px;
+    border: 2px solid #aad3f0;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease-in-out;
+    animation: spreadFromCenter 0.2s ease; /* Apply the animation */
+    transform-origin: center;
+}

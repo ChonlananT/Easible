@@ -630,28 +630,18 @@ function ConfigDevice() {
                           className="host-selection__dropdown"
                           value={link.selectedHost}
                           onChange={(e) => handleHostChange(index, 'selectedHost', e.target.value)}
-                          disabled={loading || !link.deviceType}
+                          disabled={!link.deviceType || loading} // Disable when loading
                         >
-                          {loading || !link.deviceType ? (
-                            <option value="">Loading devices...</option>
-                          ) : combinedHosts.filter((host) => host.deviceType === link.deviceType).length === 0 ? (
-                            <option value="">No devices available</option>
-                          ) : (
-                            <>
-                              <option value="">-- Select a Device --</option>
-                              {combinedHosts
-                                .filter((host) => host.deviceType === link.deviceType)
-                                .map((host: DropdownOption) => (
-                                  <option key={host.hostname} value={host.hostname}>
-                                    {host.hostname}
-                                  </option>
-                                ))}
-                            </>
-                          )}
+                          <option value="">-- Select a Device --</option>
+                          {combinedHosts
+                            .filter((host) => host.deviceType === link.deviceType)
+                            .map((host: DropdownOption) => (
+                              <option key={host.hostname} value={host.hostname}>
+                                {host.hostname}
+                              </option>
+                            ))}
                         </select>
                       </div>
-
-
 
                       {/* Select Command */}
                       <div className="host-selection__dropdown-group">
