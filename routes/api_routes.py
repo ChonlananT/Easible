@@ -1108,3 +1108,93 @@ def dashboard():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@api_bp.route('/api/create_playbook_swtohost', methods=['POST'])
+def create_playbook_switchhost():
+    try:
+        # 1) Get the data from the request
+        data = request.json
+
+        # Allow both a single dict or a list of links
+        if isinstance(data, dict):
+            data = [data]
+        elif not isinstance(data, list):
+            return jsonify({"error": "Invalid data format. Expected a list of link configurations."}), 400
+
+        # Header for the playbook
+        playbook_content = """---
+- name: Configure switch-to-host links
+  hosts: selectedgroupswitch
+  gather_facts: no
+  tasks:
+"""
+
+        import ipaddress
+
+        # 2) Process each link to generate tasks
+        for idx, link in enumerate(data, start=1):
+            hostname = link.get("hostname")
+            interface = link.get("interface")
+            vlan_id = link.get("vlanId")
+            ip_address = link.get("ipAddress")
+            subnet_mask = link.get("subnetMask")
+
+            # Basic validation
+            if not hostname or not interface or not vlan_id or not ip_address or not subnet_mask:
+                return jsonify({"error": f"Link #{idx} is missing one or more required fields."}), 400
+
+            # Calculate the netmask in dotted format using the ipaddress module
+            try:
+                network = ipaddress.IPv4Network(f"{ip_address}/{subnet_mask}", strict=False)
+                netmask = str(network.netmask)
+            except Exception as e:
+                return jsonify({"error": f"Link #{idx} error calculating subnet: {str(e)}"}), 400
+
+            # Task 1: Configure the physical (GigabitEthernet) interface
+            playbook_content += f"""
+  - name: "[Link#{idx}] Configure GigabitEthernet {interface} on {hostname}"
+    ios_config:
+      parents: interface {interface}
+      lines:
+        - switchport mode access
+        - switchport access vlan {vlan_id}
+        - no shutdown
+    when: inventory_hostname == "{hostname}"
+"""
+
+            # Task 2: Configure the VLAN interface with IP address and netmask
+            playbook_content += f"""
+  - name: "[Link#{idx}] Configure VLAN interface {vlan_id} on {hostname}"
+    ios_config:
+      parents: interface vlan {vlan_id}
+      lines:
+        - ip address {ip_address} {netmask}
+    when: inventory_hostname == "{hostname}"
+"""
+
+        # 3) Write the generated playbook to a file on the server and (optionally) execute it
+        ssh, username = create_ssh_connection()
+        playbook_path = f"/home/{username}/playbook/multi_links_playbook.yml"
+        inventory_path = f"/home/{username}/inventory/inventory.ini"
+
+        sftp = ssh.open_sftp()
+        with sftp.open(playbook_path, "w") as playbook_file:
+            playbook_file.write(playbook_content)
+        sftp.close()
+
+        # Optionally, you can run the playbook immediately:
+        # stdin, stdout, stderr = ssh.exec_command(f"ansible-playbook -i {inventory_path} {playbook_path}")
+        # output = stdout.read().decode('utf-8')
+        # errors = stderr.read().decode('utf-8')
+
+        ssh.close()
+
+        return jsonify({
+            "message": "Playbook created successfully",
+            "playbook": playbook_content,
+            # "output": output,   # Uncomment if executing the playbook
+            # "errors": errors
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
