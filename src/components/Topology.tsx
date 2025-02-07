@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { ArrowLeftFromLine, ChevronDown, ChevronRight, ChevronRightCircle, Menu, X } from "lucide-react";
 import './Bar.css';
 import './Topology.css';
+import { motion } from "framer-motion";
 
 function Lab() {
 const [isNavOpen, setIsNavOpen] = useState(() => {
@@ -26,11 +27,14 @@ const [isNavOpen, setIsNavOpen] = useState(() => {
     setExpanded(expanded === id ? null : id);
   }
 
-
+  //nav-dropdown-on-off
   const [isNavDropdownOpen, setIsNavDropdownOpen] = useState(false);
   const toggleNavDropdown = () =>{
     setIsNavDropdownOpen(!isNavDropdownOpen);
   }
+
+  //popup-check
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
   
   return (
     <div className="App">
@@ -102,63 +106,83 @@ const [isNavOpen, setIsNavOpen] = useState(() => {
           <div className="lab-board-container">
             <div className="lab-board">
               {labs.map((lab) => (
-                <div key={lab.id}>
-                  <div className="lab-item">
-                    <div style={{width: '100%', cursor: 'pointer', fontSize: '20px', fontWeight: '450'}} onClick={() => toggleExpanded(lab.id)}>
-                      {lab.title}
+                <div style={{marginBottom: '10px'}} key={lab.id}>
+                <div className="lab-item">
+                  <div
+                    style={{ width: "100%", cursor: "pointer", fontSize: "20px", fontWeight: "450" }}
+                    onClick={() => toggleExpanded(lab.id)}
+                  >
+                    {lab.title}
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "50px" }}>
+                    <div className="host-name-lab">
+                      Host 1:
+                      <div className="dropdown-lab">
+                        <select className="dropdown-select-lab">
+                          <option value="option1">Option 1</option>
+                          <option value="option2">Option 2</option>
+                          <option value="option3">Option 3</option>
+                        </select>
+                      </div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '50px'}}>
-                      <div className="host-name-lab">
-                        Host 1:
-                        <div className="dropdown-lab">
-                          <select className="dropdown-select-lab">
-                            <option value="option1">Option 1</option>
-                            <option value="option2">Option 2</option>
-                            <option value="option3">Option 3</option>
-                          </select>
-                        </div>
+                    <div className="host-name-lab">
+                      Host 2:
+                      <div className="dropdown-lab">
+                        <select className="dropdown-select-lab">
+                          <option value="option1">Option 1</option>
+                          <option value="option2">Option 2</option>
+                          <option value="option3">Option 3</option>
+                        </select>
                       </div>
-                      <div className="host-name-lab">
-                        Host 2:
-                        <div className="dropdown-lab">
-                          <select className="dropdown-select-lab">
-                            <option value="option1">Option 1</option>
-                            <option value="option2">Option 2</option>
-                            <option value="option3">Option 3</option>
-                          </select>
-                        </div>
-                      </div>
-                      <div style={{width: '100%', height: '100%', cursor: 'pointer'}} onClick={() => toggleExpanded(lab.id)}>
-                        {expanded === lab.id 
-                        ? (<ChevronDown size={24} />) 
-                        : (<ChevronRight size={24} />)
-                        }
-                      </div>
+                    </div>
+                    <div style={{ width: "100%", height: "100%", cursor: "pointer" }} onClick={() => toggleExpanded(lab.id)}>
+                      {expanded === lab.id ? <ChevronDown size={24} /> : <ChevronRight size={24} />}
                     </div>
                   </div>
+                </div>
+          
+                {/* Animate the lab content when expanding */}
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={expanded === lab.id ? { height: "auto", opacity: 1 } : { height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                  style={{ overflow: "hidden" }}
+                >
                   {expanded === lab.id && (
-                  <div className="lab-content">
-                    <div className="expect-container">
-                    <div className="expect-section">
-                      Expect host 1
-                      <div className="input-lab">
-                        <textarea className="expect-input" placeholder="Enter text..."></textarea>
-                      </div>
-                    </div>
-
-                      <div className="expect-section">
-                        Expect host 2
-                        <div className="input-lab">
-                          <textarea className="expect-input" placeholder="Enter text..."></textarea>
+                    <div className="lab-content">
+                      <div className="expect-container">
+                        <div className="expect-section">
+                          Expect host 1
+                          <div className="input-lab">
+                            <textarea className="expect-input" placeholder="Enter text..."></textarea>
+                          </div>
+                        </div>
+          
+                        <div className="expect-section">
+                          Expect host 2
+                          <div className="input-lab">
+                            <textarea className="expect-input" placeholder="Enter text..."></textarea>
+                          </div>
                         </div>
                       </div>
+                      <div style={{ display: "flex", justifyContent: "flex-end", margin: "5px" }}>
+                        <button className="green-round-lab" onClick={() => setIsPopupOpen(true)}>Check</button>
+                      </div>
                     </div>
-                    <div style={{display:'flex', justifyContent:'flex-end', margin:'5px'}}>
-                      <button className="green-round-lab">Check</button>
+                  )}
+                </motion.div>
+                {isPopupOpen && (
+                  <div className="popup-overlay-lab">
+                    <div
+                      className="popup-content-host"
+                    >
+                      <h3>Results</h3>
+                      <p>Here are the results of your check...</p>
+                      <button className="save-btn" onClick={() => setIsPopupOpen(false)}>Close</button>
                     </div>
                   </div>
                 )}
-                </div>
+              </div>
               ))}
             </div>
           </div>

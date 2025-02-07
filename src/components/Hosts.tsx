@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from "framer-motion";
 import './Bar.css';
 import './Host.css';
 import './Popup.css'; // สมมติว่ามีไฟล์ CSS สำหรับ Popup
@@ -714,39 +715,38 @@ function Hosts() {
                           </ArchiveX>
                         </div>
                       </div>
-                      {!collapsedGroups[group] && (
-                        <div>
-                          {/* <p></p>
-                          <div className='line'></div> */}
-                          <table className="hosts-table-g">
-                            <thead>
-                              <tr>
-                                <th>Hostname</th>
-                                <th>Device Type</th>
-                                <th>IP Address</th>
-                                <th>Username</th>
-                                <th></th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {groupMapping[group].map((host) => (
-                                <tr key={`${group}-${host.id}`}>
-                                  <td>{host.hostname}</td>
-                                  <td>{host.deviceType}</td>
-                                  <td>{host.ipAddress}</td>
-                                  <td>{host.username}</td>
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={collapsedGroups[group] ? { height: "auto", opacity: 1 } : { height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                        style={{ overflow: "hidden" }}
+                      >
+                        {collapsedGroups[group] && (
+                          <div>
+                            <table className="hosts-table-g">
+                              <thead>
+                                <tr>
+                                  <th>Hostname</th>
+                                  <th>Device Type</th>
+                                  <th>IP Address</th>
+                                  <th>Username</th>
+                                  <th></th>
                                 </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      )}
-                      {/* Apply the line only if this is not the last group */}
-                      {/* {index !== arr.length - 1 && (
-                        <div className='line-container-host'>
-                          <div className='line'></div>
-                        </div>
-                      )} */}
+                              </thead>
+                              <tbody>
+                                {groupMapping[group].map((host) => (
+                                  <tr key={`${group}-${host.id}`}>
+                                    <td>{host.hostname}</td>
+                                    <td>{host.deviceType}</td>
+                                    <td>{host.ipAddress}</td>
+                                    <td>{host.username}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+                      </motion.div>
                     </div>
                   ))}
               </div>

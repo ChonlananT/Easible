@@ -40,7 +40,6 @@
     background: linear-gradient(rgb(254, 202, 247), rgb(234, 244, 201));
     border-radius: 12px;
     padding: 20px 30px;
-    margin: 10px 10px 0 10px;
     border: 2px solid #D4D4D4; /* Border thickness */
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.1); /* Inset shadow for depth */
     overflow-y: auto; /* Allows scrolling when content overflows vertically */
@@ -60,7 +59,6 @@
 .lab-content{
     border: solid 2px lightgrey;
     border-radius: 8px;
-    width: 100%;
     margin: 0 10px 0 10px;
     height: 400px;
     padding: 10px;
@@ -152,3 +150,21 @@
     outline: none; /* Remove focus outline */
     box-shadow: 0 0 0 2px #e0e0e0; /* Focus ring for accessibility */
 }  
+
+
+
+
+
+
+.popup-overlay-lab {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
