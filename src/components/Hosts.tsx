@@ -693,8 +693,8 @@ function Hosts() {
                   .filter((group) => group !== "All Devices")
                   .map((group, index, arr) => (
                     <div key={group} className="group-one">
-                      <div className="group-header" style={{ cursor: "pointer"}} onClick={() => toggleGroup(group)}>
-                        <div style={{ display: "flex", alignItems: "center", gap: '10px' }}>
+                      <div className="group-header" style={{ cursor: "pointer"}}>
+                        <div style={{ display: "flex", alignItems: "center", gap: '10px', width: '100%'}} onClick={() => toggleGroup(group)}>
                         {collapsedGroups[group] ? (
                           <ChevronDown style={{ color: "gray" }} />
                         ) : (

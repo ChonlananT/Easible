@@ -519,7 +519,6 @@
 }
 
 .header-del{
-  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: flex-end;

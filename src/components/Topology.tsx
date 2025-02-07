@@ -41,11 +41,16 @@ const [isNavOpen, setIsNavOpen] = useState(() => {
     host1: "",
     host2: "",
   });
-
   const handleInputChange = (e, host) => {
     setExpectations((prev) => ({ ...prev, [host]: e.target.value }));
   };
   
+  //selected-host
+  const [selectedHost, setSelectedHost] = useState({ host1: "option1", host2: "option1" });
+  const handleSelectHost = (e, host) =>{
+    setSelectedHost((prev) => ({ ...prev, [host]: e.target.value }));
+  }
+
   return (
     <div className="App">
       <div className={`nav-links-container ${isNavOpen ? "" : "closed"}`}>
@@ -128,7 +133,11 @@ const [isNavOpen, setIsNavOpen] = useState(() => {
                     <div className="host-name-lab">
                       Host 1:
                       <div className="dropdown-lab">
-                        <select className="dropdown-select-lab">
+                      <select
+                        className="dropdown-select-lab"
+                        value={selectedHost.host1}
+                        onChange={(e) => handleSelectHost(e, "host1")}
+                      >
                           <option value="option1">Option 1</option>
                           <option value="option2">Option 2</option>
                           <option value="option3">Option 3</option>
@@ -138,7 +147,11 @@ const [isNavOpen, setIsNavOpen] = useState(() => {
                     <div className="host-name-lab">
                       Host 2:
                       <div className="dropdown-lab">
-                        <select className="dropdown-select-lab">
+                        <select
+                          className="dropdown-select-lab"
+                          value={selectedHost.host1}
+                          onChange={(e) => handleSelectHost(e, "host2")}
+                        >
                           <option value="option1">Option 1</option>
                           <option value="option2">Option 2</option>
                           <option value="option3">Option 3</option>
@@ -195,7 +208,7 @@ const [isNavOpen, setIsNavOpen] = useState(() => {
                   <div className="popup-overlay-lab">
                     <div className="popup-content-host">
                       <h3>Results</h3>
-                      <pre>{JSON.stringify(expectations, null, 2)}</pre>
+                      <pre>{JSON.stringify({expectations, selectedHost}, null, 2)}</pre>
                       <button className="save-btn" onClick={() => setIsPopupOpen(false)}>Close</button>
                     </div>
                   </div>
