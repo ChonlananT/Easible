@@ -117,7 +117,7 @@ function RouterRouter() {
   // useEffect: ดึงข้อมูล Hosts/Interfaces จาก backend
   useEffect(() => {
     setLoading(true);
-    fetch('/api/show_detail', {
+    fetch('/api/show_detail_router', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     })
