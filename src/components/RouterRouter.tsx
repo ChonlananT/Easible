@@ -62,7 +62,6 @@ function RouterRouter() {
     { label: 'None (Only IP Address)', value: 'none' },
     { label: 'RIPv2', value: 'rip' },
     { label: 'OSPF', value: 'ospf' },
-    { label: 'Static Route', value: 'static' },
   ];
 
 
@@ -491,7 +490,7 @@ function RouterRouter() {
                           alt="Remove link"
                           style={{ width: '150px', height: '100px'}}  // Adjust size as needed
                         /> 
-                        <label>Protocol:</label>
+                        <label>Routing protocol activation:</label>
                         <select
                           className="host-selection__dropdown"
                           value={link.selectedProtocol}

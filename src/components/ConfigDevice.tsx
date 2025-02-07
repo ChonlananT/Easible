@@ -630,9 +630,9 @@ function ConfigDevice() {
                           className="host-selection__dropdown"
                           value={link.selectedHost}
                           onChange={(e) => handleHostChange(index, 'selectedHost', e.target.value)}
-                          disabled={!link.deviceType || loading}
+                          disabled={loading || !link.deviceType}
                         >
-                          {loading ? (
+                          {loading || !link.deviceType ? (
                             <option value="">Loading devices...</option>
                           ) : combinedHosts.filter((host) => host.deviceType === link.deviceType).length === 0 ? (
                             <option value="">No devices available</option>
@@ -650,6 +650,7 @@ function ConfigDevice() {
                           )}
                         </select>
                       </div>
+
 
 
                       {/* Select Command */}
