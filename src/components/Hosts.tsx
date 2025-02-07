@@ -774,7 +774,9 @@ function Hosts() {
                     onChange={(e) => handleGroupSelect(e.target.value)}
                     style={{ padding: "8px", fontSize: "16px" }}
                   >
-                    <option value="All Devices">All Devices</option>
+                    <option value="" disabled hidden>
+                      -- Select Group --
+                    </option>
                     {Object.keys(groupMapping)
                       .filter((group) => group !== "All Devices")
                       .map((group) => (
@@ -784,6 +786,7 @@ function Hosts() {
                       ))}
                   </select>
                 </div>
+
               {/* Popup สำหรับ Inventory Created */}
                 {renderInventoryPopup()}
                 <p></p>

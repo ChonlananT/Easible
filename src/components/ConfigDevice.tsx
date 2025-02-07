@@ -591,7 +591,7 @@ function ConfigDevice() {
             {links.map((link, index) => (
               <div key={index} className="switch-switch">
                 <div className="top-link">
-                  <div className="link-index">Host Config {index + 1}</div>
+                  <div className="link-index">Device Config {index + 1}</div>
                   <div className="remove-link-container">
                     {links.length > 1 && (
                       <button onClick={() => handleRemoveHost(index)} className="button-sw-sw-remove">
@@ -625,23 +625,32 @@ function ConfigDevice() {
 
                       {/* Select Host */}
                       <div className="host-selection__dropdown-group">
-                        <label>Select Host:</label>
+                        <label>Select Device:</label>
                         <select
                           className="host-selection__dropdown"
                           value={link.selectedHost}
                           onChange={(e) => handleHostChange(index, 'selectedHost', e.target.value)}
-                          disabled={!link.deviceType}
+                          disabled={!link.deviceType || loading}
                         >
-                          <option value="">-- Select a Host --</option>
-                          {combinedHosts
-                            .filter((host) => host.deviceType === link.deviceType)
-                            .map((host: DropdownOption) => (
-                              <option key={host.hostname} value={host.hostname}>
-                                {host.hostname}
-                              </option>
-                            ))}
+                          {loading ? (
+                            <option value="">Loading devices...</option>
+                          ) : combinedHosts.filter((host) => host.deviceType === link.deviceType).length === 0 ? (
+                            <option value="">No devices available</option>
+                          ) : (
+                            <>
+                              <option value="">-- Select a Device --</option>
+                              {combinedHosts
+                                .filter((host) => host.deviceType === link.deviceType)
+                                .map((host: DropdownOption) => (
+                                  <option key={host.hostname} value={host.hostname}>
+                                    {host.hostname}
+                                  </option>
+                                ))}
+                            </>
+                          )}
                         </select>
                       </div>
+
 
                       {/* Select Command */}
                       <div className="host-selection__dropdown-group">
