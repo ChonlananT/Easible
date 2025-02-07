@@ -35,6 +35,16 @@ const [isNavOpen, setIsNavOpen] = useState(() => {
 
   //popup-check
   const [isPopupOpen, setIsPopupOpen] = useState(false);
+
+  //json-popup
+  const [expectations, setExpectations] = useState({
+    host1: "",
+    host2: "",
+  });
+
+  const handleInputChange = (e, host) => {
+    setExpectations((prev) => ({ ...prev, [host]: e.target.value }));
+  };
   
   return (
     <div className="App">
@@ -154,14 +164,24 @@ const [isNavOpen, setIsNavOpen] = useState(() => {
                         <div className="expect-section">
                           Expect host 1
                           <div className="input-lab">
-                            <textarea className="expect-input" placeholder="Enter text..."></textarea>
+                            <textarea
+                              className="expect-input"
+                              placeholder="Enter text..."
+                              value={expectations.host1}
+                              onChange={(e) => handleInputChange(e, "host1")}
+                            />
                           </div>
                         </div>
           
                         <div className="expect-section">
                           Expect host 2
                           <div className="input-lab">
-                            <textarea className="expect-input" placeholder="Enter text..."></textarea>
+                            <textarea
+                              className="expect-input"
+                              placeholder="Enter text..."
+                              value={expectations.host2}
+                              onChange={(e) => handleInputChange(e, "host2")}
+                            />
                           </div>
                         </div>
                       </div>
@@ -173,11 +193,9 @@ const [isNavOpen, setIsNavOpen] = useState(() => {
                 </motion.div>
                 {isPopupOpen && (
                   <div className="popup-overlay-lab">
-                    <div
-                      className="popup-content-host"
-                    >
+                    <div className="popup-content-host">
                       <h3>Results</h3>
-                      <p>Here are the results of your check...</p>
+                      <pre>{JSON.stringify(expectations, null, 2)}</pre>
                       <button className="save-btn" onClick={() => setIsPopupOpen(false)}>Close</button>
                     </div>
                   </div>
