@@ -633,6 +633,7 @@ function ConfigDevice() {
                           disabled={!link.deviceType || loading} // Disable when loading
                         >
                           <option value="">-- Select a Device --</option>
+                          <option value="test">test</option>
                           {combinedHosts
                             .filter((host) => host.deviceType === link.deviceType)
                             .map((host: DropdownOption) => (
