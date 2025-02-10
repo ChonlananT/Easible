@@ -767,7 +767,7 @@ function Hosts() {
           {isPopupVisible && (
             <div className="popup-overlay">
               <div className="popup-content-host">
-                <h2>Choose a group</h2>
+              <h2>Choose a group</h2>
                 <div>
                   <select
                     value={selectedGroup}
@@ -777,15 +777,14 @@ function Hosts() {
                     <option value="" disabled hidden>
                       -- Select Group --
                     </option>
-                    {Object.keys(groupMapping)
-                      .filter((group) => group !== "All Devices")
-                      .map((group) => (
-                        <option key={group} value={group}>
-                          {group}
-                        </option>
-                      ))}
+                    {Object.keys(groupMapping).map((group) => (
+                      <option key={group} value={group}>
+                        {group}
+                      </option>
+                    ))}
                   </select>
                 </div>
+
 
               {/* Popup สำหรับ Inventory Created */}
                 {renderInventoryPopup()}

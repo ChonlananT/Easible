@@ -121,3 +121,40 @@
     background-color: #aad3f0; /* Adjust the color to your preference */
     border-radius: 20px;
 }
+
+
+
+
+
+.switch-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-bottom: 10px;
+  }
+  
+  .switch-header {
+    padding: 10px;
+    font-size: 18px;
+    font-weight: bold;
+    background: #f5f5f5;
+  }
+  
+  .root-bridge {
+    background: #0044cc;
+    color: white;
+  }
+  
+  .switch-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .switch-table th,
+.switch-table td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.switch-table th {
+  background: #eaeaea;
+}
