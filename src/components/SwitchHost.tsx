@@ -222,6 +222,19 @@ function SwitchHost() {
     setIsNavDropdownOpen(!isNavDropdownOpen);
   };
 
+  //popup
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [summaryLinks, setSummaryLinks] = useState<SwitchToHostLink[]>([]);
+
+// Toggle the popup and store selected links
+  const handleTogglePopup = () => {
+    if (!isPopupOpen) {
+      setSummaryLinks([...links]); // Save the current selected links to display in summary
+    }
+    setIsPopupOpen(!isPopupOpen);
+  };
+
+
   return (
     <div className="App">
       <div className={`nav-links-container ${isNavOpen ? '' : 'closed'}`}>
@@ -339,110 +352,112 @@ function SwitchHost() {
                 </div>
 
                 <div className="content-section-swh">
-      <div
-        className={`host-selection-container-swh ${
-          link.selectedHost ? "move-left" : ""
-        }`}
-      >
-        <div className="host-selection__hosts-swh">
-          <div className="host-swh">
-            <div className="host-card">
-              <div className="host-selection__dropdown-group">
-                <label>Select Host (Switch):</label>
-                <div className="host-selection__dropdown-container">
-                  <select
-                    className="host-selection__dropdown"
-                    onChange={(e) =>
-                      handleLinkChange(index, "selectedHost", e.target.value)
-                    }
-                    value={link.selectedHost}
+                  <div
+                    className={`host-selection-container-swh ${
+                      link.selectedHost ? "move-left" : ""
+                    }`}
                   >
-                    <option value="">-- Select a Host --</option>
-                    <option value="test">test</option>
-                    {!loading &&
-                      hosts.map((host) => (
-                        <option key={host.hostname} value={host.hostname}>
-                          {host.hostname}
-                        </option>
-                      ))}
-                  </select>
+                    <div className="host-selection__hosts-swh">
+                      <div className="host-swh">
+                        <div className="host-card">
+                          <div className="host-selection__dropdown-group">
+                            <label>Select Host (Switch):</label>
+                            <div className="host-selection__dropdown-container">
+                              <select
+                                className="host-selection__dropdown"
+                                onChange={(e) =>
+                                  handleLinkChange(index, "selectedHost", e.target.value)
+                                }
+                                value={link.selectedHost}
+                              >
+                                <option value="">-- Select a Host --</option>
+                                <option value="test">test</option>
+                                {!loading &&
+                                  hosts.map((host) => (
+                                    <option key={host.hostname} value={host.hostname}>
+                                      {host.hostname}
+                                    </option>
+                                  ))}
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Show interface and VLAN selection once a host is selected */}
+                  {link.selectedHost && (
+                    <div className="command-section-swh">
+                      <div className="host-selection__dropdown-swh">
+                        <label>Select Interface for {link.selectedHost}:</label>
+                        <select
+                          className="host-selection__dropdown"
+                          value={link.selectedInterface}
+                          onChange={(e) =>
+                            handleLinkChange(index, "selectedInterface", e.target.value)
+                          }
+                        >
+                          <option value="">-- Select Interface --</option>
+                          <option value="1/0/1">-- interface --</option>
+                          {getInterfacesForHost(link.selectedHost).map((intf) => (
+                            <option key={intf.interface} value={intf.interface}>
+                              {intf.interface} ({intf.status})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* VLAN Configuration Section */}
+                      <div className="host-selection__vlan-configuration-swh">
+                        <div className="input-sw-sw-group">
+                          <label>VLAN ID:</label>
+                          <select
+                            className="host-selection__dropdown"
+                            value={link.vlanData.vlanId}
+                            onChange={(e) =>
+                              handleVlanChange(index, "vlanId", e.target.value)
+                            }
+                          >
+                            <option value="">-- Select VLAN --</option>
+                            <option value="400">-- 400 --</option>
+                            {getVlanIdsForHost(link.selectedHost).map((vlan) => (
+                              <option key={vlan} value={vlan}>
+                                {vlan}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="input-sw-sw-group">
+                          <label>IP Address:</label>
+                          <input
+                            type="text"
+                            value={link.vlanData.ipAddress}
+                            onChange={(e) =>
+                              handleVlanChange(index, "ipAddress", e.target.value)
+                            }
+                            placeholder="Enter IP Address"
+                            className="input-sw-sw"
+                          />
+                        </div>
+                        <div className="input-sw-sw-group">
+                          <label>Subnet Mask (CIDR):</label>
+                          <input
+                            type="number"
+                            min={1}
+                            max={32}
+                            value={link.vlanData.subnetMask}
+                            onChange={(e) =>
+                              handleVlanChange(index, "subnetMask", e.target.value)
+                            }
+                            placeholder="Enter Subnet Mask"
+                            className="input-sw-sw"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Show interface and VLAN selection once a host is selected */}
-      {link.selectedHost && (
-        <div className="command-section-swh">
-          <div className="host-selection__dropdown-swh">
-            <label>Select Interface for {link.selectedHost}:</label>
-            <select
-              className="host-selection__dropdown"
-              value={link.selectedInterface}
-              onChange={(e) =>
-                handleLinkChange(index, "selectedInterface", e.target.value)
-              }
-            >
-              <option value="">-- Select Interface --</option>
-              {getInterfacesForHost(link.selectedHost).map((intf) => (
-                <option key={intf.interface} value={intf.interface}>
-                  {intf.interface} ({intf.status})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* VLAN Configuration Section */}
-          <div className="host-selection__vlan-configuration-swh">
-            <div className="input-sw-sw-group">
-              <label>VLAN ID:</label>
-              <select
-                className="host-selection__dropdown"
-                value={link.vlanData.vlanId}
-                onChange={(e) =>
-                  handleVlanChange(index, "vlanId", e.target.value)
-                }
-              >
-                <option value="">-- Select VLAN --</option>
-                {getVlanIdsForHost(link.selectedHost).map((vlan) => (
-                  <option key={vlan} value={vlan}>
-                    {vlan}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="input-sw-sw-group">
-              <label>IP Address:</label>
-              <input
-                type="text"
-                value={link.vlanData.ipAddress}
-                onChange={(e) =>
-                  handleVlanChange(index, "ipAddress", e.target.value)
-                }
-                placeholder="Enter IP Address"
-                className="input-sw-sw"
-              />
-            </div>
-            <div className="input-sw-sw-group">
-              <label>Subnet Mask (CIDR):</label>
-              <input
-                type="number"
-                min={1}
-                max={32}
-                value={link.vlanData.subnetMask}
-                onChange={(e) =>
-                  handleVlanChange(index, "subnetMask", e.target.value)
-                }
-                placeholder="Enter Subnet Mask"
-                className="input-sw-sw"
-              />
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
               </div>
             ))}
           </div>
@@ -465,11 +480,56 @@ function SwitchHost() {
             <div className="line"></div>
           </div>
         </div>
+
         <div className="submit-sw-sw-container">
+          <button className="button-sw-sw-submit" onClick={handleTogglePopup}>
+            Check
+          </button>
           <button className="button-sw-sw-submit" onClick={handleSubmitAll}>
             Submit All
           </button>
         </div>
+
+        {isPopupOpen && (
+          <div className="popup-overlay">
+            <div className="popup-content-swh">
+              <h2>Summary</h2>
+              {summaryLinks.length > 0 ? (
+                <div className='popup-table-wrapper'>
+                  <table className="summary-table">
+                    <thead>
+                      <tr>
+                        <th>Switch</th>
+                        <th>Outgoing Interface</th>
+                        <th>VLAN ID</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {summaryLinks.map((link, index) => (
+                        <tr key={index}>
+                          <td>{link.selectedHost || "Not Selected"}</td>
+                          <td>{link.selectedInterface || "Not Selected"}</td>
+                          <td>{link.vlanData.vlanId || "Not Selected"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p>No links created.</p>
+              )}
+              <div className="submit-sw-sw-container" style={{ marginTop: '15px' }}>
+                <button className="button-swh-close" onClick={handleTogglePopup}>
+                  Close
+                </button>
+                <button className="button-sw-sw-submit" onClick={handleSubmitAll}>
+                  Submit All
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
 
         {error && <div className="error-sw-sw">Error: {error}</div>}
       </div>
