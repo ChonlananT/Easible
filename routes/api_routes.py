@@ -12,6 +12,7 @@ from services.calculate_network_id import calculate_network_id
 from services.sh_ip_int_br_rt import sh_ip_int_br_rt
 from services.sh_config_sw import sh_config
 from services.sh_dashboard import sh_dashboard
+from services.sh_swtort import sh_swtort
 
 api_bp = Blueprint('api', __name__)
 
@@ -1194,6 +1195,132 @@ def create_playbook_switchhost():
             "playbook": playbook_content,
             # "output": output,   # Uncomment if executing the playbook
             # "errors": errors
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@api_bp.route('/api/create_playbook_swtort', methods=['POST'])
+def create_playbook_switchrouter():
+    try:
+        # 1) Retrieve data from the request (support both a single link and a list)
+        data = request.json
+        if isinstance(data, dict):
+            data = [data]
+        elif not isinstance(data, list):
+            return jsonify({"error": "Invalid data format. Expected a list of link configurations."}), 400
+
+        # This set is used to track interfaces already configured as trunk on a switch
+        trunked_interfaces = set()
+
+        # Start playbook content with one play (applied to all hosts in the "selectedgroup" group)
+        playbook_content = """---
+- name: Configure multiple links
+  hosts: selectedgroup
+  gather_facts: no
+  tasks:
+"""
+
+        # 2) Iterate over each link in the submitted data
+        for idx, link in enumerate(data, start=1):
+            # Use the key names as sent by the frontend:
+            switch_host = link.get("switchHost")
+            router_host = link.get("routerHost")
+            switch_interface = link.get("switchInterface")
+            router_interface = link.get("routerInterface")
+            vlan_configs = link.get("vlanConfigs", [])
+
+            # Basic validation
+            if not switch_host or not router_host or not switch_interface or not router_interface:
+                return jsonify({"error": f"Link #{idx} missing required host or interface information."}), 400
+
+            if not vlan_configs:
+                return jsonify({"error": f"Link #{idx} missing VLAN configuration."}), 400
+
+            # For each VLAN configuration in the link, add switch and router tasks
+            for vlan_conf in vlan_configs:
+                vlan_id = vlan_conf.get("vlanId")
+                gateway = vlan_conf.get("gateway")
+                cidr = vlan_conf.get("subnet")  # Provided as CIDR (e.g. "24")
+                if not vlan_id or not gateway or not cidr:
+                    return jsonify({"error": f"Link #{idx}: VLAN configuration incomplete. Required: vlanId, gateway, subnet."}), 400
+
+                # Convert CIDR (e.g. "24") to subnet mask (e.g. "255.255.255.0")
+                try:
+                    cidr_int = int(cidr)
+                    network = ipaddress.IPv4Network(f"0.0.0.0/{cidr_int}", strict=False)
+                    netmask = str(network.netmask)
+                except Exception as e:
+                    return jsonify({"error": f"Link #{idx}: Invalid subnet '{cidr}'. Error: {str(e)}"}), 400
+
+                # -----------------------------------------
+                # SWITCH SIDE CONFIGURATION
+                # -----------------------------------------
+                # Build the list of switch commands to be executed under the parent interface
+                if (switch_host, switch_interface) in trunked_interfaces:
+                    # Already in trunk mode => add VLAN to allowed list
+                    switch_lines = [f"switchport trunk allowed vlan add {vlan_id}"]
+                else:
+                    # Not configured as trunk yet => configure trunk mode and allowed VLAN
+                    switch_lines = [
+                        "switchport mode trunk",
+                        f"switchport trunk allowed vlan {vlan_id}"
+                    ]
+                    # Mark this interface as trunked
+                    trunked_interfaces.add((switch_host, switch_interface))
+
+                playbook_content += f"""
+  - name: "[Link#{idx}] Configure VLAN {vlan_id} on switch {switch_host}"
+    ios_config:
+      parents: "interface {switch_interface}"
+      lines:
+"""
+                for cmd in switch_lines:
+                    playbook_content += f"        - {cmd}\n"
+                playbook_content += f'    when: inventory_hostname == "{switch_host}"\n'
+
+                # -----------------------------------------
+                # ROUTER SIDE CONFIGURATION
+                # -----------------------------------------
+                # Build the router subinterface name by appending a dot and the VLAN ID
+                subinterface = f"{router_interface}.{vlan_id}"
+                router_commands = [
+                    f"interface {subinterface}",
+                    f"encapsulation dot1q {vlan_id}",
+                    f"ip address {gateway} {netmask}"
+                ]
+
+                playbook_content += f"""
+  - name: "[Link#{idx}] Configure subinterface {subinterface} on router {router_host}"
+    ios_config:
+      lines:
+"""
+                for cmd in router_commands:
+                    playbook_content += f"        - {cmd}\n"
+                playbook_content += f'    when: inventory_hostname == "{router_host}"\n'
+
+        # 3) Write the playbook to the remote VM and (optionally) run it
+        ssh, username = create_ssh_connection()  
+        playbook_path = f"/home/{username}/playbook/multi_links_playbook.yml"
+        inventory_path = f"/home/{username}/inventory/inventory.ini"
+
+        sftp = ssh.open_sftp()
+        with sftp.open(playbook_path, "w") as playbook_file:
+            playbook_file.write(playbook_content)
+        sftp.close()
+
+        # Optionally, execute the playbook immediately:
+        # stdin, stdout, stderr = ssh.exec_command(f"ansible-playbook -i {inventory_path} {playbook_path}")
+        # output = stdout.read().decode('utf-8')
+        # errors = stderr.read().decode('utf-8')
+        # For now, we simply return the playbook content.
+        ssh.close()
+
+        return jsonify({
+            "message": "Playbook created successfully",
+            "playbook": playbook_content,
+            # "output": output,       # Uncomment if you run ansible-playbook immediately
+            # "errors": errors        # Uncomment if you run ansible-playbook immediately
         }), 200
 
     except Exception as e:
