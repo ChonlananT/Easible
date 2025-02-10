@@ -382,19 +382,23 @@ function Hosts() {
             
             <div className="hosts-toggle-list">
               {filteredHostsGroup.length > 0 ? (
-                filteredHostsGroup.map((host) => (
-                  <button
-                    key={host.hostname}
-                    className={`host-toggle-button ${selectedHostnames.includes(host.hostname) ? "selected" : ""}`}
-                    onClick={() => handleDeviceToggle(host.hostname)}
-                  >
-                    {host.hostname}
-                  </button>
-                ))
+                filteredHostsGroup
+                  .slice() // Create a copy to avoid mutating the original array
+                  .sort((a, b) => a.hostname.localeCompare(b.hostname)) // Sort in ascending order
+                  .map((host) => (
+                    <button
+                      key={host.hostname}
+                      className={`host-toggle-button ${selectedHostnames.includes(host.hostname) ? "selected" : ""}`}
+                      onClick={() => handleDeviceToggle(host.hostname)}
+                    >
+                      {host.hostname}
+                    </button>
+                  ))
               ) : (
-                <div className='no-matching-devices'>No matching devices found</div>
+                <div className="no-matching-devices">No matching devices found</div>
               )}
             </div>
+
             <input
               type="text"
               value={searchTerm}

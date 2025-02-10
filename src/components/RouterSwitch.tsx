@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import './RouterSwitch.css';
 import './Bar.css';
 import './SwitchSwitch.css';
 import Spinner from './bootstrapSpinner.tsx';
-import { ArrowLeftFromLine, ChevronDown, Menu } from 'lucide-react';
+import { ArrowLeftFromLine, ChevronDown, CircleMinus, Menu } from 'lucide-react';
 
 type DropdownOption = {
   hostname: string;
@@ -290,7 +291,7 @@ function SwitchRouter() {
             onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = '#8c94dc')}
             onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = 'black')}
           >
-            <a>Configuration </a>
+            <a>Configuration</a>
             <ChevronDown className={isNavDropdownOpen ? 'chevron-nav rotated' : 'chevron-nav'} />
           </li>
           <ul className={`nav-dropdown ${isNavDropdownOpen ? 'open' : ''}`}>
@@ -334,7 +335,7 @@ function SwitchRouter() {
               <Menu size={24} />
             </button>
           )}
-          Configuration <span className="content-topic-small">(Switch-Router)</span>
+          Configuration <span className="content-topic-small">(Router-Switch)</span>
         </div>
         <div className="content-board">
           <div className="all-links">
@@ -359,10 +360,10 @@ function SwitchRouter() {
                   <div className="host-selection-container">
                     <div className="host-selection__hosts">
                       {/* Switch Host Card */}
-                      <div className="host-sw-sw">
+                      <div style={{ marginTop: '20px' }}>
                         <div className="host-card">
                           <div className="host-selection__dropdown-group">
-                            <label>Select Switch Host:</label>
+                            <label>Switch</label>
                             <div className="host-selection__dropdown-container">
                               <select
                                 className="host-selection__dropdown"
@@ -372,6 +373,7 @@ function SwitchRouter() {
                                 value={link.selectedSwitchHost}
                               >
                                 <option value="">-- Select a Switch Host --</option>
+                                <option value="test">test</option>
                                 {!loading &&
                                   hosts
                                     .filter(
@@ -410,19 +412,22 @@ function SwitchRouter() {
                         </div>
                       </div>
 
-                      <div className="connect-pic-sw-sw">
+
+                      <div className="connect-pic-rt-rt">
                         <img
-                          src="connect.png" // Replace with your actual image path
-                          alt="Connect"
-                          style={{ width: '150px', height: '100px' }}
-                        />
+                            src="connect.png"  // Replace with your actual image path
+                            alt="Remove link"
+                            style={{ width: '150px', height: '100px'}}  // Adjust size as needed
+                          /> 
+                          <label>Inter-VLAN Routing</label>
                       </div>
+                        
 
                       {/* Router Host Card */}
-                      <div className="host-sw-sw">
+                      <div style={{ marginTop: '20px' }}>
                         <div className="host-card">
                           <div className="host-selection__dropdown-group">
-                            <label>Select Router Host:</label>
+                            <label>Router:</label>
                             <div className="host-selection__dropdown-container">
                               <select
                                 className="host-selection__dropdown"
@@ -432,6 +437,7 @@ function SwitchRouter() {
                                 value={link.selectedRouterHost}
                               >
                                 <option value="">-- Select a Router Host --</option>
+                                <option value="test">test</option>
                                 {!loading &&
                                   hosts
                                     .filter(
@@ -472,10 +478,11 @@ function SwitchRouter() {
                     </div>
 
                     {/* VLAN Configuration Section */}
-                    <div className="vlan-configuration">
-                      <h4>VLAN Configuration</h4>
+                    <div className="vlan-rt-sw">
+                      <h5 style={{ margin: '0px auto' }}>VLAN Configuration</h5>
+                      <p/>
                       {link.vlanConfigs.map((vlan, vlanIndex) => (
-                        <div key={vlanIndex} className="vlan-config-detail">
+                        <div key={vlanIndex} className="vlan-rt-sw-input">
                           <div className="input-sw-sw-group">
                             <label>VLAN ID:</label>
                             <div className="host-selection__dropdown-container">
@@ -507,24 +514,22 @@ function SwitchRouter() {
                               className="input-sw-sw"
                             />
                           </div>
-                          <div className="input-sw-sw-group">
+                          <div style={{ display: 'flex', alignItems: 'center' }}>
+                            <span style={{ fontSize: '25px', marginTop: '10px' }}>/</span>
+                          </div>
+                          <div className="input-sw-sw-group" style={{ width: '35%' }}>
                             <label>Subnet:</label>
                             <input
-                              type="text"
-                              value={vlan.subnet}
-                              onChange={(e) =>
-                                handleVlanChange(index, vlanIndex, 'subnet', e.target.value)
-                              }
-                              placeholder="Enter Subnet"
+                              type="number"
+                              value={vlan.subnet || 24} // Set 24 as default if vlan.subnet is empty
+                              onChange={(e) => handleVlanChange(index, vlanIndex, 'subnet', e.target.value)}
+                              placeholder="24"
                               className="input-sw-sw"
+                              min="1"
+                              max="32" 
                             />
                           </div>
-                          <button
-                            className="button-remove-vlan"
-                            onClick={() => handleRemoveVlan(index, vlanIndex)}
-                          >
-                            Remove VLAN
-                          </button>
+                          <CircleMinus style={{ width: '95px', height: '95px', color: 'red', marginTop:'10px', cursor: 'pointer'}} onClick={() => handleRemoveVlan(index, vlanIndex)} />
                         </div>
                       ))}
                       <button className="button-add-vlan" onClick={() => handleAddVlan(index)}>

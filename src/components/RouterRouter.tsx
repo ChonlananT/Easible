@@ -490,7 +490,8 @@ function RouterRouter() {
                           alt="Remove link"
                           style={{ width: '150px', height: '100px'}}  // Adjust size as needed
                         /> 
-                        <label>Routing protocol activation:</label>
+                        <label style={{ fontSize: '15px' }}>Routing protocol activation:</label>
+
                         <select
                           className="host-selection__dropdown"
                           value={link.selectedProtocol}

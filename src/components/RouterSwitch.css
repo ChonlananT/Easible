@@ -3,22 +3,6 @@
     flex-direction: row;
   }
   
-  .nav-links {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    width: 220px;
-    background: #f2f2f2;
-  }
-  
-  .nav-links li {
-    padding: 10px 16px;
-  }
-  
-  .nav-links li a {
-    text-decoration: none;
-    color: #333;
-  }
   
   .content {
     flex: 1;
@@ -62,3 +46,58 @@
     margin-top: 1rem;
   }
   
+
+
+
+
+.vlan-rt-sw{
+  display: flex;
+  flex-direction: column;
+  background: #ebf2f9;
+  border-radius: 12px;
+  border: 2px solid #aad3f0;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+  padding: 18px;
+  margin: 40px auto;
+  width: 60%;
+}
+
+.vlan-rt-sw-input{
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  padding: 0px 10px;
+}
+
+
+
+
+
+
+.button-add-vlan {
+  width: 25%;
+  border: 2px solid #aad3f0; /* Slightly darker blue for better contrast */
+  border-radius: 24px;
+  background: #81c6f7;
+  color: white; /* Correct property, 'text-color' is invalid */
+  display: flex;
+  align-items: center; /* Center text/icon inside */
+  justify-content: center;
+  padding: 8px; /* More padding for a modern button look */
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out; /* Smooth hover effect */
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
+  display: block;
+  margin: 0 auto;
+}
+
+.button-add-vlan:hover {
+  transform: scale(1.01); /* Slight scale-up effect */
+  box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.2);
+}
+
+.button-add-vlan:active {
+  transform: scale(0.98); /* Pressed button effect */
+}
+
