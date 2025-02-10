@@ -93,6 +93,44 @@ type HostConfig = {
   staticRouteData?: StaticRouteData;
 };
 
+const SummaryPopup = ({ stpResults, onClose }) => (
+  <div className="popup-overlay">
+    <div className="popup-preview">
+    <h2 className="summary-title">Summary</h2>
+      <div className="summary-content">
+        {stpResults.map((sw, index) => (
+          <div key={index} className="switch-card">
+            <div className={`switch-header ${sw.stp_detail.isRoot ? 'root-bridge' : ''}`}>
+              SW{index + 1} Spanning Tree (VLAN {sw.vlan_id}) Priority: {sw.stp_detail.bridge_priority_in_brackets}
+              {sw.stp_detail.isRoot && <span className="root-label">[ROOT BRIDGE]</span>}
+            </div>
+            <table className="switch-table">
+              <thead>
+                <tr>
+                  <th>Interface</th>
+                  <th>Role</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sw.stp_detail.stp_interfaces.map((port, idx) => (
+                  <tr key={idx}>
+                    <td>{port.interface}</td>
+                    <td>{port.interface_role}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ))}
+      </div>
+      <div className="button-group">
+        <button className="button-confirm-prev" onClick={onClose}>okay</button>
+      </div>
+    </div>
+  </div>
+);
+
+
 function ConfigDevice() {
   const [hostsFromGetHosts, setHostsFromGetHosts] = useState<GetHostsData[]>([]);
   // state สำหรับเก็บรายละเอียดของ device type (key: 'switch' หรือ 'router')
@@ -512,6 +550,46 @@ function ConfigDevice() {
     setIsNavDropdownOpen(!isNavDropdownOpen);
   }
 
+  // const filteredHosts = combinedHosts.filter((host) => host.deviceType === links.deviceType);
+
+  const [isBridgeOpen, setBridgeOpen] = useState(false);
+
+  const handleToggleBridge = () => {
+    setBridgeOpen(!isBridgeOpen);
+  }
+
+  const stpResults = [
+    {
+      vlan_id: 1,
+      stp_detail: {
+        root_mac: "0c11.678c.8700",
+        bridge_priority_in_brackets: "32768",
+        bridge_mac: "0c11.678c.8700",
+        isRoot: true,
+        stp_interfaces: [
+          { interface: "Gi1/0/4", interface_role: "Desg", cost: "4" },
+          { interface: "Gi1/0/7", interface_role: "Desg", cost: "4" }
+        ]
+      }
+    },
+    {
+      vlan_id: 1,
+      stp_detail: {
+        root_mac: "0c11.678c.8700",
+        bridge_priority_in_brackets: "32768",
+        bridge_mac: "0c11.678c.8701",
+        isRoot: false,
+        stp_interfaces: [
+          { interface: "Gi1/0/4", interface_role: "Root", cost: "4" },
+          { interface: "Gi1/0/11", interface_role: "Desg", cost: "4" }
+        ]
+      }
+    }
+  ];
+
+
+
+
   return (
     <div className="App">
       <div className={`nav-links-container ${isNavOpen ? "" : "closed"}`}>
@@ -624,16 +702,27 @@ function ConfigDevice() {
                       </div>
 
                       {/* Select Host */}
+
                       <div className="host-selection__dropdown-group">
                         <label>Select Device:</label>
                         <select
                           className="host-selection__dropdown"
                           value={link.selectedHost}
                           onChange={(e) => handleHostChange(index, 'selectedHost', e.target.value)}
-                          disabled={!link.deviceType || loading} // Disable when loading
+                          disabled={
+                            !link.deviceType || 
+                            loading || 
+                            combinedHosts.filter((host) => host.deviceType === link.deviceType).length <= 1 // Disable if only one option
+                          }
                         >
-                          <option value="">-- Select a Device --</option>
-                          <option value="test">test</option>
+                           <option value="">
+                            {!link.deviceType
+                              ? "-- Select a Device --"
+                              : combinedHosts.some((host) => host.deviceType === link.deviceType)
+                              ? "-- Select a Device --"
+                              : "Loading..."}
+                          </option>
+
                           {combinedHosts
                             .filter((host) => host.deviceType === link.deviceType)
                             .map((host: DropdownOption) => (
@@ -643,6 +732,30 @@ function ConfigDevice() {
                             ))}
                         </select>
                       </div>
+
+                      {/* <div className="host-selection__dropdown-group">
+                        <label>Select Device:</label>
+                        <select
+                          className="host-selection__dropdown"
+                          value={link.selectedHost}
+                          onChange={(e) => handleHostChange(index, 'selectedHost', e.target.value)}
+                          disabled={loading || !filteredHosts.length} // Disable only if still loading or no devices
+                        >
+                          {loading || !filteredHosts.length ? (
+                            <option value="">Loading...</option> // Show loading message
+                          ) : (
+                            <>
+                              <option value="">-- Select a Device --</option>
+                              <option value="test">test</option>
+                              {filteredHosts.map((host: DropdownOption) => (
+                                <option key={host.hostname} value={host.hostname}>
+                                  {host.hostname}
+                                </option>
+                              ))}
+                            </>
+                          )}
+                        </select>
+                      </div> */}
 
                       {/* Select Command */}
                       <div className="host-selection__dropdown-group">
@@ -975,6 +1088,12 @@ function ConfigDevice() {
             </button>
             <div className="line"></div>
           </div>
+        </div>
+        <div className="submit-sw-sw-container">
+          <button className="button-sw-sw-submit" onClick={handleToggleBridge}>
+            bridge
+          </button>
+          {isBridgeOpen && <SummaryPopup stpResults={stpResults} onClose={() => setBridgeOpen(false)} />}
         </div>
         <div className="submit-sw-sw-container">
           <button className="button-sw-sw-submit" onClick={handleSubmitAll}>

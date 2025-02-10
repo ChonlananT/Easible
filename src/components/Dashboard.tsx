@@ -207,42 +207,42 @@ function Dashboard() {
         <div className="content-body">
           {/* Header row สำหรับ Donut Chart */}
           <div className="donut-chart-row">
-  {/* Devices Donut (Bigger, Text Inside Hole) */}
-  <div style={{ padding: '0px', width: '60%' }}>
-    <div className="donut-chart-wrapper">
-      <DonutChart
-        imageSrc=""
-        label="Devices"
-        onlineCount={devicesOnline}
-        offlineCount={devicesOffline}
-        size={300}  // Bigger for emphasis
-        isDeviceChart={true}  // 🔥 Enables text inside the hole
-      />
-    </div>
-  </div>
+            {/* Devices Donut (Bigger, Text Inside Hole) */}
+            <div style={{ padding: '0px', width: '60%' }}>
+              <div className="donut-chart-wrapper">
+                <DonutChart
+                  imageSrc=""
+                  label="Devices"
+                  onlineCount={devicesOnline}
+                  offlineCount={devicesOffline}
+                  size={300}  // Bigger for emphasis
+                  isDeviceChart={true}  // 🔥 Enables text inside the hole
+                />
+              </div>
+            </div>
 
-  {/* Routers and Switches Donuts (Smaller, Normal Design) */}
-  <div style={{ display: 'flex', flexDirection: 'column', width: '40%', gap: '10px' }}>
-    <div className="donut-chart-wrapper">
-      <DonutChart
-        label="Routers"
-        onlineCount={routersOnline}
-        offlineCount={routersOffline}
-        imageSrc="/router_icon.png"
-        size={120} 
-      />
-    </div>
-    <div className="donut-chart-wrapper">
-      <DonutChart
-        label="Switches"
-        onlineCount={switchesOnline}
-        offlineCount={switchesOffline}
-        imageSrc="/switch_icon.png"
-        size={120}
-      />
-    </div>
-  </div>
-</div>
+            {/* Routers and Switches Donuts (Smaller, Normal Design) */}
+            <div style={{ display: 'flex', flexDirection: 'column', width: '40%', gap: '10px' }}>
+              <div className="donut-chart-wrapper">
+                <DonutChart
+                  label="Routers"
+                  onlineCount={routersOnline}
+                  offlineCount={routersOffline}
+                  imageSrc="/router_icon.png"
+                  size={120} 
+                />
+              </div>
+              <div className="donut-chart-wrapper">
+                <DonutChart
+                  label="Switches"
+                  onlineCount={switchesOnline}
+                  offlineCount={switchesOffline}
+                  imageSrc="/switch_icon.png"
+                  size={120}
+                />
+              </div>
+            </div>
+          </div>
 
 
 
