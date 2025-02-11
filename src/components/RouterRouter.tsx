@@ -644,7 +644,7 @@ function RouterRouter() {
             Submit All
           </button>
           {/* Popup Summary */}
-          {showPopup && (
+          {!error && showPopup && (
             <div className="popup-overlay">
               <div className="popup-preview">
                 <h1 style={{ fontSize: '32px' }}>Summary</h1>
@@ -693,7 +693,23 @@ function RouterRouter() {
           )}
         </div>
 
-        {error && <div className="error-sw-sw">Error: {error}</div>}
+        {error && (
+          <div className='popup-overlay'>
+            <div className='popup-content-host'>
+              <div className="error-rt-rt">{error}</div>
+              <button 
+                className='cancel-btn'
+                onClick={() => {
+                  setError('');
+                  setShowPopup(false);
+                }}
+              >
+                close
+              </button>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );
