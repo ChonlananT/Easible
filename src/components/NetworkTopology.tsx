@@ -33,7 +33,7 @@ const NetworkTopology: React.FC<NetworkTopologyProps> = ({ links }) => {
         id: hostname,
         label: hostname,
         shape: 'image',                 // Use an image instead of a default shape
-        image: '/Switch.png',      // Path to your router icon (adjust as needed)
+        image: '/Router.png',      // Path to your router icon (adjust as needed)
         size: 30,                       // Optional: adjust size as needed
       }));
 
@@ -42,6 +42,7 @@ const NetworkTopology: React.FC<NetworkTopologyProps> = ({ links }) => {
         id: index,
         from: link.hostname1,
         to: link.hostname2,
+        title: `Activated Protocol: ${link.protocol}`
       }));
 
       const data = {

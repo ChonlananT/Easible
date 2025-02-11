@@ -63,7 +63,7 @@ function RouterRouter() {
   // protocol ที่มีให้เลือก
   const protocols = [
     { label: 'None (Only IP Address)', value: 'none' },
-    { label: 'RIPv2', value: 'rip' },
+    { label: 'RIPv2', value: 'ripv2' },
     { label: 'OSPF', value: 'ospf' },
   ];
 
