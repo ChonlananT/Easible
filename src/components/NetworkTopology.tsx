@@ -16,6 +16,30 @@ type NetworkTopologyProps = {
   links: LinkConfig[];
 };
 
+// --- Helper functions to compute network CIDR from an IP and a CIDR prefix ---
+function ipToInt(ip: string): number {
+  return ip
+    .split('.')
+    .reduce((acc, octet) => (acc << 8) + parseInt(octet, 10), 0) >>> 0;
+}
+
+function intToIp(int: number): string {
+  return [
+    (int >>> 24) & 255,
+    (int >>> 16) & 255,
+    (int >>> 8) & 255,
+    int & 255,
+  ].join('.');
+}
+
+function calculateNetwork(ip: string, cidr: number): string {
+  const ipInt = ipToInt(ip);
+  // Create the netmask as a 32-bit number:
+  const mask = ~(Math.pow(2, 32 - cidr) - 1) >>> 0;
+  const networkInt = ipInt & mask;
+  return intToIp(networkInt) + '/' + cidr;
+}
+
 const NetworkTopology: React.FC<NetworkTopologyProps> = ({ links }) => {
   const networkContainer = useRef<HTMLDivElement>(null);
 
@@ -27,23 +51,29 @@ const NetworkTopology: React.FC<NetworkTopologyProps> = ({ links }) => {
         nodeSet.add(link.hostname1);
         nodeSet.add(link.hostname2);
       });
-
+      
       // Use a router icon for each node by setting shape to 'image'
       const nodes = Array.from(nodeSet).map((hostname) => ({
         id: hostname,
         label: hostname,
-        shape: 'image',                 // Use an image instead of a default shape
-        image: '/Router.png',      // Path to your router icon (adjust as needed)
-        size: 30,                       // Optional: adjust size as needed
+        shape: 'image',
+        image: '/Router.png',  // Make sure your router icon is at this path
+        size: 25,
       }));
-
+      
       // Build edges from the links.
-      const edges = links.map((link, index) => ({
-        id: index,
-        from: link.hostname1,
-        to: link.hostname2,
-        title: `Activated Protocol: ${link.protocol}`
-      }));
+      const edges = links.map((link, index) => {
+        const cidr = parseInt(link.subnet, 10);
+        // Calculate the network address from ip1 and subnet.
+        const networkCIDR = calculateNetwork(link.ip1, cidr);
+        return {
+          id: index,
+          from: link.hostname1,
+          to: link.hostname2,
+          // Use the computed network CIDR and activated protocol as the edge title.
+          title: `Network: ${networkCIDR}\nActivated Protocol: ${link.protocol}`,
+        };
+      });
 
       const data = {
         nodes: new DataSet(nodes),
@@ -79,7 +109,6 @@ const NetworkTopology: React.FC<NetworkTopologyProps> = ({ links }) => {
       style={{
         width: '100%',
         height: '100%',
-        // border: '1px solid lightgray',
         overflow: 'hidden',
       }}
     />
