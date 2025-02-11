@@ -405,7 +405,7 @@ function SwitchSwitch() {
                             style={{ width: '150px', height: '100px' }}
                           />
                         </div>
-                        <div className="host-selection__hosts">
+
                           <div className="host-sw-sw">
                             <div className="host-card">
                               <div className="host-selection__dropdown-group">
@@ -426,7 +426,7 @@ function SwitchSwitch() {
                                 </div>
                               </div>
                             </div>
-                          </div>
+
                         </div>
                       </div>
 

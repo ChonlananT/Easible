@@ -519,6 +519,7 @@ function SwitchHost() {
                     )}
                   </div>
                 </div>
+                <span/>
               </div>
             ))}
           </div>
