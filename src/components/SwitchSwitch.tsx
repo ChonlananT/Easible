@@ -95,12 +95,9 @@ function SwitchSwitch() {
         return res.json();
       })
       .then((data) => {
-        const halfLength = Math.floor(data.parsed_result.length / 2);
-        const secondHalf = data.parsed_result.slice(halfLength);
+        setHosts(data.parsed_result);
 
-        setHosts(secondHalf);
-
-        const iData = secondHalf.map((item: any) => ({
+        const iData = data.parsed_result.map((item: any) => ({
           hostname: item.hostname,
           interfaces: item.interfaces.map((interfaceItem: any) => ({
             interface: interfaceItem.interface,
