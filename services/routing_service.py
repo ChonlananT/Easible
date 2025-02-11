@@ -9,7 +9,7 @@ class RoutingService:
         "Static": 1,
         "OSPF": 110,
         "OSPF_IA": 110,
-        "RIP": 120,
+        "RIPv2": 120,
     }
 
     def __init__(self):
@@ -173,7 +173,7 @@ class RoutingService:
 
         # 3. For non-connected routes, check if we already have routes to the same subnet
         same_subnet_routes = [r for r in existing_routes if r["subnet"] == new_route["subnet"]]
-        is_ecmp_allowed = new_route["protocol"] in {"OSPF", "RIP"}
+        is_ecmp_allowed = new_route["protocol"] in {"OSPF", "RIPv2"}
 
         if same_subnet_routes:
             # Find the best (lowest) AD among them
@@ -213,8 +213,8 @@ class RoutingService:
             self._propagate_from_to(link["hostname1"], link["hostname2"], "OSPF")
             self._propagate_from_to(link["hostname2"], link["hostname1"], "OSPF")
         elif protocol == "RIP":
-            self._propagate_from_to(link["hostname1"], link["hostname2"], "RIP")
-            self._propagate_from_to(link["hostname2"], link["hostname1"], "RIP")
+            self._propagate_from_to(link["hostname1"], link["hostname2"], "RIPv2")
+            self._propagate_from_to(link["hostname2"], link["hostname1"], "RIPv2")
 
     def _propagate_from_to(self, from_host, to_host, protocol):
         """
