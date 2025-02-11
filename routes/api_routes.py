@@ -204,283 +204,91 @@ def show_interface_brief_router():
 @api_bp.route('/api/create_playbook_swtosw', methods=['POST'])
 def create_playbook():
     try:
-        # 1) ดึงข้อมูลจาก request
+        # 1) Retrieve data from the request
         data = request.json
 
-        # สมมติว่า frontend ส่งมาเป็น array (หลายลิงก์)
-        # ถ้าเป็น single link แบบเดิมจะเป็น dict ธรรมดา -> ควรรองรับได้ทั้งสองแบบ
+        # Accept either a single link (dict) or multiple links (list)
         if isinstance(data, dict):
-            # แปลงให้เป็น list 1 ตัว เพื่อใช้ logic เดียวกัน
             data = [data]
         elif not isinstance(data, list):
             return jsonify({"error": "Invalid data format. Expected a list of link configurations."}), 400
 
-        # NOTE: ในตัวอย่างนี้จะสร้าง playbook ใหญ่เพียงไฟล์เดียว
-        # แล้วรวม tasks ของทุกลิงก์เข้าไปใน playbook นี้
-        # (เพื่อความง่าย; ถ้าต้องการแยกเป็นไฟล์ละลิงก์ หรือไฟล์ละ command ก็ทำได้เช่นกัน)
-
-        # ส่วนหัวของ playbook
-        # จะเป็น play เดียว ที่รันกับ hosts: all (หรือจะเจาะจงชื่อ host รวมกันใน hosts: ... ก็ได้)
-        # ในตัวอย่างนี้ใช้ "all" + เงื่อนไข when ว่า inventory_hostname == "SW1" หรือ "SW2" ฯลฯ
-        trunked_interfaces = set()
+        # This playbook will include tasks for all links
+        trunked_interfaces = set()  # to track if an interface has already been trunked
         playbook_content = """---
 - name: Configure multiple links
   hosts: selectedgroup
   gather_facts: no
   tasks:
 """
-        # 2) สะสม tasks จากแต่ละลิงก์
+
+        # 2) Loop through each link configuration
         for idx, link in enumerate(data, start=1):
             hostname1 = link.get("hostname1")
             hostname2 = link.get("hostname2")
-            command = link.get("command")
-            vlan_data = link.get("vlanData", {})
             switchport_mode = link.get("switchportMode")
             interface1 = link.get("interface1")
             interface2 = link.get("interface2")
-            bridge_priority = link.get("bridgePriority", {})
+            vlans = link.get("vlans", [])  # expects an array of VLAN IDs
 
-            # Basic validation
-            if not hostname1 or not hostname2 or not command:
-                # หากลิงก์ไหนข้อมูลไม่ครบ จะส่ง error กลับไปทั้งหมด หรือจะข้ามลิงก์นี้เลยก็ได้
-                return jsonify({"error": f"Link #{idx} missing hostname1, hostname2, or command"}), 400
+            # Basic validation of required fields
+            if not hostname1 or not hostname2 or not switchport_mode or not interface1 or not interface2:
+                return jsonify({"error": f"Link #{idx} missing required fields"}), 400
 
-            # สร้าง tasks ตาม command
-            if command == "vlan":
-                vlan_id1 = vlan_data.get("vlanId1")
-                vlan_name1 = vlan_data.get("vlanName1")
-                vlan_id2 = vlan_data.get("vlanId2")
-                vlan_name2 = vlan_data.get("vlanName2")
-
-                ip_address1 = vlan_data.get("ipAddress1")
-                subnet_mask1 = vlan_data.get("subnetMask1")
-                ip_address2 = vlan_data.get("ipAddress2")
-                subnet_mask2 = vlan_data.get("subnetMask2")
-
-                interface1_vlan = vlan_data.get("interface1")
-                interface2_vlan = vlan_data.get("interface2")
-
-                # ฟังก์ชันช่วยคำนวณ subnet
-                def calculate_subnet(ip, mask):
-                    try:
-                        network = ipaddress.IPv4Network(f"{ip}/{mask}", strict=False)
-                        return network.network_address, network.netmask
-                    except ValueError as e:
-                        return None, str(e)
-
-                subnet1, netmask1 = (None, None)
-                if ip_address1 and subnet_mask1:
-                    network_addr1, netm1 = calculate_subnet(ip_address1, subnet_mask1)
-                    if network_addr1 is not None:
-                        # ถ้าคำนวณสำเร็จ
-                        subnet1, netmask1 = str(network_addr1), str(netm1)
-
-                subnet2, netmask2 = (None, None)
-                if ip_address2 and subnet_mask2:
-                    network_addr2, netm2 = calculate_subnet(ip_address2, subnet_mask2)
-                    if network_addr2 is not None:
-                        subnet2, netmask2 = str(network_addr2), str(netm2)
-
-                playbook_content_checker = f"""
----
-- name: check VLAN on specific hosts
-  hosts: {hostname1},{hostname2}
-  gather_facts: no
-  tasks:
-"""
-                if interface1_vlan:
-                    playbook_content_checker += f"""
-      - name: Run 'show run int {interface1_vlan}' command on {hostname1}
-        ios_command:
-          commands:
-          - show run interface {interface1_vlan}
-        when: inventory_hostname == "{hostname1}"
-        register: interface1_output
-      - name: Filter interface details on {hostname1}
-        debug:        
-"""
-                    playbook_content_checker += """          msg: "{{ interface1_output.stdout_lines }}"
-"""
-                    playbook_content_checker += f"""
-        when: interface1_output is defined and inventory_hostname == "{hostname1}"
-"""
-                if interface2_vlan:
-                    playbook_content_checker +=f"""      - name: Run 'show run int {interface2_vlan}' command on {hostname2}
-        ios_command:
-          commands:
-          - show run interface {interface2_vlan}
-        when: inventory_hostname == "{hostname2}"
-        register: interface2_output
-      - name: Filter interface details on {hostname2}
-        debug:
-"""
-                    playbook_content_checker += """
-          msg: "{{ interface2_output.stdout_lines }}"
-"""
-                    playbook_content_checker += f"""
-        when: interface2_output is defined and inventory_hostname == "{hostname2}"
-"""
-                ssh, username = create_ssh_connection()
-                inventory_path = f"/home/{username}/inventory/inventory.ini"
-                playbook_checker_path = f"/home/{username}/playbook/vlanchecker.yml"
-                sftp = ssh.open_sftp()
-                with sftp.open(playbook_checker_path, "w") as playbook_file:
-                    playbook_file.write(playbook_content_checker)
-                sftp.close()
-                ansible_command = f"ansible-playbook -i {inventory_path} {playbook_checker_path}"
-                stdout, stderr = ssh.exec_command(ansible_command)[1:]
-                output = stdout.read().decode("utf-8")
-                error = stderr.read().decode("utf-8")
-                parse_result = parse_switchport(output)
-                ssh.close()
-
-                for result in parse_result:
-                    host_result = result['hostname']
-                    switchport = result['switchport']
-                    interface = result['interface']
-
-                    # หาก host_result == hostname1 => สร้าง config เฉพาะ hostname1
-                    if host_result == hostname1 and vlan_id1 and vlan_name1:
-                        playbook_content += f"""
-  - name: "[Link#{idx}] Configure VLAN on {hostname1}"
-    ios_config:
-      lines:
-        - vlan {vlan_id1}
-        - name {vlan_name1}
-"""
-                        # ถ้าต้องการ config IP บน interface VLAN
-                        if ip_address1 and netmask1:
-                            playbook_content += f"""        - interface vlan {vlan_id1}
-        - ip address {ip_address1} {netmask1}
-"""
-                        # เช็คว่า interface ที่กลับมาจาก parse_switchport ตรงกับ interface1_vlan ไหม
-                        # แล้วค่อยสั่ง switchport mode trunk หรือ trunk allowed vlan ...
-                        interface1_vlan_lower = interface1_vlan.lower() if interface1_vlan else None
-                        if interface == interface1_vlan:
-                            if switchport == "access":
-                                if (host_result, interface) in trunked_interfaces:
-                                    playbook_content += f"""        - interface {interface1_vlan_lower}
-        - switchport trunk allowed vlan add {vlan_id1}
-"""
-                                else:
-                                    # ครั้งแรก => สั่ง trunk allowed vlan
-                                    playbook_content += f"""        - interface {interface1_vlan_lower}
-        - switchport mode trunk
-        - switchport trunk allowed vlan {vlan_id1}
-"""
-                                    trunked_interfaces.add((host_result, interface))
-                            elif switchport == "trunk":
-                                playbook_content += f"""        - interface {interface1_vlan_lower}
-        - switchport mode trunk
-        - switchport trunk allowed vlan add {vlan_id1}
-"""
-                                trunked_interfaces.add((host_result, interface))
-
-                        playbook_content += f"""    when: inventory_hostname == "{hostname1}"
-"""
-
-                    # หาก host_result == hostname2 => สร้าง config เฉพาะ hostname2
-                    if host_result == hostname2 and vlan_id2 and vlan_name2:
-                        playbook_content += f"""
-  - name: "[Link#{idx}] Configure VLAN on {hostname2}"
-    ios_config:
-      lines:
-        - vlan {vlan_id2}
-        - name {vlan_name2}
-"""
-                        if ip_address2 and netmask2:
-                            playbook_content += f"""        - interface vlan {vlan_id2}
-        - ip address {ip_address2} {netmask2}
-"""
-                        interface2_vlan_lower = interface2_vlan.lower() if interface2_vlan else None
-                        if interface == interface2_vlan:
-                            if switchport == "access":
-                                if (host_result, interface) in trunked_interfaces:
-                                    playbook_content += f"""        - interface {interface2_vlan_lower}
-        - switchport trunk allowed vlan add {vlan_id2}
-"""
-                                else:
-                                    # ครั้งแรก => สั่ง trunk allowed vlan
-                                    playbook_content += f"""        - interface {interface2_vlan_lower}
-        - switchport mode trunk
-        - switchport trunk allowed vlan {vlan_id2}
-"""
-                                    trunked_interfaces.add((host_result, interface))    
-                            elif switchport == "trunk":
-                                playbook_content += f"""        - interface {interface2_vlan_lower}
-        - switchport mode trunk
-        - switchport trunk allowed vlan add {vlan_id2}
-"""
-                                trunked_interfaces.add((host_result, interface))
-                        playbook_content += f"""    when: inventory_hostname == "{hostname2}"
-"""
-            elif command == "switchport":
-                # ตรวจสอบว่าค่า switchport_mode, interface1, interface2 ครบไหม
-                if not switchport_mode or not interface1 or not interface2:
-                    return jsonify({"error": f"Link #{idx}: Switchport mode, interface1, and interface2 are required"}), 400
-
-                # ตั้งค่าให้ hostname1
-                playbook_content += f"""
+            # Build task for hostname1
+            playbook_content += f"""
   - name: "[Link#{idx}] Configure Switchport for {hostname1}"
     ios_config:
       parents: interface {interface1}
       lines:
 """
-                if switchport_mode == "access":
-                    playbook_content += f"""        - no switchport trunk allowed vlan
+            if switchport_mode == "access":
+                playbook_content += f"""        - no switchport trunk allowed vlan
         - switchport mode access
 """
-                else:  # trunk
-                    playbook_content += f"""        - switchport mode trunk
+            else:  # trunk mode
+                playbook_content += f"""        - switchport mode trunk
+"""
+                if vlans:
+                    allowed_vlans = ",".join(vlans)
+                    # If the interface was already trunked, use 'add'; otherwise, set the allowed vlan list
+                    if (hostname1, interface1) in trunked_interfaces:
+                        playbook_content += f"""        - switchport trunk allowed vlan add {allowed_vlans}
+"""
+                    else:
+                        playbook_content += f"""        - switchport trunk allowed vlan {allowed_vlans}
+"""
+                        trunked_interfaces.add((hostname1, interface1))
+            playbook_content += f"""    when: inventory_hostname == "{hostname1}"
 """
 
-                playbook_content += f"""    when: inventory_hostname == "{hostname1}"
-"""
-
-                # ตั้งค่าให้ hostname2
-                playbook_content += f"""
+            # Build task for hostname2
+            playbook_content += f"""
   - name: "[Link#{idx}] Configure Switchport for {hostname2}"
     ios_config:
       parents: interface {interface2}
       lines:
 """
-                if switchport_mode == "access":
-                    playbook_content += f"""        - no switchport trunk allowed vlan
+            if switchport_mode == "access":
+                playbook_content += f"""        - no switchport trunk allowed vlan
         - switchport mode access
 """
-                else:  # trunk
-                    playbook_content += f"""        - switchport mode trunk
-"""
-
-                playbook_content += f"""    when: inventory_hostname == "{hostname2}"
-"""
-
-            elif command == "bridge_priority":
-                vlan = bridge_priority.get("vlan")
-                priority1 = bridge_priority.get("priority1")
-                priority2 = bridge_priority.get("priority2")
-
-                if not vlan or not priority1 or not priority2:
-                    return jsonify({"error": f"Link #{idx}: VLAN and both priorities are required"}), 400
-
-                playbook_content += f"""
-  - name: "[Link#{idx}] Set Bridge Priority for {hostname1}"
-    ios_config:
-      lines:
-        - spanning-tree vlan {vlan} priority {priority1}
-    when: inventory_hostname == "{hostname1}"
-
-  - name: "[Link#{idx}] Set Bridge Priority for {hostname2}"
-    ios_config:
-      lines:
-        - spanning-tree vlan {vlan} priority {priority2}
-    when: inventory_hostname == "{hostname2}"
-"""
-
             else:
-                return jsonify({"error": f"Link #{idx}: Unsupported command"}), 400
+                playbook_content += f"""        - switchport mode trunk
+"""
+                if vlans:
+                    allowed_vlans = ",".join(vlans)
+                    if (hostname2, interface2) in trunked_interfaces:
+                        playbook_content += f"""        - switchport trunk allowed vlan add {allowed_vlans}
+"""
+                    else:
+                        playbook_content += f"""        - switchport trunk allowed vlan {allowed_vlans}
+"""
+                        trunked_interfaces.add((hostname2, interface2))
+            playbook_content += f"""    when: inventory_hostname == "{hostname2}"
+"""
 
-        # 3) หลังจากรวม tasks ของทุกลิงก์แล้ว -> เขียน playbook ลงไปบนเซิร์ฟเวอร์ และเรียก ansible-playbook
+        # 3) Write the playbook to a file on the remote server and (optionally) run ansible-playbook
         ssh, username = create_ssh_connection()  
         playbook_path = f"/home/{username}/playbook/multi_links_playbook.yml"
         inventory_path = f"/home/{username}/inventory/inventory.ini"
@@ -490,25 +298,22 @@ def create_playbook():
             playbook_file.write(playbook_content)
         sftp.close()
 
-        # จะเรียก ansible-playbook ทันทีเลยหรือไม่ ก็แล้วแต่ workflow
-        # ตัวอย่าง เรียกเลย:
+        # Optionally, you can execute the playbook immediately:
         # stdin, stdout, stderr = ssh.exec_command(f"ansible-playbook -i {inventory_path} {playbook_path}")
         # output = stdout.read().decode('utf-8')
         # errors = stderr.read().decode('utf-8')
-        # ...
+        # (handle output/errors as needed)
 
         ssh.close()
 
-        # return playbook_content หรือ output กลับไป
         return jsonify({
             "message": "Playbook created successfully",
             "playbook": playbook_content,
-            # "output": output,       # ถ้าคุณรัน ansible-playbook ไปแล้ว
-            # "errors": errors        # ถ้าคุณรัน ansible-playbook ไปแล้ว
         }), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 @api_bp.route('/api/create_playbook_rttort', methods=['POST'])
 def create_playbook_routerrouter():
@@ -641,18 +446,16 @@ def create_playbook_routerrouter():
 @api_bp.route('/api/create_playbook_configdevice', methods=['POST'])
 def create_playbook_configdevice():
     try:
-        # 1) ดึงข้อมูลจาก request
+        # 1) Get the data from the request
         data = request.json
 
-        # สมมติว่า frontend ส่งมาเป็น array (หลายคำสั่ง)
-        # ถ้าเป็น single command แบบเดิมจะเป็น dict ธรรมดา -> ควรรองรับได้ทั้งสองแบบ
+        # Allow both a single dict or a list of command configurations
         if isinstance(data, dict):
-            # แปลงให้เป็น list 1 ตัว เพื่อใช้ logic เดียวกัน
             data = [data]
         elif not isinstance(data, list):
             return jsonify({"error": "Invalid data format. Expected a list of command configurations."}), 400
 
-        # ส่วนหัวของ playbook
+        # Header for the playbook
         playbook_content = """---
 - name: Configure Device Commands
   hosts: selectedgroup
@@ -660,14 +463,16 @@ def create_playbook_configdevice():
   tasks:
 """
 
-        # ใช้ set เพื่อเก็บ interface ที่ถูกกำหนดเป็น trunk แล้ว
+        # Use a set to track interfaces already set to trunk mode
         trunked_interfaces = set()
 
-        # 2) สะสม tasks จากแต่ละคำสั่ง
+        import ipaddress
+
+        # 2) Process each command configuration
         for idx, cmd in enumerate(data, start=1):
-            cmd_type = cmd.get("command")  # เปลี่ยนจาก "type" เป็น "command"
+            cmd_type = cmd.get("command")  # field "command" holds the command type
             device_type = cmd.get("deviceType")
-            host = cmd.get("hostname")  # เปลี่ยนจาก "host" เป็น "hostname"
+            host = cmd.get("hostname")  # host where command is to be applied
 
             if not cmd_type or not device_type or not host:
                 return jsonify({"error": f"Command #{idx}: Missing command, deviceType, or hostname field."}), 400
@@ -675,137 +480,94 @@ def create_playbook_configdevice():
             if device_type not in ["switch", "router"]:
                 return jsonify({"error": f"Command #{idx}: Unsupported deviceType '{device_type}'."}), 400
 
+            # -------------------- VLAN Command --------------------
             if cmd_type == "vlan":
                 if device_type != "switch":
                     return jsonify({"error": f"Command #{idx}: VLAN command is only applicable to switches."}), 400
 
-                vlan_data = cmd.get("vlanData", {})
-                vlan_id = vlan_data.get("vlanId")
-                vlan_name = vlan_data.get("vlanName")
-                ip_address = vlan_data.get("ipAddress")
-                subnet = vlan_data.get("subnet")
-                interface = vlan_data.get("interface")
-                switchport_mode = vlan_data.get("mode")  # เปลี่ยนจาก "switchportMode" เป็น "mode"
+                # Expect multiple VLAN configurations in "vlanDataList"
+                vlan_data_list = cmd.get("vlanDataList", [])
+                if not vlan_data_list or not isinstance(vlan_data_list, list):
+                    return jsonify({"error": f"Command #{idx}: VLAN command requires a 'vlanDataList' field."}), 400
 
-                # Validation
-                if not vlan_id or not interface or not switchport_mode:
-                    return jsonify({"error": f"Command #{idx}: VLAN ID, Interface, and Mode are required."}), 400
+                for v_idx, vlan_data in enumerate(vlan_data_list, start=1):
+                    vlan_id = vlan_data.get("vlanId")
+                    vlan_name = vlan_data.get("vlanName")
+                    ip_address = vlan_data.get("ipAddress")
+                    cidr = vlan_data.get("cidr")  # using 'cidr' field instead of 'subnet'
+                    vlan_interfaces = vlan_data.get("interfaces", [])
+                    
+                    # Validate that VLAN ID and at least one interface configuration exist
+                    if not vlan_id or not vlan_interfaces or not isinstance(vlan_interfaces, list):
+                        return jsonify({"error": f"Command #{idx}, VLAN config #{v_idx}: VLAN ID and at least one interface configuration are required."}), 400
 
-                # หากกำหนด IP Address ต้องกำหนด CIDR ด้วย
-                if ip_address and not subnet:
-                    return jsonify({"error": f"Command #{idx}: CIDR is required when IP Address is specified."}), 400
+                    # Validate each interface configuration
+                    for iface_idx, iface in enumerate(vlan_interfaces, start=1):
+                        if not iface.get("interface") or not iface.get("mode"):
+                            return jsonify({"error": f"Command #{idx}, VLAN config #{v_idx}, interface config #{iface_idx}: Both Interface and Mode are required."}), 400
 
-                # คำนวณ Network ID จาก Prefix และ CIDR (สำหรับ IP Address)
-                network_id = ""
-                subnet_mask = ""
-                if ip_address and subnet:
-                    try:
-                        network_id = calculate_network_id(ip_address, subnet)
-                        subnet_mask = str(ipaddress.IPv4Network(f"{ip_address}/{subnet}", strict=False).netmask)
-                    except ValueError as e:
-                        return jsonify({"error": f"Command #{idx}: {str(e)}"}), 400
+                    # If IP address is provided, then CIDR must be provided
+                    network_id = ""
+                    subnet_mask = ""
+                    if ip_address and cidr is not None:
+                        try:
+                            network = ipaddress.IPv4Network(f"{ip_address}/{cidr}", strict=False)
+                            subnet_mask = str(network.netmask)
+                        except ValueError as e:
+                            return jsonify({"error": f"Command #{idx}, VLAN config #{v_idx}: {str(e)}"}), 400
 
-                # สร้าง Playbook Checker สำหรับตรวจสอบ Switchport Mode
-                playbook_content_checker = f"""
-- name: check VLAN on specific host
-  hosts: {host}
-  gather_facts: no
-  tasks:
-"""
-
-                if interface:
-                    playbook_content_checker += f"""
-  - name: Run 'show run interface {interface}' command on {host}
-    ios_command:
-      commands:
-        - show run interface {interface}
-    register: interface_output
-
-  - name: Filter interface details on {host}
-    debug:
-      msg: "{{{{ interface_output.stdout_lines }}}}"
-    when: interface_output is defined
-"""
-
-                # เขียน playbook_checker ลงไฟล์
-                ssh, username = create_ssh_connection()
-                inventory_path = f"/home/{username}/inventory/inventory.ini"
-                playbook_checker_path = f"/home/{username}/playbook/vlanchecker_{idx}.yml"
-                sftp = ssh.open_sftp()
-                with sftp.open(playbook_checker_path, "w") as playbook_file:
-                    playbook_file.write(playbook_content_checker)
-                sftp.close()
-
-                # รัน playbook_checker
-                ansible_command = f"ansible-playbook -i {inventory_path} {playbook_checker_path}"
-                stdin, stdout, stderr = ssh.exec_command(ansible_command)
-                output = stdout.read().decode("utf-8")
-                error = stderr.read().decode("utf-8")
-                ssh.close()
-
-                # แยกผลลัพธ์จาก playbook_checker
-                parse_result = parse_switchport(output)
-
-                print(parse_result)
-
-                # ตรวจสอบ Switchport Mode และกำหนดคำสั่ง switchport ตามที่ต้องการ
-                for result in parse_result:
-                    host_result = result['hostname']
-                    switchport = result['switchport']
-                    interface_result = result['interface']
-
-                    # กำหนดคำสั่งสำหรับ VLAN
+                    # Create a playbook task for VLAN configuration (common for the VLAN)
                     playbook_content += f"""
-  - name: "[Command#{idx}] Configure VLAN {vlan_id} on {host_result}"
+  - name: "[Command#{idx} VLAN config #{v_idx}] Configure VLAN {vlan_id} on {host}"
     ios_config:
       lines:
         - vlan {vlan_id}
 """
                     if vlan_name:
                         playbook_content += f"        - name {vlan_name}\n"
-
                     if ip_address and subnet_mask:
                         playbook_content += f"""        - interface vlan {vlan_id}
         - ip address {ip_address} {subnet_mask}
 """
-
-                    playbook_content += f"""    when: inventory_hostname == "{host_result}"
+                    playbook_content += f"""    when: inventory_hostname == "{host}"
 """
 
-                    # กำหนดคำสั่ง Switchport Mode ตาม Switchport Mode ที่ตรวจสอบได้
-                    if switchport_mode == "access":
-                        # ถ้าเป็น access, ไม่ต้องเพิ่ม switchport trunk allowed vlan
-                        playbook_content += f"""
-  - name: "[Command#{idx}] Configure Switchport Access Mode on {interface_result}"
+                    # Generate tasks for each physical interface configuration in this VLAN
+                    for iface_idx, iface in enumerate(vlan_interfaces, start=1):
+                        interface_value = iface.get("interface")
+                        mode_value = iface.get("mode")
+                        if mode_value == "access":
+                            playbook_content += f"""
+  - name: "[Command#{idx} VLAN config #{v_idx} Interface #{iface_idx}] Set Access Mode on {interface_value}"
     ios_config:
-      parents: interface {interface_result}
+      parents: interface {interface_value}
       lines:
         - switchport mode access
-    when: inventory_hostname == "{host_result}"
+        - switchport access vlan {vlan_id}
+    when: inventory_hostname == "{host}"
 """
-                    elif switchport_mode == "trunk":
-                        # ถ้าเป็น trunk, เพิ่ม switchport trunk allowed vlan add {vlan_id}
-                        if (host_result, interface_result) in trunked_interfaces:
-                            playbook_content += f"""
-  - name: "[Command#{idx}] Add VLAN {vlan_id} to existing trunk on {interface_result}"
+                        elif mode_value == "trunk":
+                            if (host, interface_value) in trunked_interfaces:
+                                playbook_content += f"""
+  - name: "[Command#{idx} VLAN config #{v_idx} Interface #{iface_idx}] Add VLAN {vlan_id} to existing trunk on {interface_value}"
     ios_config:
-      parents: interface {interface_result}
+      parents: interface {interface_value}
       lines:
         - switchport trunk allowed vlan add {vlan_id}
-    when: inventory_hostname == "{host_result}"
+    when: inventory_hostname == "{host}"
 """
-                        else:
-                            playbook_content += f"""
-  - name: "[Command#{idx}] Set trunk mode and allow VLAN {vlan_id} on {interface_result}"
+                            else:
+                                playbook_content += f"""
+  - name: "[Command#{idx} VLAN config #{v_idx} Interface #{iface_idx}] Set Trunk Mode and allow VLAN {vlan_id} on {interface_value}"
     ios_config:
-      parents: interface {interface_result}
+      parents: interface {interface_value}
       lines:
         - switchport mode trunk
         - switchport trunk allowed vlan {vlan_id}
-    when: inventory_hostname == "{host_result}"
+    when: inventory_hostname == "{host}"
 """
-                            trunked_interfaces.add((host_result, interface_result))
-
+                                trunked_interfaces.add((host, interface_value))
+            # ---------------- Bridge Priority Command ----------------
             elif cmd_type == "bridge_priority":
                 if device_type != "switch":
                     return jsonify({"error": f"Command #{idx}: Bridge Priority command is only applicable to switches."}), 400
@@ -814,11 +576,9 @@ def create_playbook_configdevice():
                 vlan = bridge_priority.get("vlan")
                 priority = bridge_priority.get("priority")
 
-                # Validation
                 if vlan is None or priority is None:
                     return jsonify({"error": f"Command #{idx}: VLAN and Priority are required."}), 400
 
-                # กำหนดคำสั่งสำหรับ Bridge Priority
                 playbook_content += f"""
   - name: "[Command#{idx}] Set Bridge Priority for VLAN {vlan} on {host}"
     ios_config:
@@ -826,26 +586,20 @@ def create_playbook_configdevice():
         - spanning-tree vlan {vlan} priority {priority}
     when: inventory_hostname == "{host}"
 """
-
+            # ---------------- Config IP Router Command ----------------
             elif cmd_type == "config_ip_router":
-                # คำสั่งนี้สามารถใช้ได้กับทั้ง switch และ router
                 config_ip = cmd.get("configIp", {})
                 interface = config_ip.get("interface")
                 ip_address = config_ip.get("ipAddress")
                 subnet = config_ip.get("subnet")
-
-                # Validation
                 if not interface or not ip_address or not subnet:
                     return jsonify({"error": f"Command #{idx}: Interface, IP Address, and CIDR are required."}), 400
-
-                # คำนวณ Network ID จาก Prefix และ CIDR
                 try:
                     network_id = calculate_network_id(ip_address, subnet)
                     subnet_mask = str(ipaddress.IPv4Network(f"{ip_address}/{subnet}", strict=False).netmask)
                 except ValueError as e:
                     return jsonify({"error": f"Command #{idx}: {str(e)}"}), 400
 
-                # กำหนดคำสั่ง Config IP Router
                 playbook_content += f"""
   - name: "[Command#{idx}] Configure IP Address on Interface {interface} on {host}"
     ios_config:
@@ -854,6 +608,7 @@ def create_playbook_configdevice():
         - ip address {ip_address} {subnet_mask}
     when: inventory_hostname == "{host}"
 """
+            # ---------------- Loopback Command ----------------
             elif cmd_type == "loopback":
                 if device_type != "router":
                     return jsonify({"error": f"Command #{idx}: Loopback command is only applicable to routers."}), 400
@@ -861,21 +616,15 @@ def create_playbook_configdevice():
                 loopback_data = cmd.get("loopbackData", {})
                 loopback_num = loopback_data.get("loopbackNumber")
                 ip_address = loopback_data.get("ipAddress")
-
-                # Validation
                 if not loopback_num or not ip_address:
                     return jsonify({"error": f"Command #{idx}: Loopback Number and IP Address are required."}), 400
 
-                # Fixed subnet mask for loopback is /32
                 subnet_mask = "255.255.255.255"
-
-                # Optionally, validate IP address format
                 try:
                     ip_obj = ipaddress.IPv4Address(ip_address)
                 except ipaddress.AddressValueError:
                     return jsonify({"error": f"Command #{idx}: Invalid IP address '{ip_address}'."}), 400
 
-                # Add playbook task for configuring loopback
                 playbook_content += f"""
   - name: "[Command#{idx}] Configure Loopback {loopback_num} on {host}"
     ios_config:
@@ -883,33 +632,32 @@ def create_playbook_configdevice():
         - interface loopback {loopback_num}
         - ip address {ip_address} {subnet_mask}
     when: inventory_hostname == "{host}"
-    """
+"""
+            # ---------------- Static Route Command ----------------
             elif cmd_type == "static_route":
                 if device_type != "router":
                     return jsonify({"error": f"Command #{idx}: Static Route command is only applicable to routers."}), 400
-                staticRoute_Data = cmd.get("staticRouteData", {})
-                prefix = staticRoute_Data.get("prefix")
-                subnet = staticRoute_Data.get("subnet")
-                nextHop = staticRoute_Data.get("nextHop")
-
+                static_route = cmd.get("staticRouteData", {})
+                prefix = static_route.get("prefix")
+                subnet = static_route.get("subnet")
+                nextHop = static_route.get("nextHop")
                 try:
-                        network_static = calculate_network_id(prefix, subnet)
-                        subnet_static = str(ipaddress.IPv4Network(f"{prefix}/{subnet}", strict=False).netmask)
+                    network_static = calculate_network_id(prefix, subnet)
+                    subnet_static = str(ipaddress.IPv4Network(f"{prefix}/{subnet}", strict=False).netmask)
                 except ValueError as e:
-                        return jsonify({"error": f"Link #{idx} staticRoute error: {e}"}), 400
+                    return jsonify({"error": f"Command #{idx} Static Route error: {e}"}), 400
 
                 playbook_content += f"""
-  - name: "[Link#{idx}] Configure Static Route on {host}"
+  - name: "[Command#{idx}] Configure Static Route on {host}"
     ios_config:
       lines:
         - ip route {network_static} {subnet_static} {nextHop}
     when: inventory_hostname == "{host}"
 """
-                    
             else:
                 return jsonify({"error": f"Command #{idx}: Unsupported command type '{cmd_type}'."}), 400
 
-        # 3) หลังจากรวม tasks ของทุกคำสั่งแล้ว -> เขียน playbook ลงไปบนเซิร์ฟเวอร์ และเรียก ansible-playbook
+        # 3) Write the combined playbook to a file on the server and optionally execute it
         ssh, username = create_ssh_connection()
         playbook_path = f"/home/{username}/playbook/configdevice_playbook.yml"
         inventory_path = f"/home/{username}/inventory/inventory.ini"
@@ -919,25 +667,23 @@ def create_playbook_configdevice():
             playbook_file.write(playbook_content)
         sftp.close()
 
-        # สามารถเลือกที่จะรัน Playbook ทันทีได้โดย uncomment ส่วนนี้
+        # Optionally, execute the playbook:
         # stdin, stdout, stderr = ssh.exec_command(f"ansible-playbook -i {inventory_path} {playbook_path}")
-        # output = stdout.read().decode("utf-8")
-        # error = stderr.read().decode("utf-8")
-        # if error:
-        #     return jsonify({"error": f"Ansible Playbook Error: {error}"}), 500
+        # output = stdout.read().decode('utf-8')
+        # errors = stderr.read().decode('utf-8')
 
         ssh.close()
 
-        # return playbook_content หรือ output กลับไป
         return jsonify({
             "message": "Playbook created successfully",
             "playbook": playbook_content,
-            # "output": output,       # ถ้าคุณรัน ansible-playbook ไปแล้ว
-            # "errors": error         # ถ้าคุณรัน ansible-playbook ไปแล้ว
+            # "output": output,
+            # "errors": errors
         }), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 @api_bp.route('/api/show_detail_configdevice', methods=['POST'])
 def show_configd():
@@ -1066,25 +812,38 @@ def create_playbook_switchhost():
         # 2) Process each link to generate tasks
         for idx, link in enumerate(data, start=1):
             hostname = link.get("hostname")
-            interface = link.get("interface")
-            vlan_id = link.get("vlanId")
-            ip_address = link.get("ipAddress")
-            subnet_mask = link.get("subnetMask")
+            interfaces = link.get("interfaces")
 
-            # Basic validation
-            if not hostname or not interface or not vlan_id or not ip_address or not subnet_mask:
-                return jsonify({"error": f"Link #{idx} is missing one or more required fields."}), 400
+            if not hostname or not interfaces or not isinstance(interfaces, list):
+                return jsonify({
+                    "error": f"Link #{idx} is missing 'hostname' or a valid 'interfaces' array."
+                }), 400
 
-            # Calculate the netmask in dotted format using the ipaddress module
-            try:
-                network = ipaddress.IPv4Network(f"{ip_address}/{subnet_mask}", strict=False)
-                netmask = str(network.netmask)
-            except Exception as e:
-                return jsonify({"error": f"Link #{idx} error calculating subnet: {str(e)}"}), 400
+            # Process each interface configuration for the current link
+            for iface_idx, iface in enumerate(interfaces, start=1):
+                interface = iface.get("interface")
+                vlan_id = iface.get("vlanId")
+                ip_address = iface.get("ipAddress")
+                subnet_mask = iface.get("subnetMask")
 
-            # Task 1: Configure the physical (GigabitEthernet) interface
-            playbook_content += f"""
-  - name: "[Link#{idx}] Configure GigabitEthernet {interface} on {hostname}"
+                # Basic validation for each interface configuration
+                if not interface or not vlan_id or not ip_address or not subnet_mask:
+                    return jsonify({
+                        "error": f"Link #{idx} interface #{iface_idx} is missing one or more required fields."
+                    }), 400
+
+                # Calculate the netmask in dotted format using the ipaddress module
+                try:
+                    network = ipaddress.IPv4Network(f"{ip_address}/{subnet_mask}", strict=False)
+                    netmask = str(network.netmask)
+                except Exception as e:
+                    return jsonify({
+                        "error": f"Link #{idx} interface #{iface_idx} error calculating subnet: {str(e)}"
+                    }), 400
+
+                # Task 1: Configure the physical (GigabitEthernet) interface
+                playbook_content += f"""
+  - name: "[Link#{idx} Interface #{iface_idx}] Configure GigabitEthernet {interface} on {hostname}"
     ios_config:
       parents: interface {interface}
       lines:
@@ -1094,9 +853,9 @@ def create_playbook_switchhost():
     when: inventory_hostname == "{hostname}"
 """
 
-            # Task 2: Configure the VLAN interface with IP address and netmask
-            playbook_content += f"""
-  - name: "[Link#{idx}] Configure VLAN interface {vlan_id} on {hostname}"
+                # Task 2: Configure the VLAN interface with IP address and netmask
+                playbook_content += f"""
+  - name: "[Link#{idx} Interface #{iface_idx}] Configure VLAN interface {vlan_id} on {hostname}"
     ios_config:
       parents: interface vlan {vlan_id}
       lines:
@@ -1129,7 +888,7 @@ def create_playbook_switchhost():
         }), 200
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": str(e)}), 500  
     
 @api_bp.route('/api/create_playbook_swtort', methods=['POST'])
 def create_playbook_switchrouter():
@@ -1253,6 +1012,61 @@ def create_playbook_switchrouter():
             # "output": output,       # Uncomment if you run ansible-playbook immediately
             # "errors": errors        # Uncomment if you run ansible-playbook immediately
         }), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@api_bp.route('/api/show_detail_swtort', methods=['POST'])
+def show_swtort():
+    try:
+        # Generate playbook content based on selected groups
+        playbook_content = sh_swtort()
+
+        # Create SSH connection to the VM
+        ssh, username = create_ssh_connection()
+
+        # Define paths for inventory and playbook inside the VM
+        inventory_path = f"/home/{username}/inventory/inventory.ini"
+        playbook_path = f"/home/{username}/playbook/interface.yml"
+
+        # Write the playbook content to a file on the VM
+        sftp = ssh.open_sftp()
+        with sftp.open(playbook_path, "w") as playbook_file:
+            playbook_file.write(playbook_content)
+        sftp.close()
+
+        # Define the ansible command to run on the VM
+        ansible_command = f"ansible-playbook -i {inventory_path} {playbook_path}"
+
+        # Execute the command on the VM
+        stdin, stdout, stderr = ssh.exec_command(ansible_command)
+        output = stdout.read().decode("utf-8")
+        error = stderr.read().decode("utf-8")
+
+        # Parse the interface data (assumes a function parse_interface exists)
+        parsed_result = parse_interface(output)
+
+        # Retrieve all devices info
+        devices = fetch_all_devices()  # This should return a list of dicts with keys: 
+                                        # "id", "deviceType", "hostname", "ipAddress", 
+                                        # "username", "password", "enablePassword", "groups"
+        # Build a lookup dictionary keyed by hostname for faster matching
+        devices_map = {device['hostname']: device for device in devices}
+
+        # Add deviceType information to each host in the parsed result
+        for host in parsed_result:
+            hostname = host.get('hostname')
+            if hostname in devices_map:
+                host['deviceType'] = devices_map[hostname]['deviceType']
+            else:
+                # If no match is found, set a default (or leave it out)
+                host['deviceType'] = ''
+
+        # Close SSH connection
+        ssh.close()
+
+        # Return the structured data including deviceType for each host
+        return jsonify({"parsed_result": parsed_result})
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
