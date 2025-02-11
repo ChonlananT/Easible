@@ -4,7 +4,7 @@ import './RouterRouter.css';
 import './ConfigDevice.css';
 import './SwitchSwitch.css';
 import Spinner from './bootstrapSpinner.tsx';
-import { ArrowLeftFromLine, ChevronDown, Menu } from 'lucide-react';
+import { ArrowLeftFromLine, ChevronDown, CircleMinus, Menu } from 'lucide-react';
 
 // Type Definitions
 type GetHostsData = {
@@ -656,6 +656,12 @@ function ConfigDevice() {
     }
   ];
 
+  const [isVlanExpanded, setIsVlanExpanded] = useState(false);
+
+  const toggleVlanSection = () => {
+    setIsVlanExpanded((prev) => !prev);
+  };
+
 
 
 
@@ -784,7 +790,7 @@ function ConfigDevice() {
                             combinedHosts.filter((host) => host.deviceType === link.deviceType).length <= 1 // Disable if only one option
                           }
                         >
-                           <option value="">
+                          <option value="">
                             {!link.deviceType
                               ? "-- Select a Device --"
                               : combinedHosts.some((host) => host.deviceType === link.deviceType)
@@ -802,30 +808,6 @@ function ConfigDevice() {
                         </select>
                       </div>
 
-                      {/* <div className="host-selection__dropdown-group">
-                        <label>Select Device:</label>
-                        <select
-                          className="host-selection__dropdown"
-                          value={link.selectedHost}
-                          onChange={(e) => handleHostChange(index, 'selectedHost', e.target.value)}
-                          disabled={loading || !filteredHosts.length} // Disable only if still loading or no devices
-                        >
-                          {loading || !filteredHosts.length ? (
-                            <option value="">Loading...</option> // Show loading message
-                          ) : (
-                            <>
-                              <option value="">-- Select a Device --</option>
-                              <option value="test">test</option>
-                              {filteredHosts.map((host: DropdownOption) => (
-                                <option key={host.hostname} value={host.hostname}>
-                                  {host.hostname}
-                                </option>
-                              ))}
-                            </>
-                          )}
-                        </select>
-                      </div> */}
-
                       {/* Select Command */}
                       <div className="host-selection__dropdown-group">
                         <label>Select Command:</label>
@@ -833,9 +815,10 @@ function ConfigDevice() {
                           className="host-selection__dropdown"
                           value={link.selectedCommand}
                           onChange={(e) => handleHostChange(index, 'selectedCommand', e.target.value)}
-                          disabled={!link.selectedHost}
+                          // disabled={!link.selectedHost}
                         >
                           <option value="">-- Select a Command --</option>
+                          <option value="vlan">vlan</option>
                           {link.deviceType &&
                             commandsByDeviceType[link.deviceType].map((command) => (
                               <option key={command.value} value={command.value}>
@@ -849,122 +832,130 @@ function ConfigDevice() {
                   <div className="config-command-section">
                     {/* VLAN Configuration */}
                     {link.selectedCommand === 'vlan' && link.vlanData && (
-                      <div className="config-command-board">
-                        <div className="vlan-config-topic">
+                      <div
+                        className={`config-command-board ${isVlanExpanded ? "expanded" : "collapsed"}`} // Apply different styles based on state
+                      >
+                        {/* Toggle Button with Chevron Icon */}
+                        <div className="vlan-config-topic" onClick={toggleVlanSection} style={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
                           <h5>VLAN Configuration</h5>
+                          <ChevronDown className={isVlanExpanded ? "chevron-nav rotated" : "chevron-nav"} style={{ marginLeft: "10px" }} />
                         </div>
-                        <div className="vlan-config-content">
-                          <div className="vlan-config-device">
-                            <div className="vlan-name-id">
-                              <div className="config-device-input-text">
-                                <label>VLAN ID:</label>
-                                <input
-                                  type="text"
-                                  value={link.vlanData.vlanId}
-                                  onChange={(e) =>
-                                    handleHostChange(index, { group: 'vlanData', key: 'vlanId' }, e.target.value)
-                                  }
-                                  placeholder="Enter VLAN ID"
-                                />
-                              </div>
-                              <div className="config-device-input-text">
-                                <label>VLAN Name (optional):</label>
-                                <input
-                                  type="text"
-                                  value={link.vlanData.vlanName || ''}
-                                  onChange={(e) =>
-                                    handleHostChange(index, { group: 'vlanData', key: 'vlanName' }, e.target.value)
-                                  }
-                                  placeholder="Enter VLAN Name"
-                                />
-                              </div>
-                            </div>
-                            <div className="ip-subnet-group-confdev">
-                              <div className="ip-text">
-                                <label>IP Address (optional):</label>
-                                <input
-                                  type="text"
-                                  value={link.vlanData.ipAddress || ''}
-                                  onChange={(e) =>
-                                    handleHostChange(index, { group: 'vlanData', key: 'ipAddress' }, e.target.value)
-                                  }
-                                  placeholder="Enter IP Address"
-                                />
-                              </div>
-                              <div className="config-device-input-text">
-                                <label>Subnet (CIDR):</label>
-                                <input
-                                  type="number"
-                                  min={1}
-                                  max={32}
-                                  value={link.vlanData.cidr || 24}
-                                  onChange={(e) =>
-                                    handleHostChange(index, { group: 'vlanData', key: 'cidr' }, parseInt(e.target.value, 10))
-                                  }
-                                  placeholder="Enter CIDR (e.g., 24)"
-                                />
-                              </div>
-                            </div>
-                          </div>
-                          <div className="line-vertical-confdev"></div>
-                          <div className="vlan-config-device">
-                            {/* Here we allow adding multiple interface configurations */}
-                            {link.vlanData.interfaces && link.vlanData.interfaces.length > 0 ? (
-                              link.vlanData.interfaces.map((vIface, ifaceIndex) => (
-                                <div key={ifaceIndex} className="vlan-interface-config">
-                                  <div className="host-selection__dropdown-group">
-                                    <label>Select Interface:</label>
-                                    <select
-                                      className="host-selection__dropdown"
-                                      value={vIface.interface}
-                                      onChange={(e) =>
-                                        handleVlanInterfaceChange(index, ifaceIndex, 'interface', e.target.value)
-                                      }
-                                    >
-                                      <option value="">-- Select Interface --</option>
-                                      {link.selectedHost &&
-                                        getInterfacesForHost(link.selectedHost).map((intf) => (
-                                          <option key={intf.interface} value={intf.interface}>
-                                            {intf.interface} ({intf.status})
-                                          </option>
-                                        ))}
-                                    </select>
-                                  </div>
-                                  <div className="host-selection__dropdown-group">
-                                    <label>Mode:</label>
-                                    <select
-                                      className="host-selection__dropdown"
-                                      value={vIface.mode}
-                                      onChange={(e) =>
-                                        handleVlanInterfaceChange(index, ifaceIndex, 'mode', e.target.value)
-                                      }
-                                    >
-                                      <option value="">-- Select Mode --</option>
-                                      <option value="trunk">Trunk</option>
-                                      <option value="access">Access</option>
-                                    </select>
-                                  </div>
-                                  {link.vlanData.interfaces.length > 1 && (
-                                    <button
-                                      className="button-remove-vlan-interface"
-                                      onClick={() => handleRemoveVlanInterface(index, ifaceIndex)}
-                                    >
-                                      Remove Interface
-                                    </button>
-                                  )}
+
+                        {/* VLAN Configuration Section */}
+                        {isVlanExpanded && (
+                          <div className="vlan-config-content">
+                            <div className="vlan-config-device-left">
+                              <div className="vlan-name-id">
+                                <div className="config-device-input-text">
+                                  <label>VLAN ID:</label>
+                                  <input
+                                    type="text"
+                                    value={link.vlanData.vlanId}
+                                    onChange={(e) =>
+                                      handleHostChange(index, { group: 'vlanData', key: 'vlanId' }, e.target.value)
+                                    }
+                                    placeholder="Enter VLAN ID"
+                                  />
                                 </div>
-                              ))
-                            ) : (
-                              <p>No interfaces added.</p>
-                            )}
-                            <button
-                              className="button-add-vlan-interface"
-                              onClick={() => handleAddVlanInterface(index)}
-                            >
-                              + Add Interface
-                            </button>
+                                <div className="config-device-input-text">
+                                  <label>VLAN Name (optional):</label>
+                                  <input
+                                    type="text"
+                                    value={link.vlanData.vlanName || ''}
+                                    onChange={(e) =>
+                                      handleHostChange(index, { group: 'vlanData', key: 'vlanName' }, e.target.value)
+                                    }
+                                    placeholder="Enter VLAN Name"
+                                  />
+                                </div>
+                              </div>
+                              <div className="ip-subnet-group-confdev">
+                                <div className="ip-text">
+                                  <label>IP Address (optional):</label>
+                                  <input
+                                    type="text"
+                                    value={link.vlanData.ipAddress || ''}
+                                    onChange={(e) =>
+                                      handleHostChange(index, { group: 'vlanData', key: 'ipAddress' }, e.target.value)
+                                    }
+                                    placeholder="Enter IP Address"
+                                  />
+                                </div>
+                                <div className="config-device-input-text">
+                                  <label>Subnet (CIDR):</label>
+                                  <input
+                                    type="number"
+                                    min={1}
+                                    max={32}
+                                    value={link.vlanData.cidr || 24}
+                                    onChange={(e) =>
+                                      handleHostChange(index, { group: 'vlanData', key: 'cidr' }, parseInt(e.target.value, 10))
+                                    }
+                                    placeholder="Enter CIDR (e.g., 24)"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                            <div className="line-vertical-confdev"></div>
+                            <div className="vlan-config-device-right">
+                              <div className="vlan-config-device">
+                                {link.vlanData.interfaces && link.vlanData.interfaces.length > 0 ? (
+                                  link.vlanData.interfaces.map((vIface, ifaceIndex) => (
+                                    <div key={ifaceIndex} className="vlan-interface-config">
+                                      <div className="host-selection__dropdown-group">
+                                        <label>Select Interface:</label>
+                                        <select
+                                          className="host-selection__dropdown"
+                                          value={vIface.interface}
+                                          onChange={(e) =>
+                                            handleVlanInterfaceChange(index, ifaceIndex, 'interface', e.target.value)
+                                          }
+                                        >
+                                          <option value="">-- Select Interface --</option>
+                                          {link.selectedHost &&
+                                            getInterfacesForHost(link.selectedHost).map((intf) => (
+                                              <option key={intf.interface} value={intf.interface}>
+                                                {intf.interface} ({intf.status})
+                                              </option>
+                                            ))}
+                                        </select>
+                                      </div>
+                                      <div className="host-selection__dropdown-group">
+                                        <label>Mode:</label>
+                                        <select
+                                          className="host-selection__dropdown"
+                                          value={vIface.mode}
+                                          onChange={(e) =>
+                                            handleVlanInterfaceChange(index, ifaceIndex, 'mode', e.target.value)
+                                          }
+                                        >
+                                          <option value="">-- Select Mode --</option>
+                                          <option value="trunk">Trunk</option>
+                                          <option value="access">Access</option>
+                                        </select>
+                                      </div>
+                                      {link.vlanData && link.vlanData.interfaces.length > 1 && (
+                                        <div>
+                                          <CircleMinus style={{ width: '30px', height: '30px', color: 'red', marginTop:'40px', marginLeft:'5px', cursor: 'pointer'}} onClick={() => handleRemoveVlanInterface(index, ifaceIndex)} />
+                                        </div>
+                                      )}
+                                    </div>
+                                  ))
+                                ) : (
+                                  <p>No interfaces added.</p>
+                                )}
+                              </div>
+                              <div style={{ width:'100%'}}>
+                                <button
+                                  className="button-add-interface-confdev"
+                                  onClick={() => handleAddVlanInterface(index)}
+                                >
+                                  + Add Interface
+                                </button>
+                              </div>
+                            </div>
                           </div>
-                        </div>
+                        )}
                       </div>
                     )}
 
@@ -1175,7 +1166,7 @@ function ConfigDevice() {
                   <span className="fetching-text">Fetching Data...</span>
                 </>
               ) : (
-                "+ Add Host Config"
+                "+ Add Device"
               )}
             </button>
             <div className="line"></div>
