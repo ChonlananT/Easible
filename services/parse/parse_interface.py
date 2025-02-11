@@ -2,6 +2,10 @@ import re
 
 def parse_interface(output):
     parsed_data = []
+    
+    # If "PLAY RECAP" is present, only consider output before it.
+    if "PLAY RECAP" in output:
+        output = output.split("PLAY RECAP")[0]
 
     # Split the output by hosts
     host_blocks = re.split(r"ok: \[([^\]]+)\]", output)
@@ -30,11 +34,12 @@ def parse_interface(output):
         vlan_lines = re.findall(r"(?<![a-zA-Z\/\.])\b(\d+)\b\s+[^\n]+", data, re.MULTILINE)
         vlan_ids = [int(vlan_id) for vlan_id in vlan_lines]
         
-        # Add the hostname with its interfaces
-        parsed_data.append({
-            "hostname": hostname,
-            "interfaces": interface_list,
-            "vlan_ids": vlan_ids
-        })
+        # Only add host if interface_list is not empty
+        if interface_list:
+            parsed_data.append({
+                "hostname": hostname,
+                "interfaces": interface_list,
+                "vlan_ids": vlan_ids
+            })
     
     return parsed_data
