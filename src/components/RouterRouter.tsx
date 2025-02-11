@@ -649,14 +649,14 @@ function RouterRouter() {
               <div className="popup-preview">
                 <h1 style={{ fontSize: '32px' }}>Summary</h1>
                 <div className='topology-prev'>
-                  <h2>Network Topology</h2>
+                  <h5 style={{margin:'10px 20px'}}>Network Topology</h5>
                   <NetworkTopology links={links} />
                 </div>
                 <div className='popup-table-section'>
                   {/* Dynamically render a table for each routing table from the backend */}
                   {Object.entries(routingTables).map(([hostname, routes]: [string, any]) => (
                     <div className='popup-table' key={hostname}>
-                      <h3>{hostname} Routing Table</h3>
+                      <h5>{hostname} Routing Table</h5>
                       <div className="popup-table-wrapper">
                         <table border={1} style={{ width: '100%', borderCollapse: 'collapse' }}>
                           <thead>
