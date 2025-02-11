@@ -50,13 +50,18 @@ type DropdownOption = {
   vlans?: VlanInfo[];
 };
 
+type VlanInterfaceConfig = {
+  interface: string;
+  mode: string;
+};
+
 type VlanData = {
   vlanId: string;
   vlanName?: string;
   ipAddress?: string;
   cidr?: number;
-  interface: string;
-  mode: string;
+  // New: an array of interface configurations for this VLAN
+  interfaces: VlanInterfaceConfig[];
 };
 
 type BridgePriorityData = {
@@ -313,18 +318,18 @@ function ConfigDevice() {
         // เมื่อเปลี่ยน selectedCommand ให้ initialize ค่าเฉพาะ command นั้นๆ
         if (field === 'selectedCommand') {
           if (value === 'vlan') {
+            // Initialize vlanData with an empty interfaces array.
             hostConfig.vlanData = {
               vlanId: '',
               vlanName: '',
               ipAddress: '',
               cidr: 24,
-              interface: '',
-              mode: '',
+              interfaces: [] // NEW: Allows multiple interface configurations for the same VLAN
             };
           } else if (value === 'bridge_priority') {
             hostConfig.bridgePriority = {
-              vlan: 0, // ต้องเลือก vlan_id จาก dropdown
-              priority: 0, // ให้ค่าเริ่มต้นเป็น 0 (หรือจะปรับเป็นค่า default จาก API ก็ได้)
+              vlan: 0,
+              priority: 0,
             };
           } else if (value === 'config_ip_router') {
             hostConfig.configIp = {
@@ -385,6 +390,50 @@ function ConfigDevice() {
     });
   };
 
+  const handleVlanInterfaceChange = (
+    hostIndex: number,
+    ifaceIndex: number,
+    field: 'interface' | 'mode',
+    value: string
+  ) => {
+    setLinks((prevLinks) => {
+      const newLinks = [...prevLinks];
+      if (newLinks[hostIndex].vlanData) {
+        const vlanData = { ...newLinks[hostIndex].vlanData };
+        const interfaces = vlanData.interfaces ? [...vlanData.interfaces] : [];
+        interfaces[ifaceIndex] = { ...interfaces[ifaceIndex], [field]: value };
+        vlanData.interfaces = interfaces;
+        newLinks[hostIndex].vlanData = vlanData;
+      }
+      return newLinks;
+    });
+  };
+
+  const handleAddVlanInterface = (hostIndex: number) => {
+    setLinks((prevLinks) => {
+      const newLinks = [...prevLinks];
+      if (newLinks[hostIndex].vlanData) {
+        const vlanData = { ...newLinks[hostIndex].vlanData };
+        const interfaces = vlanData.interfaces ? [...vlanData.interfaces] : [];
+        interfaces.push({ interface: '', mode: '' });
+        vlanData.interfaces = interfaces;
+        newLinks[hostIndex].vlanData = vlanData;
+      }
+      return newLinks;
+    });
+  };
+
+  const handleRemoveVlanInterface = (hostIndex: number, ifaceIndex: number) => {
+    setLinks((prevLinks) => {
+      const newLinks = [...prevLinks];
+      if (newLinks[hostIndex].vlanData && newLinks[hostIndex].vlanData.interfaces) {
+        const interfaces = newLinks[hostIndex].vlanData.interfaces.filter((_, i) => i !== ifaceIndex);
+        newLinks[hostIndex].vlanData!.interfaces = interfaces;
+      }
+      return newLinks;
+    });
+  };
+
   // Get interfaces for a specific host
   const getInterfacesForHost = (hostname: string) => {
     const host = combinedHosts.find((item) => item.hostname === hostname);
@@ -421,9 +470,28 @@ function ConfigDevice() {
 
       if (link.selectedCommand === 'vlan') {
         const vlan = link.vlanData;
-        if (!vlan || !vlan.vlanId || !vlan.interface || !vlan.mode) {
-          setError(`Please fill all required VLAN fields for entry ${i + 1}.`);
-          return;
+        if (!vlan || !vlan.vlanId) {
+          // Note: In the new VLAN command, the common VLAN fields must be filled,
+          // and at least one interface configuration must be provided with its mode.
+          if (!vlan) {
+            setError(`Please fill in the VLAN details for entry ${i + 1}.`);
+            return;
+          }
+          if (!vlan.vlanId || !vlan.ipAddress || !vlan.cidr) {
+            setError(`Please fill all required common VLAN fields for entry ${i + 1}.`);
+            return;
+          }
+          if (!vlan.interfaces || vlan.interfaces.length === 0) {
+            setError(`Please add at least one interface for VLAN entry ${i + 1}.`);
+            return;
+          }
+          for (let j = 0; j < vlan.interfaces.length; j++) {
+            const iface = vlan.interfaces[j];
+            if (!iface.interface || !iface.mode) {
+              setError(`Please select interface and mode for VLAN interface ${j + 1} in entry ${i + 1}.`);
+              return;
+            }
+          }
         }
       }
 
@@ -466,16 +534,17 @@ function ConfigDevice() {
       command: link.selectedCommand,
       ...(link.selectedCommand === 'vlan' && link.vlanData
         ? {
-            vlanData: {
+          vlanDataList: [
+            {
               vlanId: link.vlanData.vlanId,
               vlanName: link.vlanData.vlanName,
               ipAddress: link.vlanData.ipAddress,
               cidr: link.vlanData.cidr,
-              interface: link.vlanData.interface,
-              mode: link.vlanData.mode,
-            },
-          }
-        : {}),
+              interfaces: link.vlanData.interfaces, // array of { interface, mode }
+            }
+          ],
+        }
+      : {}),
       ...(link.selectedCommand === 'bridge_priority' && link.bridgePriority
         ? {
             bridgePriority: {
@@ -802,7 +871,7 @@ function ConfigDevice() {
                                 <label>VLAN Name (optional):</label>
                                 <input
                                   type="text"
-                                  value={link.vlanData.vlanName}
+                                  value={link.vlanData.vlanName || ''}
                                   onChange={(e) =>
                                     handleHostChange(index, { group: 'vlanData', key: 'vlanName' }, e.target.value)
                                   }
@@ -815,7 +884,7 @@ function ConfigDevice() {
                                 <label>IP Address (optional):</label>
                                 <input
                                   type="text"
-                                  value={link.vlanData.ipAddress}
+                                  value={link.vlanData.ipAddress || ''}
                                   onChange={(e) =>
                                     handleHostChange(index, { group: 'vlanData', key: 'ipAddress' }, e.target.value)
                                   }
@@ -823,12 +892,12 @@ function ConfigDevice() {
                                 />
                               </div>
                               <div className="config-device-input-text">
-                                <label>Subnet:</label>
+                                <label>Subnet (CIDR):</label>
                                 <input
                                   type="number"
                                   min={1}
                                   max={32}
-                                  value={link.vlanData.cidr}
+                                  value={link.vlanData.cidr || 24}
                                   onChange={(e) =>
                                     handleHostChange(index, { group: 'vlanData', key: 'cidr' }, parseInt(e.target.value, 10))
                                   }
@@ -839,38 +908,61 @@ function ConfigDevice() {
                           </div>
                           <div className="line-vertical-confdev"></div>
                           <div className="vlan-config-device">
-                            <div className="host-selection__dropdown-group">
-                              <label>Select Interface:</label>
-                              <select
-                                className="host-selection__dropdown"
-                                value={link.vlanData.interface}
-                                onChange={(e) =>
-                                  handleHostChange(index, { group: 'vlanData', key: 'interface' }, e.target.value)
-                                }
-                              >
-                                <option value="">-- Select Interface --</option>
-                                {link.selectedHost &&
-                                  getInterfacesForHost(link.selectedHost).map((intf) => (
-                                    <option key={intf.interface} value={intf.interface}>
-                                      {intf.interface} ({intf.status})
-                                    </option>
-                                  ))}
-                              </select>
-                            </div>
-                            <div className="host-selection__dropdown-group">
-                              <label>Mode:</label>
-                              <select
-                                className="host-selection__dropdown"
-                                value={link.vlanData.mode}
-                                onChange={(e) =>
-                                  handleHostChange(index, { group: 'vlanData', key: 'mode' }, e.target.value)
-                                }
-                              >
-                                <option value="">-- Select Mode --</option>
-                                <option value="trunk">Trunk</option>
-                                <option value="access">Access</option>
-                              </select>
-                            </div>
+                            {/* Here we allow adding multiple interface configurations */}
+                            {link.vlanData.interfaces && link.vlanData.interfaces.length > 0 ? (
+                              link.vlanData.interfaces.map((vIface, ifaceIndex) => (
+                                <div key={ifaceIndex} className="vlan-interface-config">
+                                  <div className="host-selection__dropdown-group">
+                                    <label>Select Interface:</label>
+                                    <select
+                                      className="host-selection__dropdown"
+                                      value={vIface.interface}
+                                      onChange={(e) =>
+                                        handleVlanInterfaceChange(index, ifaceIndex, 'interface', e.target.value)
+                                      }
+                                    >
+                                      <option value="">-- Select Interface --</option>
+                                      {link.selectedHost &&
+                                        getInterfacesForHost(link.selectedHost).map((intf) => (
+                                          <option key={intf.interface} value={intf.interface}>
+                                            {intf.interface} ({intf.status})
+                                          </option>
+                                        ))}
+                                    </select>
+                                  </div>
+                                  <div className="host-selection__dropdown-group">
+                                    <label>Mode:</label>
+                                    <select
+                                      className="host-selection__dropdown"
+                                      value={vIface.mode}
+                                      onChange={(e) =>
+                                        handleVlanInterfaceChange(index, ifaceIndex, 'mode', e.target.value)
+                                      }
+                                    >
+                                      <option value="">-- Select Mode --</option>
+                                      <option value="trunk">Trunk</option>
+                                      <option value="access">Access</option>
+                                    </select>
+                                  </div>
+                                  {link.vlanData.interfaces.length > 1 && (
+                                    <button
+                                      className="button-remove-vlan-interface"
+                                      onClick={() => handleRemoveVlanInterface(index, ifaceIndex)}
+                                    >
+                                      Remove Interface
+                                    </button>
+                                  )}
+                                </div>
+                              ))
+                            ) : (
+                              <p>No interfaces added.</p>
+                            )}
+                            <button
+                              className="button-add-vlan-interface"
+                              onClick={() => handleAddVlanInterface(index)}
+                            >
+                              + Add Interface
+                            </button>
                           </div>
                         </div>
                       </div>
