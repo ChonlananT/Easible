@@ -3,7 +3,7 @@ import './Bar.css';
 import './SwitchHost.css';
 import './SwitchSwitch.css';
 import Spinner from './bootstrapSpinner.tsx';
-import { ArrowLeftFromLine, ChevronDown, Menu } from 'lucide-react';
+import { ArrowLeftFromLine, ChevronDown, CircleMinus, Menu } from 'lucide-react';
 
 // Types for host and interface information
 type DropdownOption = {
@@ -438,38 +438,32 @@ function SwitchHost() {
                       <div className="command-section-swh">
                         {/* Loop through each interface configuration for this link */}
                         {link.interfaces.map((iface, ifaceIndex) => (
+                          
                           <div key={ifaceIndex} className="interface-config-swh">
-                            <div className="host-selection__dropdown-swh">
-                              <label>Select Interface for {link.selectedHost}:</label>
-                              <select
-                                className="host-selection__dropdown"
-                                value={iface.selectedInterface}
-                                onChange={(e) =>
-                                  handleInterfaceChange(linkIndex, ifaceIndex, "selectedInterface", e.target.value)
-                                }
-                              >
-                                <option value="">-- Select Interface --</option>
-                                {getInterfacesForHost(link.selectedHost).map((intf) => (
-                                  <option key={intf.interface} value={intf.interface}>
-                                    {intf.interface} ({intf.status})
-                                  </option>
-                                ))}
-                              </select>
-                              {/* Allow removal of this interface configuration if more than one exists */}
-                              {link.interfaces.length > 1 && (
-                                <button
-                                  className="button-remove-interface"
-                                  onClick={() => handleRemoveInterface(linkIndex, ifaceIndex)}
+                            <div className="interface-selection__vlan-configuration-swh">
+                              <div className="host-selection__dropdown-swh">
+                                <label>Select Interface for {link.selectedHost}:</label>
+                                <select
+                                  className="host-selection__dropdown"
+                                  value={iface.selectedInterface}
+                                  onChange={(e) =>
+                                    handleInterfaceChange(linkIndex, ifaceIndex, "selectedInterface", e.target.value)
+                                  }
                                 >
-                                  Remove Interface
-                                </button>
-                              )}
+                                  <option value="">-- Select Interface --</option>
+                                  {getInterfacesForHost(link.selectedHost).map((intf) => (
+                                    <option key={intf.interface} value={intf.interface}>
+                                      {intf.interface} ({intf.status})
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
                             </div>
                             <div className="host-selection__vlan-configuration-swh">
                               <div className="input-sw-sw-group">
                                 <label>VLAN ID:</label>
                                 <select
-                                  className="host-selection__dropdown"
+                                  className="host-selection__dropdown-vlan"
                                   value={iface.vlanData.vlanId}
                                   onChange={(e) =>
                                     handleVlanChange(linkIndex, ifaceIndex, "vlanId", e.target.value)
@@ -510,8 +504,14 @@ function SwitchHost() {
                                 />
                               </div>
                             </div>
+                            {link.interfaces.length > 1 && (
+                              <div>
+                                <CircleMinus style={{ width: '30px', height: '30px', color: 'red', marginTop:'55px', marginLeft:'10px', cursor: 'pointer'}} onClick={() => handleRemoveInterface(linkIndex, ifaceIndex)} />
+                              </div>
+                              )}
                           </div>
                         ))}
+                        <span/>
                         <button className="button-add-interface" onClick={() => handleAddInterface(linkIndex)}>
                           + Add Interface
                         </button>
