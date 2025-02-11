@@ -10,7 +10,6 @@ type LinkConfig = {
   ip2: string;
   subnet: string;
   protocol: string;
-  // You can add any additional properties if needed.
 };
 
 type NetworkTopologyProps = {
@@ -22,52 +21,68 @@ const NetworkTopology: React.FC<NetworkTopologyProps> = ({ links }) => {
 
   useEffect(() => {
     if (networkContainer.current) {
-      try {
-        // Build a unique set of nodes
-        const nodeSet = new Set<string>();
-        links.forEach(link => {
-          nodeSet.add(link.hostname1);
-          nodeSet.add(link.hostname2);
-        });
-        const nodes = Array.from(nodeSet).map((hostname) => ({
-          id: hostname,
-          label: hostname,
-        }));
-  
-        // Build edges: Each link creates an edge between hostname1 and hostname2.
-        const edges = links.map((link, index) => ({
-          id: index,
-          from: link.hostname1,
-          to: link.hostname2,
-        }));
-  
-        const data = {
-          nodes: new DataSet(nodes),
-          edges: new DataSet(edges),
-        };
-  
-        const options = {
-          layout: {
-            hierarchical: false,
+      // Build a unique set of nodes from the hostnames in the links.
+      const nodeSet = new Set<string>();
+      links.forEach(link => {
+        nodeSet.add(link.hostname1);
+        nodeSet.add(link.hostname2);
+      });
+
+      // Use a router icon for each node by setting shape to 'image'
+      const nodes = Array.from(nodeSet).map((hostname) => ({
+        id: hostname,
+        label: hostname,
+        shape: 'image',                 // Use an image instead of a default shape
+        image: '/Switch.png',      // Path to your router icon (adjust as needed)
+        size: 30,                       // Optional: adjust size as needed
+      }));
+
+      // Build edges from the links.
+      const edges = links.map((link, index) => ({
+        id: index,
+        from: link.hostname1,
+        to: link.hostname2,
+      }));
+
+      const data = {
+        nodes: new DataSet(nodes),
+        edges: new DataSet(edges),
+      };
+
+      const options = {
+        layout: {
+          hierarchical: false,
+        },
+        physics: {
+          stabilization: {
+            enabled: true,
+            iterations: 100,
+            updateInterval: 25,
           },
-          physics: {
-            stabilization: false,
-          },
-        };
-  
-        const network = new Network(networkContainer.current, data, options);
-        // Cleanup on unmount
-        return () => {
-          network.destroy();
-        };
-      } catch (err) {
-        console.error('Error initializing network:', err);
-      }
+          enabled: false,
+        },
+      };
+
+      const network = new Network(networkContainer.current, data, options);
+
+      // Cleanup on unmount
+      return () => {
+        network.destroy();
+      };
     }
   }, [links]);
-  
-  
-  return <div ref={networkContainer} style={{ height: '400px', border: '1px solid lightgray' }} />;
+
+  return (
+    <div
+      ref={networkContainer}
+      style={{
+        width: '100%',
+        height: '100%',
+        border: '1px solid lightgray',
+        overflow: 'hidden',
+      }}
+    />
+  );
 };
 
 export default NetworkTopology;
