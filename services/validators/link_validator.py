@@ -1,68 +1,62 @@
-from ipaddress import ip_address, ip_network
-from services.validators.ip_validator import IPValidator
-from services.validators.subnet_validator import SubnetValidator
+import ipaddress
 
 class LinkValidator:
-    ALLOWED_PROTOCOLS = {"OSPF", "RIP", "Static", "None"}  # Define allowed protocols
-
-    @staticmethod
-    def check_same_subnet(ip1, ip2, subnet):
-        """
-        Check if two IP addresses belong to the same subnet.
-
-        Args:
-            ip1 (str): First IP address.
-            ip2 (str): Second IP address.
-            subnet (str): Subnet prefix length (e.g., '24').
-
-        Returns:
-            bool: True if both IPs belong to the same subnet, False otherwise.
-        """
-        try:
-            netmask = SubnetValidator.subnet_to_mask(subnet)
-            network = ip_network(f"{ip1}/{netmask}", strict=False)
-            return ip_address(ip2) in network
-        except ValueError:
-            return False
-
     @staticmethod
     def validate_link(link):
-        """
-        Validate a single link configuration.
-
-        Args:
-            link (dict): Link configuration containing IPs, subnet, protocol, etc.
-
-        Returns:
-            list: List of validation errors. Empty if no errors.
-        """
         errors = []
 
-        # Extract data from the link
-        ip1 = link.get("ip1")
-        ip2 = link.get("ip2")
-        subnet = link.get("subnet")
-        protocol = link.get("protocol")
+        # Extract fields
+        ip1_str = link.get("ip1")
+        ip2_str = link.get("ip2")
+        subnet_str = link.get("subnet")
 
-        # Validate IP addresses
-        if not IPValidator.validate_ip(ip1):
-            errors.append(f"Invalid IP address: {ip1}")
-        if not IPValidator.validate_ip(ip2):
-            errors.append(f"Invalid IP address: {ip2}")
+        # Basic presence checks (ensure fields aren't missing or empty)
+        if not ip1_str:
+            errors.append("Missing ip1")
+        if not ip2_str:
+            errors.append("Missing ip2")
+        if not subnet_str:
+            errors.append("Missing subnet")
 
-        # Validate subnet
-        if not SubnetValidator.validate_subnet(subnet):
-            errors.append(f"Invalid subnet: {subnet}")
+        # Proceed only if required fields are provided
+        if ip1_str and ip2_str and subnet_str:
+            # 1) Check if ip1 and ip2 are identical.
+            if ip1_str == ip2_str:
+                errors.append("Host1 and Host2 cannot share the same IP address.")
 
-        # Validate protocol
-        if protocol not in LinkValidator.ALLOWED_PROTOCOLS:
-            errors.append(
-                f"Invalid routing protocol: {protocol}. "
-                f"Allowed protocols are {', '.join(LinkValidator.ALLOWED_PROTOCOLS)}"
-            )
+            # 2) Validate both IPs and create networks.
+            try:
+                ip_obj1 = ipaddress.ip_address(ip1_str)
+                # Create network with strict=False to allow non-network addresses.
+                net1 = ipaddress.ip_network(f"{ip1_str}/{subnet_str}", strict=False)
+            except ValueError:
+                errors.append(f"Invalid IP or Subnet for ip1: {ip1_str}/{subnet_str}")
+                net1 = None
 
-        # Check if IPs are in the same subnet
-        if not errors and not LinkValidator.check_same_subnet(ip1, ip2, subnet):
-            errors.append(f"IPs {ip1} and {ip2} are not in the same subnet /{subnet}")
+            try:
+                ip_obj2 = ipaddress.ip_address(ip2_str)
+                net2 = ipaddress.ip_network(f"{ip2_str}/{subnet_str}", strict=False)
+            except ValueError:
+                errors.append(f"Invalid IP or Subnet for ip2: {ip2_str}/{subnet_str}")
+                net2 = None
+
+            # Continue only if both networks were successfully created.
+            if net1 and net2:
+                # 3) Check if the given IP is being used as a network or broadcast address.
+                if ip_obj1 == net1.network_address:
+                    errors.append(f"IP1 ({ip1_str}) is the network address (not allowed).")
+                if ip_obj1 == net1.broadcast_address and net1.num_addresses > 2:
+                    errors.append(f"IP1 ({ip1_str}) is the broadcast address (not allowed).")
+                if ip_obj2 == net2.network_address:
+                    errors.append(f"IP2 ({ip2_str}) is the network address (not allowed).")
+                if ip_obj2 == net2.broadcast_address and net2.num_addresses > 2:
+                    errors.append(f"IP2 ({ip2_str}) is the broadcast address (not allowed).")
+
+                # 4) Check if both IPs are in the same subnet.
+                # Compare the network addresses and netmasks of the two networks.
+                if net1.network_address != net2.network_address or net1.netmask != net2.netmask:
+                    errors.append(
+                        f"IP1 ({ip1_str}/{subnet_str}) and IP2 ({ip2_str}/{subnet_str}) are not in the same subnet."
+                    )
 
         return errors

@@ -12,6 +12,7 @@ from services.calculate_network_id import calculate_network_id
 from services.sh_ip_int_br_rt import sh_ip_int_br_rt
 from services.sh_config_sw import sh_config
 from services.sh_dashboard import sh_dashboard
+from services.routing_service import RoutingService
 
 api_bp = Blueprint('api', __name__)
 
@@ -513,13 +514,13 @@ def create_playbook_routerrouter():
     try:
         data = request.json
 
-        # ถ้าเป็น single object -> แปลงเป็น list
+        # Ensure data is a list of links.
         if isinstance(data, dict):
             data = [data]
         elif not isinstance(data, list):
             return jsonify({"error": "Invalid data format. Expected a list of link configurations."}), 400
 
-        # ส่วนหัวของ playbook
+        # *** PLAYBOOK CREATION PART ***
         playbook_content = """---
 - name: Configure router-router links
   hosts: selectedgroup
@@ -527,180 +528,110 @@ def create_playbook_routerrouter():
   tasks:
 """
 
-        # Loop ทีละ link
+        # Loop through each link to generate configuration tasks.
         for idx, link in enumerate(data, start=1):
             hostname1 = link.get("hostname1")
             hostname2 = link.get("hostname2")
             interface1 = link.get("interface1")
             interface2 = link.get("interface2")
-            ip1 = link.get("ipAddress1")
-            ip2 = link.get("ipAddress2")
-            cidr = link.get("cidr")
+            ip1 = link.get("ip1")
+            ip2 = link.get("ip2")
+            subnet = link.get("subnet")
             protocol = link.get("protocol")
-            # static_route1 = link.get("staticRoute1")
-            # static_route2 = link.get("staticRoute2")
 
-            # ตรวจสอบค่าเบื้องต้น
-            if not (hostname1 and hostname2 and interface1 and interface2 and ip1 and ip2 and cidr):
+            # Check for required fields.
+            if not (hostname1 and hostname2 and interface1 and interface2 and ip1 and ip2 and subnet):
                 return jsonify({"error": f"Link #{idx}: missing required fields"}), 400
-            
-            # subnet1 = cidr_to_subnet_mask(static_route1['cidr']) if protocol and protocol.lower() == 'static' and static_route1 else cidr_to_subnet_mask(cidr)
-            # subnet2 = cidr_to_subnet_mask(static_route2['cidr']) if protocol and protocol.lower() == 'static' and static_route2 else cidr_to_subnet_mask(cidr)
 
-            # คำนวณ Subnet Mask (เช่น /24 -> 255.255.255.0)
+            # Calculate the network and netmask using the ipaddress module.
             try:
-                network1 = ipaddress.ip_network(f"{ip1}/{cidr}", strict=False)
+                network1 = ipaddress.ip_network(f"{ip1}/{subnet}", strict=False)
                 netmask1 = str(network1.netmask)
             except ValueError as e:
                 return jsonify({"error": f"Link #{idx} invalid IP or CIDR: {e}"}), 400
 
             try:
-                network2 = ipaddress.ip_network(f"{ip2}/{cidr}", strict=False)
+                network2 = ipaddress.ip_network(f"{ip2}/{subnet}", strict=False)
                 netmask2 = str(network2.netmask)
             except ValueError as e:
                 return jsonify({"error": f"Link #{idx} invalid IP or CIDR: {e}"}), 400
 
-            # สร้าง task สำหรับ config IP บน Host1
+            # Create playbook task for configuring IP on Host1.
             playbook_content += f"""
-  - name: "[Link#{idx}] Config IP on {hostname1}"
-    ios_config:
-      parents: interface {interface1}
-      lines:
-        - ip address {ip1} {netmask1}
-        - no shutdown
-    when: inventory_hostname == "{hostname1}"
+- name: "[Link#{idx}] Config IP on {hostname1}"
+  ios_config:
+    parents: interface {interface1}
+    lines:
+      - ip address {ip1} {netmask1}
+      - no shutdown
+  when: inventory_hostname == "{hostname1}"
 """
 
-            # สร้าง task สำหรับ config IP บน Host2
+            # Create playbook task for configuring IP on Host2.
             playbook_content += f"""
-  - name: "[Link#{idx}] Config IP on {hostname2}"
-    ios_config:
-      parents: interface {interface2}
-      lines:
-        - ip address {ip2} {netmask2}
-        - no shutdown
-    when: inventory_hostname == "{hostname2}"
+- name: "[Link#{idx}] Config IP on {hostname2}"
+  ios_config:
+    parents: interface {interface2}
+    lines:
+      - ip address {ip2} {netmask2}
+      - no shutdown
+  when: inventory_hostname == "{hostname2}"
 """
 
-            # ถ้า protocol != none ก็เพิ่ม tasks ต่อ
+            # Additional configuration based on the protocol (e.g., RIP, OSPF) if provided.
             if protocol and protocol.lower() != "none":
                 if protocol.lower() == "rip":
-                    # ตัวอย่าง config RIP (version 2 + network)
-                    # อาจต้องคำนวณ network address
                     netaddr1 = str(network1.network_address)
                     netaddr2 = str(network2.network_address)
-                    
                     playbook_content += f"""
-  - name: "[Link#{idx}] Configure RIP on {hostname1}"
-    ios_config:
-      lines:
-        - router rip
-        - version 2
-        - network {netaddr1}
-    when: inventory_hostname == "{hostname1}"
+- name: "[Link#{idx}] Configure RIP on {hostname1}"
+  ios_config:
+    lines:
+      - router rip
+      - version 2
+      - network {netaddr1}
+  when: inventory_hostname == "{hostname1}"
 """
-
                     playbook_content += f"""
-  - name: "[Link#{idx}] Configure RIP on {hostname2}"
-    ios_config:
-      lines:
-        - router rip
-        - version 2
-        - network {netaddr2}
-    when: inventory_hostname == "{hostname2}"
+- name: "[Link#{idx}] Configure RIP on {hostname2}"
+  ios_config:
+    lines:
+      - router rip
+      - version 2
+      - network {netaddr2}
+  when: inventory_hostname == "{hostname2}"
 """
-
                 elif protocol.lower() == "ospf":
-                    # ตัวอย่าง OSPF process 1 + network ... area 0
-                    # สมมติใช้ wildcard mask = 0.0.0.255 ถ้า /24 
-                    # (ในงานจริงอาจต้องคำนวณตาม cidr)
-                    netaddr1 = str(network1.network_address)
-                    netaddr2 = str(network2.network_address)
-
-                    # ตัวอย่าง simplistic (ทุก interface area 0)
                     playbook_content += f"""
-  - name: "[Link#{idx}] Configure OSPF on {hostname1}"
-    ios_config:
-      lines:
-        - router ospf 1
-        - network {ip1} 0.0.0.0 area 0
-    when: inventory_hostname == "{hostname1}"
+- name: "[Link#{idx}] Configure OSPF on {hostname1}"
+  ios_config:
+    lines:
+      - router ospf 1
+      - network {ip1} 0.0.0.0 area 0
+  when: inventory_hostname == "{hostname1}"
+"""
+                    playbook_content += f"""
+- name: "[Link#{idx}] Configure OSPF on {hostname2}"
+  ios_config:
+    lines:
+      - router ospf 1
+      - network {ip2} 0.0.0.0 area 0
+  when: inventory_hostname == "{hostname2}"
 """
 
-                    playbook_content += f"""
-  - name: "[Link#{idx}] Configure OSPF on {hostname2}"
-    ios_config:
-      lines:
-        - router ospf 1
-        - network {ip2} 0.0.0.0 area 0
-    when: inventory_hostname == "{hostname2}"
-"""
+        # Now call the RoutingService after processing all the links.
+        routing_service = RoutingService()
+        try:
+            # process_links performs validation as well as calculating the routing tables.
+            routing_tables = routing_service.process_links(data)
+        except ValueError as ve:
+            return jsonify({"error": f"Validation failed: {str(ve)}"}), 400
 
-#                 elif protocol.lower() == "static":
-#                     # ตรวจสอบว่ามี staticRoute1 และ staticRoute2 หรือไม่
-#                     if not (static_route1 and static_route1.get("prefix") and static_route1.get("subnet") and static_route1.get("nextHop") and
-#                             static_route2 and static_route2.get("prefix") and static_route2.get("subnet") and static_route2.get("nextHop")):
-#                         return jsonify({"error": f"Link #{idx}: Incomplete staticRoute details"}), 400
-
-#                     prefix1 = static_route1.get("prefix")
-#                     cidr1 = static_route1.get("cidr")
-#                     nextHop1 = static_route1.get("nextHop")
-#                     subnet_route1 = cidr_to_subnet_mask(cidr1)
-
-#                     prefix2 = static_route2.get("prefix")
-#                     cidr2 = static_route2.get("cidr")
-#                     nextHop2 = static_route2.get("nextHop")
-#                     subnet_route2 = cidr_to_subnet_mask(cidr2)
-
-#                     # คำนวณ Network ID สำหรับ Static Route
-#                     try:
-#                         network_static1 = calculate_network_id(static_route1['prefix'], static_route1['cidr'])
-#                         subnet_static1 = str(ipaddress.IPv4Network(f"{static_route1['prefix']}/{static_route1['cidr']}", strict=False).netmask)
-#                     except ValueError as e:
-#                         return jsonify({"error": f"Link #{idx} staticRoute1 error: {e}"}), 400
-
-#                     try:
-#                         network_static2 = calculate_network_id(static_route2['prefix'], static_route2['cidr'])
-#                         subnet_static2 = str(ipaddress.IPv4Network(f"{static_route2['prefix']}/{static_route2['cidr']}", strict=False).netmask)
-#                     except ValueError as e:
-#                         return jsonify({"error": f"Link #{idx} staticRoute2 error: {e}"}), 400
-
-#                     # สร้าง task สำหรับ Static Route บน Host1
-#                     playbook_content += f"""
-#   - name: "[Link#{idx}] Configure Static Route on {hostname1}"
-#     ios_config:
-#       lines:
-#         - ip route {network_static1} {subnet_static1} {static_route1['nextHop']}
-#     when: inventory_hostname == "{hostname1}"
-# """
-
-#                     # สร้าง task สำหรับ Static Route บน Host2
-#                     playbook_content += f"""
-#   - name: "[Link#{idx}] Configure Static Route on {hostname2}"
-#     ios_config:
-#       lines:
-#         - ip route {network_static2} {subnet_static2} {static_route2['nextHop']}
-#     when: inventory_hostname == "{hostname2}"
-# """
-                else:
-                    # ถ้า protocol ไม่รู้จัก ก็ข้าม หรือ return error
-                    pass
-
-        # หลังจากรวม tasks ทุกลิงก์แล้ว -> เขียน playbook ลงไฟล์
-        ssh, username = create_ssh_connection()
-        playbook_path = f"/home/{username}/playbook/routerrouter_playbook.yml"
-        inventory_path = f"/home/{username}/inventory/inventory.ini"
-
-        sftp = ssh.open_sftp()
-        with sftp.open(playbook_path, "w") as playbook_file:
-            playbook_file.write(playbook_content)
-        sftp.close()
-
-        ssh.close()
-
+        # Return both the playbook content and the calculated routing tables back to the frontend.
         return jsonify({
             "message": "Router-Router playbook created successfully",
-            "playbook": playbook_content
+            "playbook": playbook_content,
+            "routing_tables": routing_tables
         }), 200
 
     except Exception as e:
@@ -751,7 +682,7 @@ def create_playbook_configdevice():
                 vlan_id = vlan_data.get("vlanId")
                 vlan_name = vlan_data.get("vlanName")
                 ip_address = vlan_data.get("ipAddress")
-                cidr = vlan_data.get("cidr")
+                subnet = vlan_data.get("subnet")
                 interface = vlan_data.get("interface")
                 switchport_mode = vlan_data.get("mode")  # เปลี่ยนจาก "switchportMode" เป็น "mode"
 
@@ -760,16 +691,16 @@ def create_playbook_configdevice():
                     return jsonify({"error": f"Command #{idx}: VLAN ID, Interface, and Mode are required."}), 400
 
                 # หากกำหนด IP Address ต้องกำหนด CIDR ด้วย
-                if ip_address and not cidr:
+                if ip_address and not subnet:
                     return jsonify({"error": f"Command #{idx}: CIDR is required when IP Address is specified."}), 400
 
                 # คำนวณ Network ID จาก Prefix และ CIDR (สำหรับ IP Address)
                 network_id = ""
                 subnet_mask = ""
-                if ip_address and cidr:
+                if ip_address and subnet:
                     try:
-                        network_id = calculate_network_id(ip_address, cidr)
-                        subnet_mask = str(ipaddress.IPv4Network(f"{ip_address}/{cidr}", strict=False).netmask)
+                        network_id = calculate_network_id(ip_address, subnet)
+                        subnet_mask = str(ipaddress.IPv4Network(f"{ip_address}/{subnet}", strict=False).netmask)
                     except ValueError as e:
                         return jsonify({"error": f"Command #{idx}: {str(e)}"}), 400
 
@@ -900,16 +831,16 @@ def create_playbook_configdevice():
                 config_ip = cmd.get("configIp", {})
                 interface = config_ip.get("interface")
                 ip_address = config_ip.get("ipAddress")
-                cidr = config_ip.get("cidr")
+                subnet = config_ip.get("subnet")
 
                 # Validation
-                if not interface or not ip_address or not cidr:
+                if not interface or not ip_address or not subnet:
                     return jsonify({"error": f"Command #{idx}: Interface, IP Address, and CIDR are required."}), 400
 
                 # คำนวณ Network ID จาก Prefix และ CIDR
                 try:
-                    network_id = calculate_network_id(ip_address, cidr)
-                    subnet_mask = str(ipaddress.IPv4Network(f"{ip_address}/{cidr}", strict=False).netmask)
+                    network_id = calculate_network_id(ip_address, subnet)
+                    subnet_mask = str(ipaddress.IPv4Network(f"{ip_address}/{subnet}", strict=False).netmask)
                 except ValueError as e:
                     return jsonify({"error": f"Command #{idx}: {str(e)}"}), 400
 
@@ -957,12 +888,12 @@ def create_playbook_configdevice():
                     return jsonify({"error": f"Command #{idx}: Static Route command is only applicable to routers."}), 400
                 staticRoute_Data = cmd.get("staticRouteData", {})
                 prefix = staticRoute_Data.get("prefix")
-                cidr = staticRoute_Data.get("cidr")
+                subnet = staticRoute_Data.get("subnet")
                 nextHop = staticRoute_Data.get("nextHop")
 
                 try:
-                        network_static = calculate_network_id(prefix, cidr)
-                        subnet_static = str(ipaddress.IPv4Network(f"{prefix}/{cidr}", strict=False).netmask)
+                        network_static = calculate_network_id(prefix, subnet)
+                        subnet_static = str(ipaddress.IPv4Network(f"{prefix}/{subnet}", strict=False).netmask)
                 except ValueError as e:
                         return jsonify({"error": f"Link #{idx} staticRoute error: {e}"}), 400
 
