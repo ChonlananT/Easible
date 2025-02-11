@@ -63,7 +63,7 @@ function RouterRouter() {
   // protocol ที่มีให้เลือก
   const protocols = [
     { label: 'None (Only IP Address)', value: 'none' },
-    { label: 'RIPv2', value: 'rip' },
+    { label: 'RIPv2', value: 'ripv2' },
     { label: 'OSPF', value: 'ospf' },
   ];
 
@@ -644,19 +644,19 @@ function RouterRouter() {
             Submit All
           </button>
           {/* Popup Summary */}
-          {showPopup && (
+          {!error && showPopup && (
             <div className="popup-overlay">
               <div className="popup-preview">
                 <h1 style={{ fontSize: '32px' }}>Summary</h1>
                 <div className='topology-prev'>
-                  <h2>Network Topology</h2>
+                  <h5 style={{margin:'10px 20px'}}>Network Topology</h5>
                   <NetworkTopology links={links} />
                 </div>
                 <div className='popup-table-section'>
                   {/* Dynamically render a table for each routing table from the backend */}
                   {Object.entries(routingTables).map(([hostname, routes]: [string, any]) => (
                     <div className='popup-table' key={hostname}>
-                      <h3>{hostname} Routing Table</h3>
+                      <h5>{hostname} Routing Table</h5>
                       <div className="popup-table-wrapper">
                         <table border={1} style={{ width: '100%', borderCollapse: 'collapse' }}>
                           <thead>
@@ -693,7 +693,23 @@ function RouterRouter() {
           )}
         </div>
 
-        {error && <div className="error-sw-sw">Error: {error}</div>}
+        {error && (
+          <div className='popup-overlay'>
+            <div className='popup-content-host'>
+              <div className="error-rt-rt">{error}</div>
+              <button 
+                className='cancel-btn'
+                onClick={() => {
+                  setError('');
+                  setShowPopup(false);
+                }}
+              >
+                close
+              </button>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );

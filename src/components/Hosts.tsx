@@ -424,75 +424,91 @@ function Hosts() {
     if (!showAddHostPopup) return null;
     return (
       <div className="popup-overlay">
-        <div className="popup-content-host">
-          <h2>Add Host</h2>
-          <label>
-            Device Type:
-            <select name="deviceType" value={formData.deviceType} onChange={handleInputChange}>
-              <option value="switch">Switch</option>
-              <option value="router">Router</option>
-            </select>
-          </label>
-          <label>
-            Hostname:
-            <input
-              type="text"
-              name="hostname"
-              value={formData.hostname}
-              onChange={handleInputChange}
-              placeholder="Enter hostname"
-            />
-            {hostnameError && <span className="error-text">{hostnameError}</span>}
-          </label>
-          <label>
-            IP Address:
-            <input
-              type="text"
-              name="ipAddress"
-              value={formData.ipAddress}
-              onChange={handleInputChange}
-              style={{ borderColor: ipError ? 'red' : '#ccc' }}
-              placeholder="Enter IP address"
-            />
-            {ipError && <span className="error-text">{ipError}</span>}
-          </label>
-          <label>
-            Username:
-            <input
-              type="text"
-              name="username"
-              value={formData.username}
-              onChange={handleInputChange}
-              placeholder="Enter username"
-            />
-          </label>
-          <label>
-            Password:
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleInputChange}
-              placeholder="Enter password"
-            />
-          </label>
-          <label>
-            Enable Password:
-            <input
-              type="password"
-              name="enablePassword"
-              value={formData.enablePassword}
-              onChange={handleInputChange}
-              placeholder="Enter enable password"
-            />
-          </label>
+  <div className="popup-content-host">
+    <h2>Add Host</h2>
+    <label>
+      Device Type:
+      <select name="deviceType" value={formData.deviceType} onChange={handleInputChange}>
+        <option value="switch">Switch</option>
+        <option value="router">Router</option>
+      </select>
+    </label>
+    <label>
+      Hostname:
+      <input
+        type="text"
+        name="hostname"
+        value={formData.hostname}
+        onChange={handleInputChange}
+        onBlur={() => {
+          if (formData.hostname.includes(' ')) {
+            setHostnameError('Hostname cannot contain spaces');
+          } else {
+            setHostnameError('');
+          }
+        }}
+        placeholder="Enter hostname"
+      />
+      {hostnameError && <span className="error-text">{hostnameError}</span>}
+    </label>
+    <label>
+      IP Address:
+      <input
+        type="text"
+        name="ipAddress"
+        value={formData.ipAddress}
+        onChange={handleInputChange}
+        style={{ borderColor: ipError ? 'red' : '#ccc' }}
+        placeholder="Enter IP address"
+      />
+      {ipError && <span className="error-text">{ipError}</span>}
+    </label>
+    <label>
+      Username:
+      <input
+        type="text"
+        name="username"
+        value={formData.username}
+        onChange={handleInputChange}
+        placeholder="Enter username"
+      />
+    </label>
+    <label>
+      Password:
+      <input
+        type="password"
+        name="password"
+        value={formData.password}
+        onChange={handleInputChange}
+        placeholder="Enter password"
+      />
+    </label>
+    <label>
+      Enable Password:
+      <input
+        type="password"
+        name="enablePassword"
+        value={formData.enablePassword}
+        onChange={handleInputChange}
+        placeholder="Enter enable password"
+      />
+    </label>
 
-          <div className="popup-buttons">
-            <button onClick={handleSaveHost} disabled={!!ipError} className="save-btn">Save Host</button>
-            <button onClick={() => setShowAddHostPopup(false)} className="cancel-btn">Cancel</button>
-          </div>
-        </div>
-      </div>
+    <div className="popup-buttons">
+      <button
+        onClick={handleSaveHost}
+        disabled={!!ipError || !!hostnameError}
+        className="save-btn"
+      >
+        Save Host
+      </button>
+      <button onClick={() => setShowAddHostPopup(false)} className="cancel-btn">
+        Cancel
+      </button>
+    </div>
+  </div>
+</div>
+
     );
   };
 
