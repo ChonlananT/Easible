@@ -29,7 +29,7 @@ class RoutingService:
             errors = LinkValidator.validate_link(link)
             if errors:
                 raise ValueError(
-                    f"Validation errors for link {link.get('hostname1')} -> {link.get('hostname2')}:\n"
+                    f""
                     + ", ".join(errors)
                 )
 
@@ -149,7 +149,7 @@ class RoutingService:
           - Connected routes have highest precedence (never overwrite them).
           - Administrative distance decides tie-break among protocols.
           - For same AD, compare metrics. If metric is lower, replace. If equal
-            and the protocol supports ECMP (OSPF/RIP), add as a second route.
+            and the protocol supports ECMP (OSPF/RIPv2), add as a second route.
         """
         existing_routes = self.routing_tables[hostname]
         new_ad = self.AD_VALUES.get(new_route["protocol"], 255)
@@ -207,14 +207,18 @@ class RoutingService:
                 self.routing_tables[hostname].append(new_route)
 
     def _propagate_routes(self, link):
-        """Propagate routes if the link protocol is OSPF or RIP."""
+        """Propagate routes only if the link protocol is OSPF or RIP/RIPv2."""
         protocol = link["protocol"].upper()
         if protocol == "OSPF":
             self._propagate_from_to(link["hostname1"], link["hostname2"], "OSPF")
             self._propagate_from_to(link["hostname2"], link["hostname1"], "OSPF")
-        elif protocol == "RIP":
+        elif protocol in {"RIP", "RIPV2"}:
+            # Always use RIPv2 for propagation when RIP is activated
             self._propagate_from_to(link["hostname1"], link["hostname2"], "RIPv2")
             self._propagate_from_to(link["hostname2"], link["hostname1"], "RIPv2")
+        else:
+            # If the link is not activated for OSPF or RIP/RIPv2, do not propagate routes.
+            pass
 
     def _propagate_from_to(self, from_host, to_host, protocol):
         """
@@ -239,7 +243,7 @@ class RoutingService:
 
             new_metric = route["metric"] + 1
 
-            # Keep the original link name to avoid flipping (r1-r2 / r2-r1)
+            # Keep the original link name to avoid flipping (e.g. r1-r2 vs r2-r1)
             propagated_route = {
                 "subnet": subnet,
                 "outgoing_interface": to_host_if_data["interface"],  # local interface of to_host
