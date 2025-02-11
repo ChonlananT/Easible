@@ -26,64 +26,34 @@ type InterfaceData = {
   vlan_ids?: string[];
 };
 
-type VlanData = {
-  vlanId1?: string;
-  vlanId2?: string;
-  vlanName1?: string;
-  vlanName2?: string;
-  ipAddress1?: string;
-  ipAddress2?: string;
-  subnetMask1?: string;
-  subnetMask2?: string;
-  interface1?: string;
-  interface2?: string;
-};
-
-type BridgePriorityData = {
-  vlan: string;
-  priority1: string;
-  priority2: string;
-};
-
-// ใช้ index เป็นตัวชี้เพื่อไม่ต้องมี id
+// Updated LinkConfig: no command field; includes a list for multiple VLANs.
 type LinkConfig = {
   selectedHost1: string;
   selectedHost2: string;
-  selectedCommand: string;
   selectedInterface1: string;
   selectedInterface2: string;
   switchportMode: string;
-  vlanData: VlanData;
-  bridgePriority: BridgePriorityData;
-  commonVlans: string[];
+  vlans: string[]; // List of selected VLAN IDs
 };
 
 function SwitchSwitch() {
   const [hosts, setHosts] = useState<DropdownOption[]>([]);
   const [interfaceData, setInterfaceData] = useState<InterfaceData[]>([]);
   const [links, setLinks] = useState<LinkConfig[]>([]);
-
   const [vlans, setVlans] = useState<{ [key: string]: string[] }>({});
   const [error, setError] = useState('');
   const [loading, setLoading] = useState<boolean>(true);
 
-  // คำสั่งที่มีให้เลือก
-  const commands = [
-    { label: 'Switchport', value: 'switchport' },
-    { label: 'Configure VLAN', value: 'vlan' },
-    { label: 'Bridge Priority', value: 'bridge_priority' },
-  ];
-
   const [isNavOpen, setIsNavOpen] = useState(() => {
-        const savedNavState = localStorage.getItem('isNavOpen');
-        return savedNavState === 'true';  // Convert to boolean
-      });
+    const savedNavState = localStorage.getItem('isNavOpen');
+    return savedNavState === 'true';
+  });
 
   useEffect(() => {
     localStorage.setItem('isNavOpen', isNavOpen.toString());
   }, [isNavOpen]);
 
-  // useEffect: ดึงข้อมูลจาก backend
+  // Fetch data from backend
   useEffect(() => {
     setLoading(true);
     fetch('/api/show_detail_switch', {
@@ -108,39 +78,22 @@ function SwitchSwitch() {
         }));
         setInterfaceData(iData);
 
+        // Build a dictionary of VLANs per host.
         const tempVlans: { [key: string]: string[] } = {};
-        secondHalf.forEach((host: any) => {
+        data.parsed_result.forEach((host: any) => {
           tempVlans[host.hostname] = host.vlan_ids || [];
         });
         setVlans(tempVlans);
 
-        // เริ่มด้วยลิงก์เปล่า 1 ลิงก์
+        // Initialize with one empty link.
         setLinks([
           {
             selectedHost1: '',
             selectedHost2: '',
-            selectedCommand: '',
             selectedInterface1: '',
             selectedInterface2: '',
             switchportMode: '',
-            vlanData: {
-              vlanId1: '',
-              vlanName1: '',
-              ipAddress1: '',
-              subnetMask1: '',
-              vlanId2: '',
-              vlanName2: '',
-              ipAddress2: '',
-              subnetMask2: '',
-              interface1: '',
-              interface2: '',
-            },
-            bridgePriority: {
-              vlan: '',
-              priority1: '',
-              priority2: '',
-            },
-            commonVlans: [],
+            vlans: [],
           },
         ]);
       })
@@ -148,44 +101,7 @@ function SwitchSwitch() {
       .finally(() => setLoading(false));
   }, []);
 
-  // ----------------------------------------------------------------
-  // ฟังก์ชันเปลี่ยนค่าทั่วไปใน Link
-  // ----------------------------------------------------------------
-  const handleLinkChange = (
-    linkIndex: number,
-    field: keyof LinkConfig | { group: 'vlanData' | 'bridgePriority'; key: string },
-    value: string
-  ) => {
-    setLinks((prevLinks) => {
-      const newLinks = [...prevLinks];
-      const link = newLinks[linkIndex];
-
-      if (typeof field === 'string') {
-        // กรณี field เป็น string ปกติ (เช่น 'selectedHost1')
-        (link as any)[field] = value;
-      } else {
-        // กรณี field เป็น group (เช่น group = 'vlanData', key = 'vlanId1')
-        if (field.group === 'vlanData') {
-          link.vlanData = {
-            ...link.vlanData,
-            [field.key]: value,
-          };
-        } else if (field.group === 'bridgePriority') {
-          link.bridgePriority = {
-            ...link.bridgePriority,
-            [field.key]: value,
-          };
-        }
-      }
-
-      newLinks[linkIndex] = { ...link };
-      return newLinks;
-    });
-  };
-
-  // ----------------------------------------------------------------
-  // ฟังก์ชันเปลี่ยนโฮสต์ แล้วคำนวณ common VLAN (เฉพาะ bridge_priority)
-  // ----------------------------------------------------------------
+  // When a host is changed, update the link and clear related fields.
   const handleHostChange = (
     linkIndex: number,
     whichHost: 'selectedHost1' | 'selectedHost2',
@@ -195,138 +111,125 @@ function SwitchSwitch() {
       const newLinks = [...prevLinks];
       const link = { ...newLinks[linkIndex] };
       link[whichHost] = hostValue;
-
-      // ถ้า command เป็น bridge_priority แล้วโฮสต์ครบ => หา common vlans
-      if (link.selectedCommand === 'bridge_priority' && link.selectedHost1 && link.selectedHost2) {
-        const host1Vlans = vlans[link.selectedHost1] || [];
-        const host2Vlans = vlans[link.selectedHost2] || [];
-        link.commonVlans = host1Vlans.filter((vlan) => host2Vlans.includes(vlan));
-        link.bridgePriority.vlan = ''; // reset ค่า vlan ที่เลือก
+      // Clear interface selections and VLANs when host changes.
+      if (whichHost === 'selectedHost1') {
+        link.selectedInterface1 = '';
+      } else {
+        link.selectedInterface2 = '';
       }
-
+      link.vlans = [];
       newLinks[linkIndex] = link;
       return newLinks;
     });
   };
 
-  // ----------------------------------------------------------------
-  // ฟังก์ชันเปลี่ยน command
-  // ----------------------------------------------------------------
-  const handleCommandChange = (linkIndex: number, commandValue: string) => {
+  // Handle changes in fields for a link (other than VLANs)
+  const handleLinkChange = (
+    linkIndex: number,
+    field: keyof Omit<LinkConfig, 'vlans'>,
+    value: string
+  ) => {
     setLinks((prevLinks) => {
       const newLinks = [...prevLinks];
-      const link = { ...newLinks[linkIndex] };
-      link.selectedCommand = commandValue;
-
-      // ถ้า command = bridge_priority และโฮสต์ครบ => หา common vlan
-      if (commandValue === 'bridge_priority' && link.selectedHost1 && link.selectedHost2) {
-        const host1Vlans = vlans[link.selectedHost1] || [];
-        const host2Vlans = vlans[link.selectedHost2] || [];
-        link.commonVlans = host1Vlans.filter((vlan) => host2Vlans.includes(vlan));
-      } else {
-        // ถ้าเป็น command อื่นๆ, clear
-        link.commonVlans = [];
+      newLinks[linkIndex] = { ...newLinks[linkIndex], [field]: value };
+      // If switchport mode changes to "access", clear any VLAN selections.
+      if (field === 'switchportMode' && value === 'access') {
+        newLinks[linkIndex].vlans = [];
       }
-      // reset ค่า vlan ใน bridgePriority
-      link.bridgePriority.vlan = '';
-      newLinks[linkIndex] = link;
       return newLinks;
     });
   };
 
-  // ----------------------------------------------------------------
-  // ฟังก์ชันดึง list ของ interface ใน host
-  // ----------------------------------------------------------------
+  // Get interfaces for a given host.
   const getInterfacesForHost = (hostname: string) => {
     const host = interfaceData.find((item) => item.hostname === hostname);
     return host ? host.interfaces : [];
   };
 
-  // ----------------------------------------------------------------
-  // ปุ่ม Add Link
-  // ----------------------------------------------------------------
+  // Compute common VLANs between the two selected hosts.
+  const getCommonVlans = (link: LinkConfig): string[] => {
+    if (link.selectedHost1 && link.selectedHost2) {
+      const vlans1 = vlans[link.selectedHost1] || [];
+      const vlans2 = vlans[link.selectedHost2] || [];
+      return vlans1.filter((vlan) => vlans2.includes(vlan));
+    }
+    return [];
+  };
+
+  // Handle adding a new VLAN selection to a link.
+  const handleAddVlan = (linkIndex: number) => {
+    // Only allow adding VLANs if switchport mode is "trunk"
+    if (links[linkIndex].switchportMode !== 'trunk') return;
+    setLinks((prevLinks) => {
+      const newLinks = [...prevLinks];
+      newLinks[linkIndex].vlans.push('');
+      return newLinks;
+    });
+  };
+
+  // Handle changing a VLAN selection value in a link.
+  const handleVlanChange = (linkIndex: number, vlanIndex: number, value: string) => {
+    setLinks((prevLinks) => {
+      const newLinks = [...prevLinks];
+      newLinks[linkIndex].vlans[vlanIndex] = value;
+      return newLinks;
+    });
+  };
+
+  // Handle removing a VLAN selection.
+  const handleRemoveVlan = (linkIndex: number, vlanIndex: number) => {
+    setLinks((prevLinks) => {
+      const newLinks = [...prevLinks];
+      newLinks[linkIndex].vlans = newLinks[linkIndex].vlans.filter((_, idx) => idx !== vlanIndex);
+      return newLinks;
+    });
+  };
+
+  // Add a new link.
   const handleAddLink = () => {
     setLinks((prevLinks) => [
       ...prevLinks,
       {
         selectedHost1: '',
         selectedHost2: '',
-        selectedCommand: '',
         selectedInterface1: '',
         selectedInterface2: '',
         switchportMode: '',
-        vlanData: {
-          vlanId1: '',
-          vlanName1: '',
-          ipAddress1: '',
-          subnetMask1: '',
-          vlanId2: '',
-          vlanName2: '',
-          ipAddress2: '',
-          subnetMask2: '',
-          interface1: '',
-          interface2: '',
-        },
-        bridgePriority: {
-          vlan: '',
-          priority1: '',
-          priority2: '',
-        },
-        commonVlans: [],
+        vlans: [],
       },
     ]);
   };
 
-  // ----------------------------------------------------------------
-  // ปุ่ม Remove Link
-  // ----------------------------------------------------------------
+  // Remove a link.
   const handleRemoveLink = (linkIndex: number) => {
     setLinks((prevLinks) => prevLinks.filter((_, i) => i !== linkIndex));
   };
 
-  // ----------------------------------------------------------------
-  // Submit ทั้งหมด
-  // ----------------------------------------------------------------
+  // Submit configuration data.
   const handleSubmitAll = () => {
     setError('');
 
-    // ตรวจสอบว่ามีลิงก์ไหนที่ยังเลือกไม่ครบหรือไม่
+    // Validate required fields for each link.
     for (let link of links) {
-      if (!link.selectedHost1 || !link.selectedHost2 || !link.selectedCommand) {
-        setError('Please select hosts and command for all links before submitting.');
+      if (
+        !link.selectedHost1 ||
+        !link.selectedHost2 ||
+        !link.selectedInterface1 ||
+        !link.selectedInterface2 ||
+        !link.switchportMode
+      ) {
+        setError('Please select both hosts, interfaces, and switchport mode for all links before submitting.');
         return;
       }
     }
 
-    // สร้าง request data
     const requestData = links.map((link) => ({
       hostname1: link.selectedHost1,
       hostname2: link.selectedHost2,
-      command: link.selectedCommand,
-      vlanData: {
-        ...(link.vlanData.vlanId1 && link.vlanData.vlanName1 && {
-          vlanId1: link.vlanData.vlanId1,
-          vlanName1: link.vlanData.vlanName1,
-          ipAddress1: link.vlanData.ipAddress1,
-          subnetMask1: link.vlanData.subnetMask1,
-          interface1: link.vlanData.interface1 || link.selectedInterface1,
-        }),
-        ...(link.vlanData.vlanId2 && link.vlanData.vlanName2 && {
-          vlanId2: link.vlanData.vlanId2,
-          vlanName2: link.vlanData.vlanName2,
-          ipAddress2: link.vlanData.ipAddress2,
-          subnetMask2: link.vlanData.subnetMask2,
-          interface2: link.vlanData.interface2 || link.selectedInterface2,
-        }),
-      },
-      switchportMode: link.switchportMode,
       interface1: link.selectedInterface1,
       interface2: link.selectedInterface2,
-      bridgePriority: {
-        vlan: link.bridgePriority.vlan,
-        priority1: link.bridgePriority.priority1,
-        priority2: link.bridgePriority.priority2,
-      },
+      switchportMode: link.switchportMode,
+      vlans: link.vlans.filter((vlan) => vlan !== ''), // filter out any empty values
     }));
 
     console.log('Sending data to backend:', requestData);
@@ -351,21 +254,23 @@ function SwitchSwitch() {
       });
   };
 
-  const [isSectionVisible, setIsSectionVisible] = useState(true);
-
-  // Toggling visibility of the entire command-section
-  const toggleSectionVisibility = () => setIsSectionVisible(!isSectionVisible);
-
-
   const [isNavDropdownOpen, setIsNavDropdownOpen] = useState(false);
-  const toggleNavDropdown = () =>{
+  const toggleNavDropdown = () => {
     setIsNavDropdownOpen(!isNavDropdownOpen);
-  }
+  };
 
   return (
     <div className="App">
-      <div className={`nav-links-container ${isNavOpen ? "" : "closed"}`}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', paddingRight: '10px', paddingTop: '10px'  }}>
+      <div className={`nav-links-container ${isNavOpen ? '' : 'closed'}`}>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-end',
+            paddingRight: '10px',
+            paddingTop: '10px',
+          }}
+        >
           <button
             style={{
               marginBottom: '16px',
@@ -374,7 +279,7 @@ function SwitchSwitch() {
               borderRadius: '8px',
               zIndex: 50,
               border: 'none',
-              background: '#f5f7f9'
+              background: '#f5f7f9',
             }}
             onClick={() => setIsNavOpen(false)}
           >
@@ -383,31 +288,49 @@ function SwitchSwitch() {
           <img src="/easible-name.png" alt="" className="dashboard-icon" />
         </div>
         <ul className="nav-links">
-          <li className="center"><a href="/dashboard">Dashboard</a></li>
-          <li className="center"><a href="/hosts">Devices</a></li>
-          <li 
-            className="center" 
-            onClick={toggleNavDropdown} 
-            style={{ cursor: 'pointer', color: 'black' }} 
-            onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.color = '#8c94dc'} 
-            onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.color = 'black'}
-          >
-            <a>Configuration  </a>
-            <ChevronDown className={isNavDropdownOpen ? "chevron-nav rotated" : "chevron-nav"}/>
+          <li className="center">
+            <a href="/dashboard">Dashboard</a>
           </li>
-          <ul className={`nav-dropdown ${isNavDropdownOpen ? "open" : ""}`}>
-            <li className="center sub-topic"><a href="/routerrouter">router-router</a></li>
-            <li className="center sub-topic"><a href="/routerswitch">router-switch</a></li>
-            <li className="center sub-topic"><a href="/switchswitch" style={{ color: '#8c94dc' }}>switch-switch</a></li>
-            <li className="center sub-topic"><a href="/switchhost">switch-host</a></li>
-            <li className="center sub-topic"><a href="/configdevice">config device</a></li>
+          <li className="center">
+            <a href="/hosts">Devices</a>
+          </li>
+          <li
+            className="center"
+            onClick={toggleNavDropdown}
+            style={{ cursor: 'pointer', color: 'black' }}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = '#8c94dc')}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = 'black')}
+          >
+            <a>Configuration </a>
+            <ChevronDown className={isNavDropdownOpen ? 'chevron-nav rotated' : 'chevron-nav'} />
+          </li>
+          <ul className={`nav-dropdown ${isNavDropdownOpen ? 'open' : ''}`}>
+            <li className="center sub-topic">
+              <a href="/routerrouter">router-router</a>
+            </li>
+            <li className="center sub-topic">
+              <a href="/routerswitch">router-switch</a>
+            </li>
+            <li className="center sub-topic">
+              <a href="/switchswitch" style={{ color: '#8c94dc' }}>
+                switch-switch
+              </a>
+            </li>
+            <li className="center sub-topic">
+              <a href="/switchhost">switch-host</a>
+            </li>
+            <li className="center sub-topic">
+              <a href="/configdevice">config device</a>
+            </li>
           </ul>
-          <li className="center"><a href="/lab">Lab Check</a></li>
+          <li className="center">
+            <a href="/lab">Lab Check</a>
+          </li>
         </ul>
       </div>
 
-      <div className={`content ${isNavOpen ? "expanded" : "full-width"}`}>
-        <div className='content-topic'>
+      <div className={`content ${isNavOpen ? 'expanded' : 'full-width'}`}>
+        <div className="content-topic">
           {!isNavOpen && (
             <button
               style={{
@@ -417,129 +340,101 @@ function SwitchSwitch() {
                 zIndex: 50,
                 border: 'none',
                 background: 'white',
-                marginRight: '8px'
+                marginRight: '8px',
               }}
               onClick={() => setIsNavOpen(true)}
             >
               <Menu size={24} />
             </button>
           )}
-          Configuration <span className='content-topic-small'>(Switch-Switch)</span>
+          Configuration <span className="content-topic-small">(Switch-Switch)</span>
         </div>
         <div className="content-board">
           <div className="all-links">
-            {links.map((link, index) => (
-              <div
-                key={index}
-                className="switch-switch"
-              >
-                <div className='top-link'>
-                  <div className='link-index'>Link {index + 1}</div>
-                  <div className="remove-link-container">
-                    {links.length > 1 && (
-                      <button
-                        onClick={() => handleRemoveLink(index)}
-                        className='button-sw-sw-remove'
-                      >
-                        <img
-                          src="bin.png"  // Replace with your actual image path
-                          alt="Remove link"
-                          style={{ width: '45px', height: '27px' }}  // Adjust size as needed
-                        />
-                      </button>
-                    )}
-                  </div>
-                </div>
-                
-                
-                <div className="content-section">
-                  <div className="host-selection-container">
-                    <div className="host-selection__hosts">
-                      <div className='host-sw-sw'>
-                        <div className="host-card">
-                          <div className="host-selection__dropdown-group">
-                          <label>Select Host (SW1):</label>
-                          <div className="host-selection__dropdown-container">
-                            <select
-                              className="host-selection__dropdown"
-                              onChange={(e) => handleHostChange(index, 'selectedHost1', e.target.value)}
-                              value={link.selectedHost1}
-                            >
-                              <option value="">-- Select a Host --</option>
-                              <option value="test">test</option>
-                              {!loading &&
-                                hosts.map((host: DropdownOption) => (
-                                  <option key={host.hostname} value={host.hostname}>
-                                    {host.hostname}
-                                  </option>
-                                  
-                                ))}
-                            </select>
-                            
-                          </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="connect-pic-sw-sw">
-                        <img
-                            src="connect.png"  // Replace with your actual image path
-                            alt="Remove link"
-                            style={{ width: '150px', height: '100px'}}  // Adjust size as needed
-                          /> 
-                
-                            <label>Select Command:</label>
-                            <select
-                              className="host-selection__dropdown"
-                              value={link.selectedCommand}
-                              onChange={(e) => handleCommandChange(index, e.target.value)}
-                            >
-                              <option value="">-- Select a Command --</option>
-                              {commands.map((command) => (
-                                <option key={command.value} value={command.value}>
-                                  {command.label}
-                                </option>
-                              ))}
-                            </select>
-                          
-                      </div>
-                      <div className='host-sw-sw'>
-                        <div className="host-card">
-                          <div className="host-selection__dropdown-group">
-                            <label>Select Host (SW2):</label>
-                            <select
-                              className="host-selection__dropdown"
-                              onChange={(e) => handleHostChange(index, 'selectedHost2', e.target.value)}
-                              value={link.selectedHost2}
-                            >
-                              <option value="">-- Select a Host --</option>
-                              <option value="test">test</option>
-                              {hosts.map((host: DropdownOption) => (
-                                <option key={host.hostname} value={host.hostname}>
-                                  {host.hostname}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+            {links.map((link, index) => {
+              // Compute common VLANs for the selected hosts.
+              const commonVlans = getCommonVlans(link);
+              // Filter out VLANs that have already been selected in this link.
+              const selectedVlans = link.vlans.filter((v) => v);
+              const availableVlans = commonVlans.filter((vlan) => !selectedVlans.includes(vlan));
 
-              
-                    
+              return (
+                <div key={index} className="switch-switch">
+                  <div className="top-link">
+                    <div className="link-index">Link {index + 1}</div>
+                    <div className="remove-link-container">
+                      {links.length > 1 && (
+                        <button onClick={() => handleRemoveLink(index)} className="button-sw-sw-remove">
+                          <img
+                            src="bin.png" // Replace with your actual image path
+                            alt="Remove link"
+                            style={{ width: '45px', height: '27px' }}
+                          />
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  
-                  {/* <button className={`hide-button ${isSectionVisible ? "" : "hide"}`} onClick={toggleSectionVisibility}>
-                    {isSectionVisible ? "Hide" : "Show"} Command
-                    <span className="arrow">{isSectionVisible ? "▼" : "►"}</span>
-                  </button> */}
-                  {/* {isSectionVisible && ( */}
-                    <div className="command-section">
-                      
-                      {/* ถ้าเลือก command = switchport */}
-                      {link.selectedHost1 && link.selectedHost2 && link.selectedCommand === 'switchport' && (
-                        <div className="host-selection__switchport-configuration">
-                          <div className="host-selection__dropdown-group">
-                            <label>Select Interface for {link.selectedHost1}:</label>
+                  <div className="content-section">
+                    <div className="host-selection-container">
+                      <div className="host-selection__hosts">
+                        <div className="host-sw-sw">
+                          <div className="host-card">
+                            <div className="host-selection__dropdown-group">
+                              <label>Select Host (SW1):</label>
+                              <div className="host-selection__dropdown-container">
+                                <select
+                                  className="host-selection__dropdown"
+                                  onChange={(e) => handleHostChange(index, 'selectedHost1', e.target.value)}
+                                  value={link.selectedHost1}
+                                >
+                                  <option value="">-- Select a Host --</option>
+                                  {hosts.map((host: DropdownOption) => (
+                                    <option key={host.hostname} value={host.hostname}>
+                                      {host.hostname}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="connect-pic-sw-sw">
+                          <img
+                            src="connect.png" // Replace with your actual image path
+                            alt="Connect"
+                            style={{ width: '150px', height: '100px' }}
+                          />
+                        </div>
+                        <div className="host-selection__hosts">
+                          <div className="host-sw-sw">
+                            <div className="host-card">
+                              <div className="host-selection__dropdown-group">
+                                <label>Select Host (SW2):</label>
+                                <div className="host-selection__dropdown-container">
+                                  <select
+                                    className="host-selection__dropdown"
+                                    onChange={(e) => handleHostChange(index, 'selectedHost2', e.target.value)}
+                                    value={link.selectedHost2}
+                                  >
+                                    <option value="">-- Select a Host --</option>
+                                    {hosts.map((host: DropdownOption) => (
+                                      <option key={host.hostname} value={host.hostname}>
+                                        {host.hostname}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Fixed Switchport configuration */}
+                      <div className="host-selection__switchport-configuration">
+                        <div className="host-selection__dropdown-group">
+                          <label>Select Interface for {link.selectedHost1}:</label>
+                          <div className="host-selection__dropdown-container">
                             <select
                               className="host-selection__dropdown"
                               value={link.selectedInterface1}
@@ -553,9 +448,10 @@ function SwitchSwitch() {
                               ))}
                             </select>
                           </div>
-
-                          <div className="host-selection__dropdown-group">
-                            <label>Select Interface for {link.selectedHost2}:</label>
+                        </div>
+                        <div className="host-selection__dropdown-group">
+                          <label>Select Interface for {link.selectedHost2}:</label>
+                          <div className="host-selection__dropdown-container">
                             <select
                               className="host-selection__dropdown"
                               value={link.selectedInterface2}
@@ -569,9 +465,10 @@ function SwitchSwitch() {
                               ))}
                             </select>
                           </div>
-
-                          <div className="host-selection__dropdown-group">
-                            <label>Switchport Mode:</label>
+                        </div>
+                        <div className="host-selection__dropdown-group">
+                          <label>Switchport Mode:</label>
+                          <div className="host-selection__dropdown-container">
                             <select
                               className="host-selection__dropdown"
                               value={link.switchportMode}
@@ -583,219 +480,52 @@ function SwitchSwitch() {
                             </select>
                           </div>
                         </div>
-                      )}
 
-                      {/* ถ้าเลือก command = vlan */}
-                      {link.selectedHost1 && link.selectedHost2 && link.selectedCommand === 'vlan' && (
-                        <div className="host-selection__vlan-configuration">
-                          <div className="vlan-config-detail">
-                            <div className="input-sw-sw-group">
-                              <label>VLAN ID (for {link.selectedHost1}):</label>
-                              <input
-                                type="text"
-                                value={link.vlanData.vlanId1}
-                                onChange={(e) =>
-                                  handleLinkChange(index, { group: 'vlanData', key: 'vlanId1' }, e.target.value)
-                                }
-                                placeholder="Enter VLAN ID"
-                                className='input-sw-sw'
-                              />
-                            </div>
-                            <div className="input-sw-sw-group">
-                              <label>VLAN Name (for {link.selectedHost1}):</label>
-                              <input
-                                type="text"
-                                value={link.vlanData.vlanName1}
-                                onChange={(e) =>
-                                  handleLinkChange(index, { group: 'vlanData', key: 'vlanName1' }, e.target.value)
-                                }
-                                placeholder="Enter VLAN Name"
-                                className='input-sw-sw'
-                              />
-                            </div>
-                            <div className="input-sw-sw-group">
-                              <label>IP Address (for {link.selectedHost1}):</label>
-                              <input
-                                type="text"
-                                value={link.vlanData.ipAddress1}
-                                onChange={(e) =>
-                                  handleLinkChange(index, { group: 'vlanData', key: 'ipAddress1' }, e.target.value)
-                                }
-                                placeholder="Enter IP Address"
-                                className='input-sw-sw'
-                              />
-                            </div>
-                            <div className="input-sw-sw-group">
-                              <label>Subnet Mask (1-32 for {link.selectedHost1}):</label>
-                              <input
-                                type="number"
-                                min={1}
-                                max={32}
-                                value={link.vlanData.subnetMask1}
-                                onChange={(e) =>
-                                  handleLinkChange(index, { group: 'vlanData', key: 'subnetMask1' }, e.target.value)
-                                }
-                                placeholder="Enter Subnet Mask"
-                                className='input-sw-sw'
-                              />
-                            </div>
-                            <div className="host-selection__dropdown-group">
-                              <label>Interface (for {link.selectedHost1}):</label>
-                              <select
-                                onChange={(e) =>
-                                  handleLinkChange(index, { group: 'vlanData', key: 'interface1' }, e.target.value)
-                                }
-                                value={link.vlanData.interface1}
-                                className="host-selection__dropdown"
-                              >
-                                <option value="">-- Select Interface --</option>
-                                {getInterfacesForHost(link.selectedHost1).map((intf) => (
-                                  <option key={intf.interface} value={intf.interface}>
-                                    {intf.interface} ({intf.status})
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
+                        {/* VLAN selection section is only shown for trunk mode */}
+                        {link.switchportMode === 'trunk' && (
+                          <div className="host-selection__vlan-multiple">
+                            <label>Add VLAN(s):</label>
+                            {link.vlans.map((vlan, vlanIndex) => (
+                              <div key={vlanIndex} className="vlan-selection-group">
+                                <select
+                                  className="host-selection__dropdown"
+                                  value={vlan}
+                                  onChange={(e) => handleVlanChange(index, vlanIndex, e.target.value)}
+                                >
+                                  <option value="">-- Select VLAN --</option>
+                                  {availableVlans.map((vlanOption) => (
+                                    <option key={vlanOption} value={vlanOption}>
+                                      {vlanOption}
+                                    </option>
+                                  ))}
+                                </select>
+                                <button
+                                  className="button-remove-vlan"
+                                  onClick={() => handleRemoveVlan(index, vlanIndex)}
+                                >
+                                  Remove
+                                </button>
+                              </div>
+                            ))}
+                            <button className="button-add-vlan" onClick={() => handleAddVlan(index)}>
+                              + Add VLAN
+                            </button>
                           </div>
-                          <div className="line-vertical"></div>
-                          {/*Host 2*/}
-                          <div className="vlan-config-detail">
-                            <div className="input-sw-sw-group">
-                              <label>VLAN ID (for {link.selectedHost2}):</label>
-                              <input
-                                type="text"
-                                value={link.vlanData.vlanId2}
-                                onChange={(e) =>
-                                  handleLinkChange(index, { group: 'vlanData', key: 'vlanId2' }, e.target.value)
-                                }
-                                placeholder="Enter VLAN ID"
-                                className='input-sw-sw'
-                              />
-                            </div>
-                            <div className="input-sw-sw-group">
-                              <label>VLAN Name (for {link.selectedHost2}):</label>
-                              <input
-                                type="text"
-                                value={link.vlanData.vlanName2}
-                                onChange={(e) =>
-                                  handleLinkChange(index, { group: 'vlanData', key: 'vlanName2' }, e.target.value)
-                                }
-                                placeholder="Enter VLAN Name"
-                                className='input-sw-sw'
-                              />
-                            </div>
-                            <div className="input-sw-sw-group">
-                              <label>IP Address (for {link.selectedHost2}):</label>
-                              <input
-                                type="text"
-                                value={link.vlanData.ipAddress2}
-                                onChange={(e) =>
-                                  handleLinkChange(index, { group: 'vlanData', key: 'ipAddress2' }, e.target.value)
-                                }
-                                placeholder="Enter IP Address"
-                                className='input-sw-sw'
-                              />
-                            </div>
-                            <div className="input-sw-sw-group">
-                              <label>Subnet Mask (1-32 for {link.selectedHost2}):</label>
-                              <input
-                                type="number"
-                                min={1}
-                                max={32}
-                                value={link.vlanData.subnetMask2}
-                                onChange={(e) =>
-                                  handleLinkChange(index, { group: 'vlanData', key: 'subnetMask2' }, e.target.value)
-                                }
-                                placeholder="Enter Subnet Mask"
-                                className='input-sw-sw'
-                              />
-                            </div>
-                            <div className="host-selection__dropdown-group">
-                              <label>Interface (for {link.selectedHost2}):</label>
-                              <select
-                                onChange={(e) =>
-                                  handleLinkChange(index, { group: 'vlanData', key: 'interface2' }, e.target.value)
-                                }
-                                value={link.vlanData.interface2}
-                                className="host-selection__dropdown"
-                              >
-                                <option value="">-- Select Interface --</option>
-                                {getInterfacesForHost(link.selectedHost2).map((intf) => (
-                                  <option key={intf.interface} value={intf.interface}>
-                                    {intf.interface} ({intf.status})
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* ถ้าเลือก command = bridge_priority */}
-                      {link.selectedHost1 && link.selectedHost2 && link.selectedCommand === 'bridge_priority' && (
-                        <div className="host-selection__bridge-priority-configuration">
-                          <div className="host-selection__dropdown-group">
-                            <label>Select VLAN:</label>
-                            <select
-                              className="host-selection__dropdown"
-                              value={link.bridgePriority.vlan}
-                              onChange={(e) =>
-                                handleLinkChange(index, { group: 'bridgePriority', key: 'vlan' }, e.target.value)
-                              }
-                            >
-                              <option value="">-- Select VLAN --</option>
-                              {link.commonVlans.map((vlan) => (
-                                <option key={vlan} value={vlan}>
-                                  {vlan}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-
-                          <div className="input-sw-sw-group">
-                            <label>Bridge Priority for {link.selectedHost1}:</label>
-                            <input
-                              type="text"
-                              value={link.bridgePriority.priority1}
-                              onChange={(e) =>
-                                handleLinkChange(index, { group: 'bridgePriority', key: 'priority1' }, e.target.value)
-                              }
-                              placeholder="Enter priority (e.g., 4096)"
-                              className='input-sw-sw'
-                            />
-                          </div>
-
-                          <div className="input-sw-sw-group">
-                            <label>Bridge Priority for {link.selectedHost2}:</label>
-                            <input
-                              type="text"
-                              value={link.bridgePriority.priority2}
-                              onChange={(e) =>
-                                handleLinkChange(index, { group: 'bridgePriority', key: 'priority2' }, e.target.value)
-                              }
-                              placeholder="Enter priority (e.g., 4096)"
-                              className='input-sw-sw'
-                            />
-                          </div>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
-                  {/* )} */}
+                  </div>
                 </div>
-              </div>
-            ))}
-        </div>
+              );
+            })}
+          </div>
 
-        <div className="line-container">
+          <div className="line-container">
             <div className="line"></div>
-            <button 
-              onClick={handleAddLink} 
-              className={`button-sw-sw-add ${loading ? 'loading' : ''}`} 
-              // disabled={loading}
-            >
+            <button onClick={handleAddLink} className={`button-sw-sw-add ${loading ? 'loading' : ''}`}>
               {loading ? (
                 <>
-                  <Spinner color="white" size="small" /> {/* Spinner in front of the text */}
+                  <Spinner color="white" size="small" />
                   <span className="fetching-text">Fetching Data...</span>
                 </>
               ) : (
@@ -810,10 +540,7 @@ function SwitchSwitch() {
             Submit All
           </button>
         </div>
-          
-
-          {error && <div className="error-sw-sw">Error: {error}</div>}
-        
+        {error && <div className="error-sw-sw">Error: {error}</div>}
       </div>
     </div>
   );
