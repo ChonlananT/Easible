@@ -93,9 +93,9 @@ function RouterRouter() {
         const halfLength = Math.floor(data.parsed_result.length / 2);
         const secondHalf = data.parsed_result.slice(halfLength);
 
-        setHosts(secondHalf);
+        setHosts(data.parsed_result);
 
-        const iData = secondHalf.map((item: any) => ({
+        const iData = data.parsed_result.map((item: any) => ({
           hostname: item.hostname,
           interfaces: item.interfaces.map((interfaceItem: any) => ({
             interface: interfaceItem.interface,
@@ -260,7 +260,7 @@ function RouterRouter() {
         if (data.error) {
           setError(data.error);
         } else {
-          alert('Configuration submitted successfully!');
+          // alert('Configuration submitted successfully!');
           console.log('Playbook created:', data.playbook);
           // Set the routing tables from backend response
           setRoutingTables(data.routing_tables);
@@ -650,7 +650,7 @@ function RouterRouter() {
                 <h1 style={{ fontSize: '32px' }}>Summary</h1>
                 <div className='topology-prev'>
                   <h2>Network Topology</h2>
-                  {/* <NetworkTopology links={links} /> */}
+                  <NetworkTopology links={links} />
                 </div>
                 <div className='popup-table-section'>
                   {/* Dynamically render a table for each routing table from the backend */}
