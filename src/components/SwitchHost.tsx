@@ -68,11 +68,9 @@ function SwitchHost() {
       })
       .then((data) => {
         // Use the second half of parsed_result
-        const halfLength = Math.floor(data.parsed_result.length / 2);
-        const secondHalf = data.parsed_result.slice(halfLength);
-        setHosts(secondHalf);
+        setHosts(data.parsed_result);
 
-        const iData = secondHalf.map((item: any) => ({
+        const iData = data.parsed_result.map((item: any) => ({
           hostname: item.hostname,
           interfaces: item.interfaces.map((interfaceItem: any) => ({
             interface: interfaceItem.interface,
