@@ -1283,13 +1283,30 @@ def show_swtort():
         stdin, stdout, stderr = ssh.exec_command(ansible_command)
         output = stdout.read().decode("utf-8")
         error = stderr.read().decode("utf-8")
-        # Parse the interface data
-        parsed_result = parse_interface(output)  # สมมติว่ามีฟังก์ชัน parse_interface
 
-        # ปิดการเชื่อมต่อ SSH
+        # Parse the interface data (assumes a function parse_interface exists)
+        parsed_result = parse_interface(output)
+
+        # Retrieve all devices info
+        devices = fetch_all_devices()  # This should return a list of dicts with keys: 
+                                        # "id", "deviceType", "hostname", "ipAddress", 
+                                        # "username", "password", "enablePassword", "groups"
+        # Build a lookup dictionary keyed by hostname for faster matching
+        devices_map = {device['hostname']: device for device in devices}
+
+        # Add deviceType information to each host in the parsed result
+        for host in parsed_result:
+            hostname = host.get('hostname')
+            if hostname in devices_map:
+                host['deviceType'] = devices_map[hostname]['deviceType']
+            else:
+                # If no match is found, set a default (or leave it out)
+                host['deviceType'] = ''
+
+        # Close SSH connection
         ssh.close()
 
-        # Return the structured data
+        # Return the structured data including deviceType for each host
         return jsonify({"parsed_result": parsed_result})
 
     except Exception as e:
