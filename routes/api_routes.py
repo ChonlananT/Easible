@@ -1256,3 +1256,41 @@ def create_playbook_switchrouter():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@api_bp.route('/api/show_detail_swtort', methods=['POST'])
+def show_swtort():
+    try:
+        # Generate playbook content based on selected groups
+        playbook_content = sh_swtort()
+
+        # Create SSH connection to the VM
+        ssh, username = create_ssh_connection()
+
+        # Define paths for inventory and playbook inside the VM
+        inventory_path = f"/home/{username}/inventory/inventory.ini"
+        playbook_path = f"/home/{username}/playbook/interface.yml"
+
+        # Write the playbook content to a file on the VM
+        sftp = ssh.open_sftp()
+        with sftp.open(playbook_path, "w") as playbook_file:
+            playbook_file.write(playbook_content)
+        sftp.close()
+
+        # Define the ansible command to run on the VM
+        ansible_command = f"ansible-playbook -i {inventory_path} {playbook_path}"
+
+        # Execute the command on the VM
+        stdin, stdout, stderr = ssh.exec_command(ansible_command)
+        output = stdout.read().decode("utf-8")
+        error = stderr.read().decode("utf-8")
+        # Parse the interface data
+        parsed_result = parse_interface(output)  # สมมติว่ามีฟังก์ชัน parse_interface
+
+        # ปิดการเชื่อมต่อ SSH
+        ssh.close()
+
+        # Return the structured data
+        return jsonify({"parsed_result": parsed_result})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

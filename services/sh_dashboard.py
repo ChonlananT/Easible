@@ -12,11 +12,10 @@ def sh_dashboard():
         ios_command:
           commands:
             - show ip interface brief
-        register: interface_output
-
+            
       - name: Display interface details
         debug:
-          msg: "{{{{ interface_output.stdout_lines }}}}"
+          msg: "Good!"
     """
     
     return playbook_content
