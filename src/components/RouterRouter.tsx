@@ -650,7 +650,7 @@ function RouterRouter() {
                 <h1 style={{ fontSize: '32px' }}>Summary</h1>
                 <div className='topology-prev'>
                   <h2>Network Topology</h2>
-                  <NetworkTopology links={links} />
+                  {/* <NetworkTopology links={links} /> */}
                 </div>
                 <div className='popup-table-section'>
                   {/* Dynamically render a table for each routing table from the backend */}
