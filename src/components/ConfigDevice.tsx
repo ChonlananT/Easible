@@ -657,11 +657,15 @@ function ConfigDevice() {
   ];
 
   const [isVlanExpanded, setIsVlanExpanded] = useState(false);
+  const [vlanExpandedStates, setVlanExpandedStates] = useState<{ [key: number]: boolean }>({});
 
-  const toggleVlanSection = () => {
-    setIsVlanExpanded((prev) => !prev);
+  // Toggle function that accepts the device index
+  const toggleVlanSection = (index: number) => {
+    setVlanExpandedStates((prev) => ({
+      ...prev,
+      [index]: !prev[index],
+    }));
   };
-
 
 
 
@@ -832,17 +836,20 @@ function ConfigDevice() {
                   <div className="config-command-section">
                     {/* VLAN Configuration */}
                     {link.selectedCommand === 'vlan' && link.vlanData && (
+                      <div className={`config-command-board ${vlanExpandedStates[index] ? "expanded" : "collapsed"}`}>
+                      {/* Toggle Button with Chevron Icon */}
                       <div
-                        className={`config-command-board ${isVlanExpanded ? "expanded" : "collapsed"}`} // Apply different styles based on state
+                        className="vlan-config-topic"
+                        onClick={() => toggleVlanSection(index)}
+                        style={{ display: "flex", alignItems: "center", cursor: "pointer" }}
                       >
-                        {/* Toggle Button with Chevron Icon */}
-                        <div className="vlan-config-topic" onClick={toggleVlanSection} style={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
-                          <h5>VLAN Configuration</h5>
-                          <ChevronDown className={isVlanExpanded ? "chevron-nav rotated" : "chevron-nav"} style={{ marginLeft: "10px" }} />
-                        </div>
-
-                        {/* VLAN Configuration Section */}
-                        {isVlanExpanded && (
+                        <h5>VLAN Configuration</h5>
+                        <ChevronDown
+                          className={vlanExpandedStates[index] ? "chevron-nav rotated" : "chevron-nav"}
+                          style={{ marginLeft: "10px" }}
+                        />
+                      </div>
+                      {vlanExpandedStates[index] && (
                           <div className="vlan-config-content">
                             <div className="vlan-config-device-left">
                               <div className="vlan-name-id">
