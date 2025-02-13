@@ -363,7 +363,7 @@ function SwitchRouter() {
                       <div style={{ marginTop: '20px' }}>
                         <div className="host-card">
                           <div className="host-selection__dropdown-group">
-                            <label>Switch</label>
+                            <label>Switch:</label>
                             <div className="host-selection__dropdown-container">
                               <select
                                 className="host-selection__dropdown"

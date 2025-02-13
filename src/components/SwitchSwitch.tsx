@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './Bar.css';
 import './SwitchSwitch.css';
 import Spinner from './bootstrapSpinner.tsx';
-import { ArrowLeftFromLine, ChevronDown, Menu } from 'lucide-react';
+import { ArrowLeftFromLine, ChevronDown, CircleMinus, Menu } from 'lucide-react';
 
 type DropdownOption = {
   hostname: string;
@@ -396,6 +396,23 @@ function SwitchSwitch() {
                                 </select>
                               </div>
                             </div>
+                            <div className="host-selection__dropdown-group">
+                              <label>Select Interface for {link.selectedHost1}:</label>
+                              <div className="host-selection__dropdown-container">
+                                <select
+                                  className="host-selection__dropdown"
+                                  value={link.selectedInterface1}
+                                  onChange={(e) => handleLinkChange(index, 'selectedInterface1', e.target.value)}
+                                >
+                                  <option value="">-- Select Interface --</option>
+                                  {getInterfacesForHost(link.selectedHost1).map((intf) => (
+                                    <option key={intf.interface} value={intf.interface}>
+                                      {intf.interface} ({intf.status})
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            </div>
                           </div>
                         </div>
                         <div className="connect-pic-sw-sw">
@@ -425,6 +442,23 @@ function SwitchSwitch() {
                                   </select>
                                 </div>
                               </div>
+                              <div className="host-selection__dropdown-group">
+                                <label>Select Interface for {link.selectedHost2}:</label>
+                                <div className="host-selection__dropdown-container">
+                                  <select
+                                    className="host-selection__dropdown"
+                                    value={link.selectedInterface2}
+                                    onChange={(e) => handleLinkChange(index, 'selectedInterface2', e.target.value)}
+                                  >
+                                    <option value="">-- Select Interface --</option>
+                                    {getInterfacesForHost(link.selectedHost2).map((intf) => (
+                                      <option key={intf.interface} value={intf.interface}>
+                                        {intf.interface} ({intf.status})
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                              </div>
                             </div>
 
                         </div>
@@ -433,41 +467,7 @@ function SwitchSwitch() {
                       {/* Fixed Switchport configuration */}
                       <div className="host-selection__switchport-configuration">
                         <div className="host-selection__dropdown-group">
-                          <label>Select Interface for {link.selectedHost1}:</label>
-                          <div className="host-selection__dropdown-container">
-                            <select
-                              className="host-selection__dropdown"
-                              value={link.selectedInterface1}
-                              onChange={(e) => handleLinkChange(index, 'selectedInterface1', e.target.value)}
-                            >
-                              <option value="">-- Select Interface --</option>
-                              {getInterfacesForHost(link.selectedHost1).map((intf) => (
-                                <option key={intf.interface} value={intf.interface}>
-                                  {intf.interface} ({intf.status})
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        </div>
-                        <div className="host-selection__dropdown-group">
-                          <label>Select Interface for {link.selectedHost2}:</label>
-                          <div className="host-selection__dropdown-container">
-                            <select
-                              className="host-selection__dropdown"
-                              value={link.selectedInterface2}
-                              onChange={(e) => handleLinkChange(index, 'selectedInterface2', e.target.value)}
-                            >
-                              <option value="">-- Select Interface --</option>
-                              {getInterfacesForHost(link.selectedHost2).map((intf) => (
-                                <option key={intf.interface} value={intf.interface}>
-                                  {intf.interface} ({intf.status})
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        </div>
-                        <div className="host-selection__dropdown-group">
-                          <label>Switchport Mode:</label>
+                          <h5 style={{textAlign: 'center'}}>Switchport Mode:</h5>
                           <div className="host-selection__dropdown-container">
                             <select
                               className="host-selection__dropdown"
@@ -484,7 +484,7 @@ function SwitchSwitch() {
                         {/* VLAN selection section is only shown for trunk mode */}
                         {link.switchportMode === 'trunk' && (
                           <div className="host-selection__vlan-multiple">
-                            <label>Add VLAN(s):</label>
+                            <h5 style={{textAlign: 'center'}}>Add VLAN(s):</h5>
                             {link.vlans.map((vlan, vlanIndex) => (
                               <div key={vlanIndex} className="vlan-selection-group">
                                 <select
@@ -499,15 +499,14 @@ function SwitchSwitch() {
                                     </option>
                                   ))}
                                 </select>
-                                <button
-                                  className="button-remove-vlan"
+                                <CircleMinus style={{ width: '25px', height: '25px', color: 'red', marginTop:'20px', marginLeft:'5px', cursor: 'pointer'}}
                                   onClick={() => handleRemoveVlan(index, vlanIndex)}
                                 >
                                   Remove
-                                </button>
+                                </CircleMinus>
                               </div>
                             ))}
-                            <button className="button-add-vlan" onClick={() => handleAddVlan(index)}>
+                            <button className="button-add-vlan" style={{ marginTop: '10px' }} onClick={() => handleAddVlan(index)}>
                               + Add VLAN
                             </button>
                           </div>
