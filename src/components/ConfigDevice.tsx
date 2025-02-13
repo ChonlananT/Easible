@@ -819,7 +819,7 @@ function ConfigDevice() {
                           className="host-selection__dropdown"
                           value={link.selectedCommand}
                           onChange={(e) => handleHostChange(index, 'selectedCommand', e.target.value)}
-                          // disabled={!link.selectedHost}
+                          disabled={!link.selectedHost}
                         >
                           <option value="">-- Select a Command --</option>
                           {link.deviceType &&
