@@ -78,6 +78,7 @@ type ConfigIpData = {
 type LoopbackData = {
   loopbackNumber: number;
   ipAddress: string;
+  activateProtocol?: string;
 };
 
 type StaticRouteData = {
@@ -341,6 +342,7 @@ function ConfigDevice() {
             hostConfig.loopbackData = {
               loopbackNumber: 0,
               ipAddress: '',
+              activateProtocol: 'none',
             };
           } else if (value === 'static_route') {
             hostConfig.staticRouteData = {
@@ -568,6 +570,7 @@ function ConfigDevice() {
             loopbackData: {
               loopbackNumber: link.loopbackData.loopbackNumber,
               ipAddress: link.loopbackData.ipAddress,
+              activateProtocol: link.loopbackData.activateProtocol,
             },
           }
         : {}),
@@ -1112,6 +1115,20 @@ function ConfigDevice() {
                               }
                               placeholder="Enter IP Address"
                             />
+                          </div>
+                          <div className="host-selection__dropdown-group">
+                            <label>Activate Protocol:</label>
+                            <select
+                              className="host-selection__dropdown"
+                              value={link.loopbackData.activateProtocol || 'none'}
+                              onChange={(e) =>
+                                handleHostChange(index, { group: 'loopbackData', key: 'activateProtocol' }, e.target.value)
+                              }
+                            >
+                              <option value="none">None</option>
+                              <option value="RIPv2">RIPv2</option>
+                              <option value="OSPF">OSPF</option>
+                            </select>
                           </div>
                         </div>
                       </div>
