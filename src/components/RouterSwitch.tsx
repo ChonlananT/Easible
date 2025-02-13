@@ -388,27 +388,27 @@ function SwitchRouter() {
                               </select>
                             </div>
                           </div>
-                          {link.selectedSwitchHost && (
-                            <div className="host-selection__dropdown-group">
-                              <label>Select Interface:</label>
-                              <div className="host-selection__dropdown-container">
-                                <select
-                                  className="host-selection__dropdown"
-                                  value={link.selectedSwitchInterface}
-                                  onChange={(e) =>
-                                    handleLinkChange(index, 'selectedSwitchInterface', e.target.value)
-                                  }
-                                >
-                                  <option value="">-- Select Interface --</option>
-                                  {getInterfacesForHost(link.selectedSwitchHost).map((intf) => (
-                                    <option key={intf.interface} value={intf.interface}>
-                                      {intf.interface} ({intf.status})
-                                    </option>
-                                  ))}
-                                </select>
-                              </div>
+
+                          <div className="host-selection__dropdown-group">
+                            <label>Select Interface:</label>
+                            <div className="host-selection__dropdown-container">
+                              <select
+                                className="host-selection__dropdown"
+                                value={link.selectedSwitchInterface}
+                                onChange={(e) =>
+                                  handleLinkChange(index, 'selectedSwitchInterface', e.target.value)
+                                }
+                              >
+                                <option value="">-- Select Interface --</option>
+                                {getInterfacesForHost(link.selectedSwitchHost).map((intf) => (
+                                  <option key={intf.interface} value={intf.interface}>
+                                    {intf.interface} ({intf.status})
+                                  </option>
+                                ))}
+                              </select>
                             </div>
-                          )}
+                          </div>
+
                         </div>
                       </div>
 
@@ -452,27 +452,27 @@ function SwitchRouter() {
                               </select>
                             </div>
                           </div>
-                          {link.selectedRouterHost && (
-                            <div className="host-selection__dropdown-group">
-                              <label>Select Interface:</label>
-                              <div className="host-selection__dropdown-container">
-                                <select
-                                  className="host-selection__dropdown"
-                                  value={link.selectedRouterInterface}
-                                  onChange={(e) =>
-                                    handleLinkChange(index, 'selectedRouterInterface', e.target.value)
-                                  }
-                                >
-                                  <option value="">-- Select Interface --</option>
-                                  {getInterfacesForHost(link.selectedRouterHost).map((intf) => (
-                                    <option key={intf.interface} value={intf.interface}>
-                                      {intf.interface} ({intf.status})
-                                    </option>
-                                  ))}
-                                </select>
-                              </div>
+
+                          <div className="host-selection__dropdown-group">
+                            <label>Select Interface:</label>
+                            <div className="host-selection__dropdown-container">
+                              <select
+                                className="host-selection__dropdown"
+                                value={link.selectedRouterInterface}
+                                onChange={(e) =>
+                                  handleLinkChange(index, 'selectedRouterInterface', e.target.value)
+                                }
+                              >
+                                <option value="">-- Select Interface --</option>
+                                {getInterfacesForHost(link.selectedRouterHost).map((intf) => (
+                                  <option key={intf.interface} value={intf.interface}>
+                                    {intf.interface} ({intf.status})
+                                  </option>
+                                ))}
+                              </select>
                             </div>
-                          )}
+                          </div>
+
                         </div>
                       </div>
                     </div>
