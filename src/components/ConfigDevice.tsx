@@ -822,10 +822,9 @@ function ConfigDevice() {
                           className="host-selection__dropdown"
                           value={link.selectedCommand}
                           onChange={(e) => handleHostChange(index, 'selectedCommand', e.target.value)}
-                          // disabled={!link.selectedHost}
+                          disabled={!link.selectedHost}
                         >
                           <option value="">-- Select a Command --</option>
-                          <option value="vlan">vlan</option>
                           {link.deviceType &&
                             commandsByDeviceType[link.deviceType].map((command) => (
                               <option key={command.value} value={command.value}>
@@ -1183,15 +1182,8 @@ function ConfigDevice() {
           </div>
           <div className="line-container">
             <div className="line"></div>
-            <button onClick={handleAddHost} className={`button-sw-sw-add ${loading ? 'loading' : ''}`}>
-              {loading ? (
-                <>
-                  <Spinner color="white" size="small" />
-                  <span className="fetching-text">Fetching Data...</span>
-                </>
-              ) : (
-                "+ Add Device"
-              )}
+            <button onClick={handleAddHost} className="button-sw-sw-add">
+                + Add Device
             </button>
             <div className="line"></div>
           </div>
