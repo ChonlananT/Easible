@@ -558,7 +558,7 @@ function SwitchHost() {
                     <thead>
                       <tr>
                         <th>Switch</th>
-                        <th>Interface</th>
+                        <th>Outgoing Interface</th>
                         <th>VLAN ID</th>
                       </tr>
                     </thead>

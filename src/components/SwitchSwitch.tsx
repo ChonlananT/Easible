@@ -259,6 +259,10 @@ function SwitchSwitch() {
     setIsNavDropdownOpen(!isNavDropdownOpen);
   };
 
+
+  const [isShowPopup, setIsShowPopup] = useState(false);
+  const TogglePopup = () => setIsShowPopup(!isShowPopup);
+
   return (
     <div className="App">
       <div className={`nav-links-container ${isNavOpen ? '' : 'closed'}`}>
@@ -388,6 +392,7 @@ function SwitchSwitch() {
                                   value={link.selectedHost1}
                                 >
                                   <option value="">-- Select a Host --</option>
+                                  <option value="test">test</option>
                                   {hosts.map((host: DropdownOption) => (
                                     <option key={host.hostname} value={host.hostname}>
                                       {host.hostname}
@@ -405,6 +410,7 @@ function SwitchSwitch() {
                                   onChange={(e) => handleLinkChange(index, 'selectedInterface1', e.target.value)}
                                 >
                                   <option value="">-- Select Interface --</option>
+                                  <option value="test">test</option>
                                   {getInterfacesForHost(link.selectedHost1).map((intf) => (
                                     <option key={intf.interface} value={intf.interface}>
                                       {intf.interface} ({intf.status})
@@ -434,6 +440,7 @@ function SwitchSwitch() {
                                     value={link.selectedHost2}
                                   >
                                     <option value="">-- Select a Host --</option>
+                                    <option value="test">test</option>
                                     {hosts.map((host: DropdownOption) => (
                                       <option key={host.hostname} value={host.hostname}>
                                         {host.hostname}
@@ -451,6 +458,7 @@ function SwitchSwitch() {
                                     onChange={(e) => handleLinkChange(index, 'selectedInterface2', e.target.value)}
                                   >
                                     <option value="">-- Select Interface --</option>
+                                    <option value="test">test</option>
                                     {getInterfacesForHost(link.selectedHost2).map((intf) => (
                                       <option key={intf.interface} value={intf.interface}>
                                         {intf.interface} ({intf.status})
@@ -493,6 +501,7 @@ function SwitchSwitch() {
                                   onChange={(e) => handleVlanChange(index, vlanIndex, e.target.value)}
                                 >
                                   <option value="">-- Select VLAN --</option>
+                                  <option value="test">test vlan</option>
                                   {availableVlans.map((vlanOption) => (
                                     <option key={vlanOption} value={vlanOption}>
                                       {vlanOption}
@@ -506,7 +515,7 @@ function SwitchSwitch() {
                                 </CircleMinus>
                               </div>
                             ))}
-                            <button className="button-add-vlan" style={{ marginTop: '10px' }} onClick={() => handleAddVlan(index)}>
+                            <button className="button-add-vlan" style={{ marginTop: '10px', width:'35%' }} onClick={() => handleAddVlan(index)}>
                               + Add VLAN
                             </button>
                           </div>
@@ -518,6 +527,82 @@ function SwitchSwitch() {
               );
             })}
           </div>
+
+
+          {!error && isShowPopup && (
+  <div className="popup-overlay">
+    <div className="popup-preview">
+      <h1 style={{ fontSize: '32px' }}>Summary</h1>
+      <div className="topology-prev">
+        <h5 style={{ margin: '10px 20px' }}>Network Topology</h5>
+      </div>
+      <div className="popup-table-section">
+        {links.map((link, index) => {
+          // Get the rows for the current link.
+          let rows = [];
+          // For trunk mode with VLANs selected, create a row per VLAN.
+          if (link.switchportMode === 'trunk') {
+            if (link.vlans.length > 0) {
+              rows = link.vlans.map((vlan, idx) => (
+                <tr key={idx}>
+                  <td>{vlan || 'N/A'}</td>
+                  <td>{link.selectedInterface1 || 'N/A'}</td>
+                  <td>{link.selectedInterface2 || 'N/A'}</td>
+                </tr>
+              ));
+            } else {
+              // If trunk mode but no VLAN selected, show a row indicating no VLAN.
+              rows = (
+                <tr>
+                  <td>No VLAN selected</td>
+                  <td>{link.selectedInterface1 || 'N/A'}</td>
+                  <td>{link.selectedInterface2 || 'N/A'}</td>
+                </tr>
+              );
+            }
+          } else {
+            // For access mode, we may not have VLANs and just show one row.
+            rows = (
+              <tr>
+                <td>Access</td>
+                <td>{link.selectedInterface1 || 'N/A'}</td>
+                <td>{link.selectedInterface2 || 'N/A'}</td>
+              </tr>
+            );
+          }
+
+          return (
+            <div key={index} className="popup-table">
+              <h5>{`SW1-SW2 Link ${index + 1}`}</h5>
+              <div className="popup-table-wrapper">
+                <table border={1} style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr>
+                      <th>VLAN</th>
+                      <th>Outgoing Interface SW1</th>
+                      <th>Outgoing Interface SW2</th>
+                    </tr>
+                  </thead>
+                  <tbody>{rows}</tbody>
+                </table>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="button-prev-section">
+        <button className="button-cancel-prev" onClick={TogglePopup}>
+          Cancel
+        </button>
+        <button className="button-confirm-prev">Confirm</button>
+      </div>
+    </div>
+  </div>
+)}
+
+
+
+
 
           <div className="line-container">
             <div className="line"></div>
@@ -535,6 +620,7 @@ function SwitchSwitch() {
           </div>
         </div>
         <div className="submit-sw-sw-container">
+        <button className="button-sw-sw-submit" onClick={TogglePopup}>Check</button>
           <button className="button-sw-sw-submit" onClick={handleSubmitAll}>
             Submit All
           </button>
