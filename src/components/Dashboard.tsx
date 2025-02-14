@@ -246,7 +246,7 @@ function Dashboard() {
 
 
 
-          {loading && <div>Loading...</div>}
+          {loading && <div style={{ fontSize:"20px", marginTop:"20px", textAlign:"center"}}>Loading...</div>}
           {error && <div className="error-text" style={{ textAlign: 'center', marginTop: '20px' }}>Error: {error}</div>}
           {!loading && !error && (
             <div className="device-details-row">

@@ -492,7 +492,7 @@ function SwitchSwitch() {
                         {/* VLAN selection section is only shown for trunk mode */}
                         {link.switchportMode === 'trunk' && (
                           <div className="host-selection__vlan-multiple">
-                            <h5 style={{textAlign: 'center'}}>Add VLAN(s):</h5>
+                            <h5 style={{textAlign: 'center'}}>Add allowed VLAN(s):</h5>
                             {link.vlans.map((vlan, vlanIndex) => (
                               <div key={vlanIndex} className="vlan-selection-group">
                                 <select

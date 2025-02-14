@@ -880,7 +880,7 @@ function ConfigDevice() {
                               </div>
                               <div className="ip-subnet-group-confdev">
                                 <div className="ip-text">
-                                  <label>IP Address (optional):</label>
+                                  <label>IP Address SVI(optional):</label>
                                   <input
                                     type="text"
                                     value={link.vlanData.ipAddress || ''}
