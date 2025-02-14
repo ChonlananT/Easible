@@ -249,6 +249,11 @@ function SwitchRouter() {
     setIsNavDropdownOpen(!isNavDropdownOpen);
   };
 
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const togglePopup = () => {
+    setIsPopupOpen(!isPopupOpen);
+  };
+
   return (
     <div className="App">
       <div className={`nav-links-container ${isNavOpen ? '' : 'closed'}`}>
@@ -541,7 +546,6 @@ function SwitchRouter() {
               </div>
             ))}
           </div>
-
           <div className="line-container">
             <div className="line"></div>
             <button
@@ -561,7 +565,72 @@ function SwitchRouter() {
           </div>
         </div>
 
+        {!error && isPopupOpen && (
+  <div className="popup-overlay">
+    <div className="popup-content-swh">
+      <h2>Summary</h2>
+      {links.length > 0 ? (
+        links.map((link, index) => (
+          <div key={index} className="popup-table">
+            <h5>{`Link ${index + 1}`}</h5>
+            <div className="popup-table-wrapper">
+              <table className="summary-table">
+                <thead>
+                  <tr>
+                    <th>VLAN</th>
+                    <th>Outgoing Interface Switch</th>
+                    <th>Outgoing Interface Router</th>
+                    <th>Gateway</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {link.vlanConfigs.length > 0 ? (
+                    link.vlanConfigs.map((vlanConfig, idx) => (
+                      <tr key={idx}>
+                        <td>{vlanConfig.vlanId || "Not Selected"}</td>
+                        <td>{link.selectedSwitchInterface || "Not Selected"}</td>
+                        <td>{link.selectedRouterInterface || "Not Selected"}</td>
+                        <td>
+                          {vlanConfig.gateway && vlanConfig.subnet
+                            ? `${vlanConfig.gateway} / ${vlanConfig.subnet}`
+                            : "Not Selected"}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={4}>
+                        No VLAN configuration provided.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ))
+      ) : (
+        <p>No links created.</p>
+      )}
+      <div className="submit-sw-sw-container" style={{ marginTop: '15px' }}>
+        <button className="button-swh-close" onClick={togglePopup}>
+          Close
+        </button>
+        <button className="button-sw-sw-submit" onClick={handleSubmitAll}>
+          Submit All
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+
+
+
         <div className="submit-sw-sw-container">
+          <button className="button-sw-sw-submit" onClick={togglePopup}>
+            Check
+          </button>
           <button className="button-sw-sw-submit" onClick={handleSubmitAll}>
             Submit All
           </button>

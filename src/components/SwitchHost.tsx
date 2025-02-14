@@ -548,7 +548,7 @@ function SwitchHost() {
           </button>
         </div>
 
-        {isPopupOpen && (
+        {!error && isPopupOpen && (
           <div className="popup-overlay">
             <div className="popup-content-swh">
               <h2>Summary</h2>
