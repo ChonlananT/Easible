@@ -6,14 +6,11 @@ from services.parse import parse_result, parse_interface, parse_switchport, pars
 from services.ansible_playbook import generate_playbook
 from services.database import add_device, fetch_all_devices, delete_device, assign_group_to_hosts, delete_group
 from services.generate_inventory import generate_inventory_content
-from services.sh_ip_int_br import sh_ip_int_br
+from services.show_command import sh_ip_int_br, sh_ip_int_br_rt, sh_dashboard, sh_swtort
+from services.show_command.sh_config_sw import sh_config
 from services.cidr import cidr_to_subnet_mask
 from services.calculate_network_id import calculate_network_id
-from services.sh_ip_int_br_rt import sh_ip_int_br_rt
-from services.sh_config_sw import sh_config
-from services.sh_dashboard import sh_dashboard
 from services.routing_service import RoutingService
-from services.sh_swtort import sh_swtort
 
 api_bp = Blueprint('api', __name__)
 
@@ -314,7 +311,6 @@ def create_playbook():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
 @api_bp.route('/api/create_playbook_rttort', methods=['POST'])
 def create_playbook_routerrouter():
     try:
@@ -507,7 +503,6 @@ def create_playbook_configdevice():
                             return jsonify({"error": f"Command #{idx}, VLAN config #{v_idx}, interface config #{iface_idx}: Both Interface and Mode are required."}), 400
 
                     # If IP address is provided, then CIDR must be provided
-                    network_id = ""
                     subnet_mask = ""
                     if ip_address and cidr is not None:
                         try:
@@ -567,6 +562,7 @@ def create_playbook_configdevice():
     when: inventory_hostname == "{host}"
 """
                                 trunked_interfaces.add((host, interface_value))
+
             # ---------------- Bridge Priority Command ----------------
             elif cmd_type == "bridge_priority":
                 if device_type != "switch":
@@ -591,12 +587,12 @@ def create_playbook_configdevice():
                 config_ip = cmd.get("configIp", {})
                 interface = config_ip.get("interface")
                 ip_address = config_ip.get("ipAddress")
-                subnet = config_ip.get("subnet")
-                if not interface or not ip_address or not subnet:
+                cidr = config_ip.get("cidr")
+                if not interface or not ip_address or cidr is None:
                     return jsonify({"error": f"Command #{idx}: Interface, IP Address, and CIDR are required."}), 400
                 try:
-                    network_id = calculate_network_id(ip_address, subnet)
-                    subnet_mask = str(ipaddress.IPv4Network(f"{ip_address}/{subnet}", strict=False).netmask)
+                    network_id = calculate_network_id(ip_address, cidr)
+                    subnet_mask = str(ipaddress.IPv4Network(f"{ip_address}/{cidr}", strict=False).netmask)
                 except ValueError as e:
                     return jsonify({"error": f"Command #{idx}: {str(e)}"}), 400
 
@@ -619,6 +615,7 @@ def create_playbook_configdevice():
                 if not loopback_num or not ip_address:
                     return jsonify({"error": f"Command #{idx}: Loopback Number and IP Address are required."}), 400
 
+                # ค่า default subnet mask สำหรับ loopback
                 subnet_mask = "255.255.255.255"
                 try:
                     ip_obj = ipaddress.IPv4Address(ip_address)
@@ -633,17 +630,45 @@ def create_playbook_configdevice():
         - ip address {ip_address} {subnet_mask}
     when: inventory_hostname == "{host}"
 """
+
+                # เพิ่มการตรวจสอบ activateProtocol (none, RIPv2, OSPF)
+                activate_protocol = loopback_data.get("activateProtocol", "none").lower()
+                if activate_protocol != "none":
+                    if activate_protocol == "ripv2":
+                        playbook_content += f"""
+  - name: "[Command#{idx}] Enable RIPv2 on Loopback {loopback_num} on {host}"
+    ios_config:
+      lines:
+        - router rip
+        - version 2
+        - network {ip_address} 0.0.0.0
+    when: inventory_hostname == "{host}"
+"""
+                    elif activate_protocol == "ospf":
+                        playbook_content += f"""
+  - name: "[Command#{idx}] Enable OSPF on Loopback {loopback_num} on {host}"
+    ios_config:
+      lines:
+        - router ospf 1
+        - network {ip_address} 0.0.0.0 area 0
+    when: inventory_hostname == "{host}"
+"""
+                    else:
+                        return jsonify({"error": f"Command #{idx}: Unsupported activateProtocol value '{activate_protocol}'."}), 400
+
             # ---------------- Static Route Command ----------------
             elif cmd_type == "static_route":
                 if device_type != "router":
                     return jsonify({"error": f"Command #{idx}: Static Route command is only applicable to routers."}), 400
                 static_route = cmd.get("staticRouteData", {})
                 prefix = static_route.get("prefix")
-                subnet = static_route.get("subnet")
+                cidr = static_route.get("cidr")
                 nextHop = static_route.get("nextHop")
+                if not prefix or cidr is None or not nextHop:
+                    return jsonify({"error": f"Command #{idx}: Prefix, CIDR, and Next Hop are required for Static Route."}), 400
                 try:
-                    network_static = calculate_network_id(prefix, subnet)
-                    subnet_static = str(ipaddress.IPv4Network(f"{prefix}/{subnet}", strict=False).netmask)
+                    network_static = calculate_network_id(prefix, cidr)
+                    subnet_static = str(ipaddress.IPv4Network(f"{prefix}/{cidr}", strict=False).netmask)
                 except ValueError as e:
                     return jsonify({"error": f"Command #{idx} Static Route error: {e}"}), 400
 
@@ -683,7 +708,6 @@ def create_playbook_configdevice():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 
 @api_bp.route('/api/show_detail_configdevice', methods=['POST'])
 def show_configd():

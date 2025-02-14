@@ -16,6 +16,6 @@ def sh_dashboard():
       - name: Display interface details
         debug:
           msg: "Good!"
-    """
+"""
     
     return playbook_content
