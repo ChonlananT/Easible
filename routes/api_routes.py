@@ -382,7 +382,7 @@ def create_playbook_routerrouter():
 
             # Additional configuration based on the protocol (e.g., RIP, OSPF) if provided.
             if protocol and protocol.lower() != "none":
-                if protocol.lower() == "rip":
+                if protocol.lower() == "ripv2":
                     netaddr1 = str(network1.network_address)
                     netaddr2 = str(network2.network_address)
                     playbook_content += f"""

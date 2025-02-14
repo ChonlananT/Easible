@@ -44,13 +44,13 @@ class LinkValidator:
             if net1 and net2:
                 # 3) Check if the given IP is being used as a network or broadcast address.
                 if ip_obj1 == net1.network_address:
-                    errors.append(f"IP1 ({ip1_str}) is the network address (not allowed).")
+                    errors.append(f"IP {ip1_str} is the network address of this subnet.")
                 if ip_obj1 == net1.broadcast_address and net1.num_addresses > 2:
-                    errors.append(f"IP1 ({ip1_str}) is the broadcast address (not allowed).")
+                    errors.append(f"IP {ip1_str} is the broadcast address of this subnet.")
                 if ip_obj2 == net2.network_address:
-                    errors.append(f"IP2 ({ip2_str}) is the network address (not allowed).")
+                    errors.append(f"IP {ip2_str} is the network address of this subnet.")
                 if ip_obj2 == net2.broadcast_address and net2.num_addresses > 2:
-                    errors.append(f"IP2 ({ip2_str}) is the broadcast address (not allowed).")
+                    errors.append(f"IP {ip2_str} is the broadcast address of this subnet.")
 
                 # 4) Check if both IPs are in the same subnet.
                 # Compare the network addresses and netmasks of the two networks.
