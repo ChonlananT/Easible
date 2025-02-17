@@ -8,7 +8,14 @@ import "./Dashboard.css";
  * แสดง label ด้านบน แล้วแสดงวง donut กับข้อความ online/offline อยู่ในแถวเดียวกัน
  * หากส่ง prop imageSrc เข้ามา รูปจะถูกแสดงไว้ในส่วนของ donut-hole
  */
-function DonutChart({ onlineCount, offlineCount, label, imageSrc, size = 120, isDeviceChart = false }) {
+function DonutChart({
+  onlineCount,
+  offlineCount,
+  label,
+  imageSrc,
+  size = 120,
+  isDeviceChart = false,
+}) {
   const total = onlineCount + offlineCount;
   const onlinePercent = total > 0 ? (onlineCount / total) * 100 : 0;
 
@@ -32,8 +39,12 @@ function DonutChart({ onlineCount, offlineCount, label, imageSrc, size = 120, is
           <div
             className="donut-hole"
             style={{
-              width: `${isDeviceChart ? donutHoleSize : donutHoleSize * 0.95}px`,
-              height: `${isDeviceChart ? donutHoleSize : donutHoleSize * 0.95}px`,
+              width: `${
+                isDeviceChart ? donutHoleSize : donutHoleSize * 0.95
+              }px`,
+              height: `${
+                isDeviceChart ? donutHoleSize : donutHoleSize * 0.95
+              }px`,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -53,12 +64,15 @@ function DonutChart({ onlineCount, offlineCount, label, imageSrc, size = 120, is
                 src={imageSrc}
                 alt="device icon"
                 className="donut-image"
-                style={{ width: `${donutHoleSize * 0.4}px`, height: `${donutHoleSize * 0.4}px` }}
+                style={{
+                  width: `${donutHoleSize * 0.4}px`,
+                  height: `${donutHoleSize * 0.4}px`,
+                }}
               />
             )}
           </div>
         </div>
-  
+
         {/* Only show text on the right for Routers & Switches */}
         {!isDeviceChart && (
           <div className="donut-text">
@@ -69,11 +83,7 @@ function DonutChart({ onlineCount, offlineCount, label, imageSrc, size = 120, is
       </div>
     </div>
   );
-  
 }
-
-
-
 
 function Dashboard() {
   const [isNavOpen, setIsNavOpen] = useState(() => {
@@ -87,7 +97,9 @@ function Dashboard() {
     fatal: { hostname: string; deviceType: string }[];
   }
 
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(
+    null
+  );
 
   useEffect(() => {
     localStorage.setItem("isNavOpen", isNavOpen.toString());
@@ -110,8 +122,16 @@ function Dashboard() {
       .finally(() => setLoading(false));
   }, []);
 
-  let onlineDevices: { hostname: string; deviceType: string; status: string }[] = [];
-  let offlineDevices: { hostname: string; deviceType: string; status: string }[] = [];
+  let onlineDevices: {
+    hostname: string;
+    deviceType: string;
+    status: string;
+  }[] = [];
+  let offlineDevices: {
+    hostname: string;
+    deviceType: string;
+    status: string;
+  }[] = [];
   if (dashboardData) {
     onlineDevices = dashboardData.ok.map((device) => ({
       ...device,
@@ -133,7 +153,9 @@ function Dashboard() {
     .sort((a, b) => a.hostname.localeCompare(b.hostname));
 
   const devicesOnline = allDevices.filter((d) => d.status === "online").length;
-  const devicesOffline = allDevices.filter((d) => d.status === "offline").length;
+  const devicesOffline = allDevices.filter(
+    (d) => d.status === "offline"
+  ).length;
 
   const routersOnline = routers.filter((r) => r.status === "online").length;
   const routersOffline = routers.filter((r) => r.status === "offline").length;
@@ -143,23 +165,38 @@ function Dashboard() {
 
   const renderStatusLabel = (status) => {
     return (
-      <span className={status === "online" ? "status-online" : "status-offline"}>
+      <span
+        className={status === "online" ? "status-online" : "status-offline"}
+      >
         {status}
       </span>
     );
   };
 
-
   const [isNavDropdownOpen, setIsNavDropdownOpen] = useState(false);
-  const toggleNavDropdown = () =>{
+  const toggleNavDropdown = () => {
     setIsNavDropdownOpen(!isNavDropdownOpen);
-  }
+  };
 
   return (
     <div className="App">
       <div className={`nav-links-container ${isNavOpen ? "" : "closed"}`}>
         <div className="nav-top">
-          <button className="nav-close-btn" onClick={() => setIsNavOpen(false)}>
+          <button
+            style={{
+              marginBottom: "16px",
+              padding: "8px",
+              color: "#7b7b7b",
+              borderRadius: "50%",
+              border: "none",
+              background: "#e2e6ea",
+              cursor: "pointer",
+              transition: "background 0.3s ease",
+            }}
+            onClick={() => setIsNavOpen(false)}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "#d0d5da")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "#e2e6ea")}
+          >
             <ArrowLeftFromLine size={24} />
           </button>
           <img src="/easible-name.png" alt="" className="dashboard-icon" />
@@ -173,22 +210,40 @@ function Dashboard() {
           <li className="center">
             <a href="/hosts">Devices</a>
           </li>
-                    <li 
-            className="center" 
-            onClick={toggleNavDropdown} 
-            style={{ cursor: 'pointer', color: 'black' }} 
-            onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.color = '#8c94dc'} 
-            onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.color = 'black'}
+          <li
+            className="center"
+            onClick={toggleNavDropdown}
+            style={{ cursor: "pointer", color: "black" }}
+            onMouseEnter={(e) =>
+              ((e.currentTarget as HTMLElement).style.color = "#8c94dc")
+            }
+            onMouseLeave={(e) =>
+              ((e.currentTarget as HTMLElement).style.color = "black")
+            }
           >
-            <a>Configuration  </a>
-            <ChevronDown className={isNavDropdownOpen ? "chevron-nav rotated" : "chevron-nav"}/>
+            <a>Configuration </a>
+            <ChevronDown
+              className={
+                isNavDropdownOpen ? "chevron-nav rotated" : "chevron-nav"
+              }
+            />
           </li>
           <ul className={`nav-dropdown ${isNavDropdownOpen ? "open" : ""}`}>
-            <li className="center sub-topic"><a href="/routerrouter">router-router</a></li>
-            <li className="center sub-topic"><a href="/routerswitch">router-switch</a></li>
-            <li className="center sub-topic"><a href="/switchswitch">switch-switch</a></li>
-            <li className="center sub-topic"><a href="/switchhost">switch-host</a></li>
-            <li className="center sub-topic"><a href="/configdevice">config device</a></li>
+            <li className="center sub-topic">
+              <a href="/routerrouter">router-router</a>
+            </li>
+            <li className="center sub-topic">
+              <a href="/routerswitch">router-switch</a>
+            </li>
+            <li className="center sub-topic">
+              <a href="/switchswitch">switch-switch</a>
+            </li>
+            <li className="center sub-topic">
+              <a href="/switchhost">switch-host</a>
+            </li>
+            <li className="center sub-topic">
+              <a href="/configdevice">config device</a>
+            </li>
           </ul>
           <li className="center">
             <a href="/lab">Lab Check</a>
@@ -208,28 +263,35 @@ function Dashboard() {
           {/* Header row สำหรับ Donut Chart */}
           <div className="donut-chart-row">
             {/* Devices Donut (Bigger, Text Inside Hole) */}
-            <div style={{ padding: '0px', width: '60%' }}>
+            <div style={{ padding: "0px", width: "60%" }}>
               <div className="donut-chart-wrapper">
                 <DonutChart
                   imageSrc=""
                   label="Devices"
                   onlineCount={devicesOnline}
                   offlineCount={devicesOffline}
-                  size={300}  // Bigger for emphasis
-                  isDeviceChart={true}  // 🔥 Enables text inside the hole
+                  size={300} // Bigger for emphasis
+                  isDeviceChart={true} // 🔥 Enables text inside the hole
                 />
               </div>
             </div>
 
             {/* Routers and Switches Donuts (Smaller, Normal Design) */}
-            <div style={{ display: 'flex', flexDirection: 'column', width: '40%', gap: '10px' }}>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                width: "40%",
+                gap: "10px",
+              }}
+            >
               <div className="donut-chart-wrapper">
                 <DonutChart
                   label="Routers"
                   onlineCount={routersOnline}
                   offlineCount={routersOffline}
                   imageSrc="/router_icon.png"
-                  size={120} 
+                  size={120}
                 />
               </div>
               <div className="donut-chart-wrapper">
@@ -244,10 +306,25 @@ function Dashboard() {
             </div>
           </div>
 
-
-
-          {loading && <div style={{ fontSize:"20px", marginTop:"20px", textAlign:"center"}}>Loading...</div>}
-          {error && <div className="error-text" style={{ textAlign: 'center', marginTop: '20px' }}>Error: {error}</div>}
+          {loading && (
+            <div
+              style={{
+                fontSize: "20px",
+                marginTop: "20px",
+                textAlign: "center",
+              }}
+            >
+              Loading...
+            </div>
+          )}
+          {error && (
+            <div
+              className="error-text"
+              style={{ textAlign: "center", marginTop: "20px" }}
+            >
+              Error: {error}
+            </div>
+          )}
           {!loading && !error && (
             <div className="device-details-row">
               {/* Detailed Routers List */}

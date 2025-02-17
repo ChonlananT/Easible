@@ -306,15 +306,18 @@ function SwitchHost() {
         >
           <button
             style={{
-              marginBottom: '16px',
-              padding: '8px',
-              color: '#7b7b7b',
-              borderRadius: '8px',
-              zIndex: 50,
-              border: 'none',
-              background: '#f5f7f9',
+              marginBottom: "16px",
+              padding: "8px",
+              color: "#7b7b7b",
+              borderRadius: "50%",
+              border: "none",
+              background: "#e2e6ea",
+              cursor: "pointer",
+              transition: "background 0.3s ease",
             }}
             onClick={() => setIsNavOpen(false)}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "#d0d5da")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "#e2e6ea")}
           >
             <ArrowLeftFromLine size={24} />
           </button>

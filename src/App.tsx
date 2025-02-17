@@ -1,30 +1,30 @@
-import React, { useState, useEffect } from 'react';
-import Dashboard from './components/Dashboard.tsx';
-import Hosts from './components/Hosts.tsx';
-import './App.css';
-import Jobs from './components/Jobs.tsx';
-import RouterRouter from './components/RouterRouter.tsx';
-import RouterSwitch from './components/RouterSwitch.tsx';
-import SwitchSwitch from './components/SwitchSwitch.tsx';
-import ConfigDevice from './components/ConfigDevice.tsx';
-import Lab from './components/Topology.tsx';
-import SwitchHost from './components/SwitchHost.tsx';
+import React, { useState, useEffect } from "react";
+import Dashboard from "./components/Dashboard.tsx";
+import Hosts from "./components/Hosts.tsx";
+import "./App.css";
+import Jobs from "./components/Jobs.tsx";
+import RouterRouter from "./components/RouterRouter.tsx";
+import RouterSwitch from "./components/RouterSwitch.tsx";
+import SwitchSwitch from "./components/SwitchSwitch.tsx";
+import ConfigDevice from "./components/ConfigDevice.tsx";
+import SwitchHost from "./components/SwitchHost.tsx";
+import Lab from "./components/Lab.tsx";
 
 function App() {
-  const [user, setUser] = useState('');
+  const [user, setUser] = useState("");
   const [awxData, setAwxData] = useState([]);
   const [route, setRoute] = useState(window.location.pathname);
 
   useEffect(() => {
-    if (route === '/') {
-      navigate('/dashboard');
+    if (route === "/") {
+      navigate("/dashboard");
     }
   }, [route]);
 
   useEffect(() => {
-    fetch('/data')
-      .then(response => response.json())
-      .then(data => {
+    fetch("/data")
+      .then((response) => response.json())
+      .then((data) => {
         setUser(data.user);
 
         // Sort the awx_data array by id in ascending order
@@ -33,40 +33,40 @@ function App() {
         setAwxData(sortedData);
         console.log(sortedData);
       })
-      .catch(error => console.error(error));
+      .catch((error) => console.error(error));
   }, []);
 
   useEffect(() => {
     const handlePopState = () => setRoute(window.location.pathname);
-    window.addEventListener('popstate', handlePopState);
+    window.addEventListener("popstate", handlePopState);
 
     return () => {
-      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener("popstate", handlePopState);
     };
   }, []);
 
   const navigate = (path) => {
-    window.history.pushState(null, '', path);
+    window.history.pushState(null, "", path);
     setRoute(path);
   };
 
-  if (route === '/dashboard') {
+  if (route === "/dashboard") {
     return <Dashboard />;
-  } else if (route === '/jobs') {
+  } else if (route === "/jobs") {
     return <Jobs />;
-  } else if (route === '/hosts') {
+  } else if (route === "/hosts") {
     return <Hosts />;
-  } else if (route === '/routerrouter') {
+  } else if (route === "/routerrouter") {
     return <RouterRouter />;
-  } else if (route === '/routerswitch') {
+  } else if (route === "/routerswitch") {
     return <RouterSwitch />;
-  } else if (route === '/switchswitch') {
+  } else if (route === "/switchswitch") {
     return <SwitchSwitch />;
-  }else if (route === '/switchhost') {
+  } else if (route === "/switchhost") {
     return <SwitchHost />;
-  } else if (route === '/configdevice') {
+  } else if (route === "/configdevice") {
     return <ConfigDevice />;
-  }else {
+  } else {
     return <Lab />;
   }
 

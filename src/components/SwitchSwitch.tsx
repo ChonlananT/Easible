@@ -277,15 +277,18 @@ function SwitchSwitch() {
         >
           <button
             style={{
-              marginBottom: '16px',
-              padding: '8px',
-              color: '#7b7b7b',
-              borderRadius: '8px',
-              zIndex: 50,
-              border: 'none',
-              background: '#f5f7f9',
+              marginBottom: "16px",
+              padding: "8px",
+              color: "#7b7b7b",
+              borderRadius: "50%",
+              border: "none",
+              background: "#e2e6ea",
+              cursor: "pointer",
+              transition: "background 0.3s ease",
             }}
             onClick={() => setIsNavOpen(false)}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "#d0d5da")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "#e2e6ea")}
           >
             <ArrowLeftFromLine size={24} />
           </button>
@@ -429,45 +432,45 @@ function SwitchSwitch() {
                           />
                         </div>
 
-                          <div className="host-sw-sw">
-                            <div className="host-card">
-                              <div className="host-selection__dropdown-group">
-                                <label>Select Host (SW2):</label>
-                                <div className="host-selection__dropdown-container">
-                                  <select
-                                    className="host-selection__dropdown"
-                                    onChange={(e) => handleHostChange(index, 'selectedHost2', e.target.value)}
-                                    value={link.selectedHost2}
-                                  >
-                                    <option value="">-- Select a Host --</option>
-                                    <option value="test">test</option>
-                                    {hosts.map((host: DropdownOption) => (
-                                      <option key={host.hostname} value={host.hostname}>
-                                        {host.hostname}
-                                      </option>
-                                    ))}
-                                  </select>
-                                </div>
-                              </div>
-                              <div className="host-selection__dropdown-group">
-                                <label>Select Interface for {link.selectedHost2}:</label>
-                                <div className="host-selection__dropdown-container">
-                                  <select
-                                    className="host-selection__dropdown"
-                                    value={link.selectedInterface2}
-                                    onChange={(e) => handleLinkChange(index, 'selectedInterface2', e.target.value)}
-                                  >
-                                    <option value="">-- Select Interface --</option>
-                                    <option value="test">test</option>
-                                    {getInterfacesForHost(link.selectedHost2).map((intf) => (
-                                      <option key={intf.interface} value={intf.interface}>
-                                        {intf.interface} ({intf.status})
-                                      </option>
-                                    ))}
-                                  </select>
-                                </div>
+                        <div className="host-sw-sw">
+                          <div className="host-card">
+                            <div className="host-selection__dropdown-group">
+                              <label>Select Host (SW2):</label>
+                              <div className="host-selection__dropdown-container">
+                                <select
+                                  className="host-selection__dropdown"
+                                  onChange={(e) => handleHostChange(index, 'selectedHost2', e.target.value)}
+                                  value={link.selectedHost2}
+                                >
+                                  <option value="">-- Select a Host --</option>
+                                  <option value="test">test</option>
+                                  {hosts.map((host: DropdownOption) => (
+                                    <option key={host.hostname} value={host.hostname}>
+                                      {host.hostname}
+                                    </option>
+                                  ))}
+                                </select>
                               </div>
                             </div>
+                            <div className="host-selection__dropdown-group">
+                              <label>Select Interface for {link.selectedHost2}:</label>
+                              <div className="host-selection__dropdown-container">
+                                <select
+                                  className="host-selection__dropdown"
+                                  value={link.selectedInterface2}
+                                  onChange={(e) => handleLinkChange(index, 'selectedInterface2', e.target.value)}
+                                >
+                                  <option value="">-- Select Interface --</option>
+                                  <option value="test">test</option>
+                                  {getInterfacesForHost(link.selectedHost2).map((intf) => (
+                                    <option key={intf.interface} value={intf.interface}>
+                                      {intf.interface} ({intf.status})
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            </div>
+                          </div>
 
                         </div>
                       </div>
@@ -475,7 +478,7 @@ function SwitchSwitch() {
                       {/* Fixed Switchport configuration */}
                       <div className="host-selection__switchport-configuration">
                         <div className="host-selection__dropdown-group">
-                          <h5 style={{textAlign: 'center'}}>Switchport Mode:</h5>
+                          <h5 style={{ textAlign: 'center' }}>Switchport Mode:</h5>
                           <div className="host-selection__dropdown-container">
                             <select
                               className="host-selection__dropdown"
@@ -492,7 +495,7 @@ function SwitchSwitch() {
                         {/* VLAN selection section is only shown for trunk mode */}
                         {link.switchportMode === 'trunk' && (
                           <div className="host-selection__vlan-multiple">
-                            <h5 style={{textAlign: 'center'}}>Add allowed VLAN(s):</h5>
+                            <h5 style={{ textAlign: 'center' }}>Add allowed VLAN(s):</h5>
                             {link.vlans.map((vlan, vlanIndex) => (
                               <div key={vlanIndex} className="vlan-selection-group">
                                 <select
@@ -508,14 +511,14 @@ function SwitchSwitch() {
                                     </option>
                                   ))}
                                 </select>
-                                <CircleMinus style={{ width: '25px', height: '25px', color: 'red', marginTop:'20px', marginLeft:'5px', cursor: 'pointer'}}
+                                <CircleMinus style={{ width: '25px', height: '25px', color: 'red', marginTop: '20px', marginLeft: '5px', cursor: 'pointer' }}
                                   onClick={() => handleRemoveVlan(index, vlanIndex)}
                                 >
                                   Remove
                                 </CircleMinus>
                               </div>
                             ))}
-                            <button className="button-add-vlan" style={{ marginTop: '10px', width:'35%' }} onClick={() => handleAddVlan(index)}>
+                            <button className="button-add-vlan" style={{ marginTop: '10px', width: '35%' }} onClick={() => handleAddVlan(index)}>
                               + Add VLAN
                             </button>
                           </div>
@@ -530,75 +533,75 @@ function SwitchSwitch() {
 
 
           {!error && isShowPopup && (
-  <div className="popup-overlay">
-    <div className="popup-preview">
-      <h1 style={{ fontSize: '32px' }}>Summary</h1>
-      <div className="topology-prev">
-        <h5 style={{ margin: '10px 20px' }}>Network Topology</h5>
-      </div>
-      <div className="popup-table-section">
-        {links.map((link, index) => {
-          // Get the rows for the current link.
-          let rows = [];
-          // For trunk mode with VLANs selected, create a row per VLAN.
-          if (link.switchportMode === 'trunk') {
-            if (link.vlans.length > 0) {
-              rows = link.vlans.map((vlan, idx) => (
-                <tr key={idx}>
-                  <td>{vlan || 'N/A'}</td>
-                  <td>{link.selectedInterface1 || 'N/A'}</td>
-                  <td>{link.selectedInterface2 || 'N/A'}</td>
-                </tr>
-              ));
-            } else {
-              // If trunk mode but no VLAN selected, show a row indicating no VLAN.
-              rows = (
-                <tr>
-                  <td>No VLAN selected</td>
-                  <td>{link.selectedInterface1 || 'N/A'}</td>
-                  <td>{link.selectedInterface2 || 'N/A'}</td>
-                </tr>
-              );
-            }
-          } else {
-            // For access mode, we may not have VLANs and just show one row.
-            rows = (
-              <tr>
-                <td>Access</td>
-                <td>{link.selectedInterface1 || 'N/A'}</td>
-                <td>{link.selectedInterface2 || 'N/A'}</td>
-              </tr>
-            );
-          }
+            <div className="popup-overlay">
+              <div className="popup-preview">
+                <h1 style={{ fontSize: '32px' }}>Summary</h1>
+                <div className="topology-prev">
+                  <h5 style={{ margin: '10px 20px' }}>Network Topology</h5>
+                </div>
+                <div className="popup-table-section">
+                  {links.map((link, index) => {
+                    // Get the rows for the current link.
+                    let rows: JSX.Element[] = [];
+                    // For trunk mode with VLANs selected, create a row per VLAN.
+                    if (link.switchportMode === 'trunk') {
+                      if (link.vlans.length > 0) {
+                        rows = link.vlans.map((vlan, idx) => (
+                          <tr key={idx}>
+                            <td>{vlan || 'N/A'}</td>
+                            <td>{link.selectedInterface1 || 'N/A'}</td>
+                            <td>{link.selectedInterface2 || 'N/A'}</td>
+                          </tr>
+                        ));
+                      } else {
+                        // If trunk mode but no VLAN selected, show a row indicating no VLAN.
+                        rows = [
+                          <tr key="no-vlan">
+                            <td>No VLAN selected</td>
+                            <td>{link.selectedInterface1 || 'N/A'}</td>
+                            <td>{link.selectedInterface2 || 'N/A'}</td>
+                          </tr>
+                        ];
+                      }
+                    } else {
+                      // For access mode, we may not have VLANs and just show one row.
+                      rows = [
+                        <tr key="access">
+                          <td>Access</td>
+                          <td>{link.selectedInterface1 || 'N/A'}</td>
+                          <td>{link.selectedInterface2 || 'N/A'}</td>
+                        </tr>
+                      ];
+                    }
 
-          return (
-            <div key={index} className="popup-table">
-              <h5>{`SW1-SW2 Link ${index + 1}`}</h5>
-              <div className="popup-table-wrapper">
-                <table border={1} style={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <thead>
-                    <tr>
-                      <th>VLAN</th>
-                      <th>Outgoing Interface SW1</th>
-                      <th>Outgoing Interface SW2</th>
-                    </tr>
-                  </thead>
-                  <tbody>{rows}</tbody>
-                </table>
+                    return (
+                      <div key={index} className="popup-table">
+                        <h5>{`SW1-SW2 Link ${index + 1}`}</h5>
+                        <div className="popup-table-wrapper">
+                          <table border={1} style={{ width: '100%', borderCollapse: 'collapse' }}>
+                            <thead>
+                              <tr>
+                                <th>VLAN</th>
+                                <th>Outgoing Interface SW1</th>
+                                <th>Outgoing Interface SW2</th>
+                              </tr>
+                            </thead>
+                            <tbody>{rows}</tbody>
+                          </table>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="button-prev-section">
+                  <button className="button-cancel-prev" onClick={TogglePopup}>
+                    Cancel
+                  </button>
+                  <button className="button-confirm-prev">Confirm</button>
+                </div>
               </div>
             </div>
-          );
-        })}
-      </div>
-      <div className="button-prev-section">
-        <button className="button-cancel-prev" onClick={TogglePopup}>
-          Cancel
-        </button>
-        <button className="button-confirm-prev">Confirm</button>
-      </div>
-    </div>
-  </div>
-)}
+          )}
 
 
 
@@ -620,7 +623,7 @@ function SwitchSwitch() {
           </div>
         </div>
         <div className="submit-sw-sw-container">
-        <button className="button-sw-sw-submit" onClick={TogglePopup}>Check</button>
+          <button className="button-sw-sw-submit" onClick={TogglePopup}>Check</button>
           <button className="button-sw-sw-submit" onClick={handleSubmitAll}>
             Submit All
           </button>

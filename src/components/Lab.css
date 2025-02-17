@@ -1,0 +1,464 @@
+.content-board-lab {
+    background-color: white;
+    border-radius: 12px;
+    padding: 30px;
+    margin: 10px 25px 15px 25px;
+    /* Top, Right, Bottom, Left */
+    border: 2px solid #D4D4D4;
+    /* Border thickness */
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    /* Inset shadow for depth */
+    overflow-y: auto;
+    /* Allows scrolling when content overflows vertically */
+    box-sizing: border-box;
+    /* Include padding in width and height calculation */
+    height: 86%;
+    /* Adjust automatically based on content */
+}
+
+.lab-topic {
+    font-size: 30px;
+    /* Adjust this value as needed */
+    font-weight: 600;
+    /* Thin font weight */
+    color: rgb(0, 0, 0);
+    display: flex;
+    justify-content: center;
+}
+
+
+
+
+.lab-board-container {
+    height: 90%;
+    /* border: 1px solid lightgrey; */
+    padding: 10px;
+    overflow-y: auto;
+    /* Enables vertical scrolling when content overflows */
+    overflow-x: hidden;
+    /* Prevents horizontal scrolling */
+}
+
+.lab-board {
+    background-color: white;
+    border-radius: 12px;
+    padding: 2px 50px;
+    overflow-y: auto;
+    /* Allows scrolling when content overflows vertically */
+}
+
+.lab-item {
+    background: linear-gradient(rgb(254, 202, 247), rgb(234, 244, 201));
+    border-radius: 12px;
+    padding: 20px 30px;
+    border: 2px solid #D4D4D4;
+    /* Border thickness */
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    /* Inset shadow for depth */
+    overflow-y: auto;
+    /* Allows scrolling when content overflows vertically */
+    font-weight: 525px;
+    /* Thin font weight */
+    color: rgb(0, 0, 0);
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+
+
+
+
+
+
+.lab-content {
+    border: solid 2px lightgrey;
+    border-radius: 8px;
+    margin: 0 10px 0 10px;
+    height: 400px;
+    padding: 10px;
+}
+
+
+
+
+
+
+.host-name-lab {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.dropdown-select-lab {
+    border-radius: 20px;
+    margin-top: 5px;
+    padding: 5px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    font-size: 14px;
+}
+
+
+.description-container {
+    height: 90%;
+    display: left;
+    width: 100%;
+    /* border: solid 2px blue; */
+}
+
+.description-section {
+    /* border: solid 2px red; */
+    padding: 5px;
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    /* Adjust height as needed */
+}
+
+.input-description {
+    margin-top: 10px;
+    flex-grow: 1;
+    /* Allows it to take up remaining space */
+    display: flex;
+    /* Ensures textarea can stretch */
+}
+
+.description-input {
+    width: 100%;
+    height: 100%;
+    /* Makes textarea fill the full height */
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    background-color: #ebebeb;
+    resize: none;
+    /* Prevent resizing if you want fixed height */
+}
+
+
+
+.expect-container {
+    height: 90%;
+    display: flex;
+    width: 100%;
+    /* border: solid 2px blue; */
+    padding: 2px;
+    justify-content: space-evenly;
+}
+
+.expect-section {
+    /* border: solid 2px red; */
+    padding: 5px;
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    /* Adjust height as needed */
+}
+
+.input-lab {
+    margin-top: 10px;
+    flex-grow: 1;
+    /* Allows it to take up remaining space */
+    display: flex;
+    /* Ensures textarea can stretch */
+}
+
+.expect-input {
+    width: 100%;
+    height: 100%;
+    /* Makes textarea fill the full height */
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    background-color: #ebebeb;
+    resize: none;
+    /* Prevent resizing if you want fixed height */
+}
+
+
+
+
+
+
+.container-lab {
+    padding: 20px;
+    border: 1px solid #ddd;
+    margin: 16px 80px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    background: #fff;
+}
+
+.header-lab {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.title-lab {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+}
+
+.buttonContainer-lab {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.addButton-lab {
+    display: flex;
+    align-items: center;
+    background: #6ad66d;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 16px;
+    color: #fff;
+    cursor: pointer;
+    transition: 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.addButton-lab:hover {
+    background: #4bc051;
+    transform: scale(1.02);
+}
+
+.noLabs-lab {
+    text-align: center;
+    color: #888;
+}
+
+.labList-lab {
+    list-style: none;
+    padding: 0;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    width: 60%;
+}
+
+.labItem-lab {
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    background: #f9f9f9;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 70px;
+}
+
+.labInfo-lab .labName-lab {
+    color: #333;
+}
+
+.labInfo-lab .labDescription-lab {
+    margin-left: 8px;
+    color: #555;
+}
+
+.labActions-lab button {
+    margin-left: 10px;
+    padding: 5px 8px;
+    border: none;
+    border-radius: 4px;
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.editButton-lab {
+    background: #2196F3;
+}
+
+.editButton-lab:hover {
+    background: #1976d2;
+}
+
+.deleteButton-lab {
+    background: #f44336;
+}
+
+.deleteButton-lab:hover {
+    background: #d32f2f;
+}
+
+.checkButton-lab {
+    background: #ff9800;
+}
+
+.checkButton-lab:hover {
+    background: #fb8c00;
+}
+
+
+
+
+
+
+
+
+
+.cancel-btn-lab {
+    background: linear-gradient(90deg, #a6a6a6, #a39b98);
+    border-radius: 20px;
+    border: none;
+    color: white;
+    padding: 5px 16px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.cancel-btn-lab:hover {
+    transform: translateY(-2px);
+    background: linear-gradient(90deg, #6a6969, #5b5351);
+    transform: scale(1.05);
+}
+
+.delete-btn-lab {
+    background-color: #e74c3c;
+    border-radius: 20px;
+    border: none;
+    color: white;
+    padding: 5px 16px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.delete-btn-lab:hover {
+    background-color: #c0392b;
+    transform: scale(1.05);
+}
+
+.green-round-lab {
+    padding: 5px 16px;
+    font-size: 16px;
+    background-color: #05dab6;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.green-round-lab:hover {
+    background-color: #36bea8;
+    transform: scale(1.05);
+}
+
+.green-round-lab:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px #e0e0e0;
+}
+
+.add-btn-lab {
+    background-color: #e6e6e6;
+    border-radius: 20px;
+    border: none;
+    color: rgb(51, 51, 51);
+    padding: 5px 16px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.add-btn-lab:hover {
+    transform: translateY(-2px);
+    background-color: #c4c4c4;
+    color: rgb(255, 255, 255);
+    transform: scale(1.05);
+}
+
+
+
+
+
+
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 150px;
+}
+
+.spinner {
+    border: 4px solid #f3f3f3;
+    /* Light grey */
+    border-top: 4px solid #3498db;
+    /* Blue */
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 10px;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+
+
+
+
+
+@keyframes showPopup {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.popup-content-lab {
+    background-color: #fff;
+    padding: 25px;
+    border-radius: 8px;
+    height: 85%;
+    width: 35%;
+    min-width: 500px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    animation: showPopup 0.3s ease forwards;
+    gap: 15px;
+}
+
+.commands-wrapper {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    height: 350px;
+}
+
+
+.command-add-lab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    padding: 10px 0;
+}

@@ -19,9 +19,9 @@ function Hosts() {
   });
   const [ipError, setIpError] = useState('');
   const [isNavOpen, setIsNavOpen] = useState(() => {
-      const savedNavState = localStorage.getItem('isNavOpen');
-      return savedNavState === 'true';  // Convert to boolean
-    });
+    const savedNavState = localStorage.getItem('isNavOpen');
+    return savedNavState === 'true';  // Convert to boolean
+  });
   // -------------------------
   // State สำหรับ Add Group
   // -------------------------
@@ -50,8 +50,8 @@ function Hosts() {
   }, []);
 
   useEffect(() => {
-      localStorage.setItem('isNavOpen', isNavOpen.toString());
-    }, [isNavOpen]);
+    localStorage.setItem('isNavOpen', isNavOpen.toString());
+  }, [isNavOpen]);
 
   const fetchHosts = async () => {
     try {
@@ -137,7 +137,7 @@ function Hosts() {
       });
 
       if (response.ok) {
-        setHosts((prev) => prev.filter((host : any) => host.hostname !== hostname));
+        setHosts((prev) => prev.filter((host: any) => host.hostname !== hostname));
       } else {
         console.error('Failed to delete host');
       }
@@ -349,11 +349,11 @@ function Hosts() {
         : [...prevSelected, hostname]
     );
   };
-  
+
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredHostsGroup, setFilteredHostsGroup] = useState<any[]>([]);
-  
+
   useEffect(() => {
     setFilteredHostsGroup(
       hosts.filter((host) =>
@@ -361,7 +361,7 @@ function Hosts() {
       )
     );
   }, [searchTerm, hosts]);
-  
+
   const renderAddGroupPopup = () => {
     if (!showAddGroupPopup) return null;
     return (
@@ -379,7 +379,7 @@ function Hosts() {
           </label>
           <div className="hosts-toggle-container">
             <label>Select Devices:</label>
-            
+
             <div className="hosts-toggle-list">
               {filteredHostsGroup.length > 0 ? (
                 filteredHostsGroup
@@ -424,90 +424,90 @@ function Hosts() {
     if (!showAddHostPopup) return null;
     return (
       <div className="popup-overlay">
-  <div className="popup-content-host">
-    <h2>Add Host</h2>
-    <label>
-      Device Type:
-      <select name="deviceType" value={formData.deviceType} onChange={handleInputChange}>
-        <option value="switch">Switch</option>
-        <option value="router">Router</option>
-      </select>
-    </label>
-    <label>
-      Hostname:
-      <input
-        type="text"
-        name="hostname"
-        value={formData.hostname}
-        onChange={handleInputChange}
-        onBlur={() => {
-          if (formData.hostname.includes(' ')) {
-            setHostnameError('Hostname cannot contain spaces');
-          } else {
-            setHostnameError('');
-          }
-        }}
-        placeholder="Enter hostname"
-      />
-      {hostnameError && <span className="error-text">{hostnameError}</span>}
-    </label>
-    <label>
-      IP Address:
-      <input
-        type="text"
-        name="ipAddress"
-        value={formData.ipAddress}
-        onChange={handleInputChange}
-        style={{ borderColor: ipError ? 'red' : '#ccc' }}
-        placeholder="Enter IP address"
-      />
-      {ipError && <span className="error-text">{ipError}</span>}
-    </label>
-    <label>
-      Username:
-      <input
-        type="text"
-        name="username"
-        value={formData.username}
-        onChange={handleInputChange}
-        placeholder="Enter username"
-      />
-    </label>
-    <label>
-      Password:
-      <input
-        type="password"
-        name="password"
-        value={formData.password}
-        onChange={handleInputChange}
-        placeholder="Enter password"
-      />
-    </label>
-    <label>
-      Enable Password:
-      <input
-        type="password"
-        name="enablePassword"
-        value={formData.enablePassword}
-        onChange={handleInputChange}
-        placeholder="Enter enable password"
-      />
-    </label>
+        <div className="popup-content-host">
+          <h2>Add Host</h2>
+          <label>
+            Device Type:
+            <select name="deviceType" value={formData.deviceType} onChange={handleInputChange}>
+              <option value="switch">Switch</option>
+              <option value="router">Router</option>
+            </select>
+          </label>
+          <label>
+            Hostname:
+            <input
+              type="text"
+              name="hostname"
+              value={formData.hostname}
+              onChange={handleInputChange}
+              onBlur={() => {
+                if (formData.hostname.includes(' ')) {
+                  setHostnameError('Hostname cannot contain spaces');
+                } else {
+                  setHostnameError('');
+                }
+              }}
+              placeholder="Enter hostname"
+            />
+            {hostnameError && <span className="error-text">{hostnameError}</span>}
+          </label>
+          <label>
+            IP Address:
+            <input
+              type="text"
+              name="ipAddress"
+              value={formData.ipAddress}
+              onChange={handleInputChange}
+              style={{ borderColor: ipError ? 'red' : '#ccc' }}
+              placeholder="Enter IP address"
+            />
+            {ipError && <span className="error-text">{ipError}</span>}
+          </label>
+          <label>
+            Username:
+            <input
+              type="text"
+              name="username"
+              value={formData.username}
+              onChange={handleInputChange}
+              placeholder="Enter username"
+            />
+          </label>
+          <label>
+            Password:
+            <input
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleInputChange}
+              placeholder="Enter password"
+            />
+          </label>
+          <label>
+            Enable Password:
+            <input
+              type="password"
+              name="enablePassword"
+              value={formData.enablePassword}
+              onChange={handleInputChange}
+              placeholder="Enter enable password"
+            />
+          </label>
 
-    <div className="popup-buttons">
-      <button
-        onClick={handleSaveHost}
-        disabled={!!ipError || !!hostnameError}
-        className="save-btn"
-      >
-        Save Host
-      </button>
-      <button onClick={() => setShowAddHostPopup(false)} className="cancel-btn">
-        Cancel
-      </button>
-    </div>
-  </div>
-</div>
+          <div className="popup-buttons">
+            <button
+              onClick={handleSaveHost}
+              disabled={!!ipError || !!hostnameError}
+              className="save-btn"
+            >
+              Save Host
+            </button>
+            <button onClick={() => setShowAddHostPopup(false)} className="cancel-btn">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
 
     );
   };
@@ -520,7 +520,7 @@ function Hosts() {
     return (
       <div className="popup-overlay">
         <div className="popup-content-created">
-          <h4 style={{textAlign: 'center'}}>Inventory has been created!</h4>
+          <h4 style={{ textAlign: 'center' }}>Inventory has been created!</h4>
           <button className="save-btn" onClick={closeInventoryPopup}>Close</button>
         </div>
       </div>
@@ -537,7 +537,7 @@ function Hosts() {
         <div className="popup-content-host">
           <h2>Delete Group</h2>
           <p>
-            Are you sure you want to delete the group 
+            Are you sure you want to delete the group
             <span style={{ color: 'red', fontWeight: 'bold' }}> "{groupToDelete}" </span>?
           </p>
 
@@ -565,25 +565,28 @@ function Hosts() {
   };
 
   const [isNavDropdownOpen, setIsNavDropdownOpen] = useState(false);
-  const toggleNavDropdown = () =>{
+  const toggleNavDropdown = () => {
     setIsNavDropdownOpen(!isNavDropdownOpen);
   }
 
   return (
     <div className="App">
       <div className={`nav-links-container ${isNavOpen ? "" : "closed"}`}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', paddingRight: '10px', paddingTop: '10px'  }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', paddingRight: '10px', paddingTop: '10px' }}>
           <button
             style={{
-              marginBottom: '16px',
-              padding: '8px',
-              color: '#7b7b7b',
-              borderRadius: '8px',
-              zIndex: 50,
-              border: 'none',
-              background: '#f5f7f9'
+              marginBottom: "16px",
+              padding: "8px",
+              color: "#7b7b7b",
+              borderRadius: "50%",
+              border: "none",
+              background: "#e2e6ea",
+              cursor: "pointer",
+              transition: "background 0.3s ease",
             }}
             onClick={() => setIsNavOpen(false)}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "#d0d5da")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "#e2e6ea")}
           >
             <ArrowLeftFromLine size={24} />
           </button>
@@ -593,15 +596,15 @@ function Hosts() {
           {/* <img src="/easible-name.png" alt='Logo' className="dashboard-icon" /> */}
           <li className="center"><a href="/dashboard">Dashboard</a></li>
           <li className="center"><a href="/hosts" style={{ color: '#8c94dc' }}>Devices</a></li>
-          <li 
-            className="center" 
-            onClick={toggleNavDropdown} 
-            style={{ cursor: 'pointer', color: 'black' }} 
-            onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.color = '#8c94dc'} 
+          <li
+            className="center"
+            onClick={toggleNavDropdown}
+            style={{ cursor: 'pointer', color: 'black' }}
+            onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.color = '#8c94dc'}
             onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.color = 'black'}
           >
             <a>Configuration  </a>
-            <ChevronDown className={isNavDropdownOpen ? "chevron-nav rotated" : "chevron-nav"}/>
+            <ChevronDown className={isNavDropdownOpen ? "chevron-nav rotated" : "chevron-nav"} />
           </li>
           <ul className={`nav-dropdown ${isNavDropdownOpen ? "open" : ""}`}>
             <li className="center sub-topic"><a href="/routerrouter">router-router</a></li>
@@ -634,7 +637,7 @@ function Hosts() {
             >
               <Menu size={24} />
             </button>
-          )}     
+          )}
           Devices
           <div className="search-bar-wrapper">
             <div className="search-bar">
@@ -647,13 +650,13 @@ function Hosts() {
             </div>
           </div>
         </div>
-        
+
 
         {/* -------------------------
             ตาราง Hosts แบ่งตาม Groups
         ------------------------- */}
         <div className="content-board-host">
-          
+
 
           <div className="table-section">
             <div className="device-section">
@@ -665,8 +668,8 @@ function Hosts() {
                 {/* Render "All Devices" group separately */}
                 {"All Devices" in groupMapping && groupMapping["All Devices"]?.length > 0 && (
                   <div className="device-one">
-                    {!collapsedGroups["All Devices"] && groupMapping["All Devices"]?.length > 0 &&(
-                      
+                    {!collapsedGroups["All Devices"] && groupMapping["All Devices"]?.length > 0 && (
+
                       <table className="hosts-table">
                         <thead>
                           <tr>
@@ -702,7 +705,7 @@ function Hosts() {
             </div>
 
             <div className="line-vertical-host"></div>
-            
+
             <div className='group-section'>
               <div className='section-topic'>
                 Groups
@@ -713,13 +716,13 @@ function Hosts() {
                   .filter((group) => group !== "All Devices")
                   .map((group, index, arr) => (
                     <div key={group} className="group-one">
-                      <div className="group-header" style={{ cursor: "pointer"}}>
-                        <div style={{ display: "flex", alignItems: "center", gap: '10px', width: '100%'}} onClick={() => toggleGroup(group)}>
-                        {collapsedGroups[group] ? (
-                          <ChevronDown style={{ color: "gray" }} />
-                        ) : (
-                          <ChevronRight style={{ color: "gray" }} />
-                        )}
+                      <div className="group-header" style={{ cursor: "pointer" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: '10px', width: '100%' }} onClick={() => toggleGroup(group)}>
+                          {collapsedGroups[group] ? (
+                            <ChevronDown style={{ color: "gray" }} />
+                          ) : (
+                            <ChevronRight style={{ color: "gray" }} />
+                          )}
                           <h3
                             className="group-heading"
                             style={{ display: "inline", marginRight: "20px" }}
@@ -787,7 +790,7 @@ function Hosts() {
           {isPopupVisible && (
             <div className="popup-overlay">
               <div className="popup-content-host">
-              <h2>Choose a group</h2>
+                <h2>Choose a group</h2>
                 <div>
                   <select
                     value={selectedGroup}
@@ -806,15 +809,15 @@ function Hosts() {
                 </div>
 
 
-              {/* Popup สำหรับ Inventory Created */}
+                {/* Popup สำหรับ Inventory Created */}
                 {renderInventoryPopup()}
                 <p></p>
-                  <button className="save-btn" onClick={handleCreateInventory}>Confirm</button>
-                  <button className="cancel-btn" onClick={handleClosePopupButtonClick}>Close</button>
+                <button className="save-btn" onClick={handleCreateInventory}>Confirm</button>
+                <button className="cancel-btn" onClick={handleClosePopupButtonClick}>Close</button>
               </div>
             </div>
           )}
-            
+
         </div>
 
         {/* -------------------------

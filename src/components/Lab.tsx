@@ -9,7 +9,10 @@ import {
 import { ArchiveX } from "lucide-react";
 import { motion } from "framer-motion";
 import "./Bar.css";
-import "./Topology.css";
+import "./Lab.css";
+import "./Popup.css";
+import CheckLab from "./CheckLab.tsx";
+import SettingLab from "./SettingLab.tsx";
 
 // ตัวเลือกของ Command ที่แสดงใน dropdown
 const commandOptions = [
@@ -31,15 +34,19 @@ const normalizeLine = (line) => line.split(/\s+/).join(" ").trim();
 
 // Component สำหรับแสดงผลของ command พร้อม diff
 function OutputWithDiff({ actual, expected, diff }) {
-  // ถ้า diff เป็น array ว่าง (หมายถึง matched) ให้แสดง actual ทั้งหมดเป็นสีเขียว
   if (diff.length === 0) {
     return (
-      <div style={{ fontFamily: "monospace", whiteSpace: "pre-wrap", color: "green" }}>
+      <div
+        style={{
+          fontFamily: "monospace",
+          whiteSpace: "pre-wrap",
+          color: "green",
+        }}
+      >
         {actual.join("\n")}
       </div>
     );
   }
-  // ถ้ามี diff ให้ทำการแสดงผลแบบบรรทัดต่อบรรทัด
   const expectedLines = expected.split("\n");
   const maxLines = Math.max(actual.length, expectedLines.length);
   return (
@@ -47,7 +54,6 @@ function OutputWithDiff({ actual, expected, diff }) {
       {Array.from({ length: maxLines }).map((_, i) => {
         const actLine = actual[i] || "";
         const expLine = expectedLines[i] || "";
-        // ค้นหา entry ใน diff ที่ตรงกับบรรทัด actual นี้ (โดย normalize)
         const diffEntry = diff.find(
           (d) => normalizeLine(d.actual) === normalizeLine(actLine)
         );
@@ -55,10 +61,14 @@ function OutputWithDiff({ actual, expected, diff }) {
         if (diffEntry) {
           return (
             <div key={i}>
-              {/* actual ที่ผิด แสดงเป็นสีแดง */}
               <div style={{ color: "red" }}>{actLine}</div>
-              {/* แสดง expected (diff.expected) ด้านล่าง */}
-              <div style={{ color: "red", fontStyle: "italic", marginLeft: "20px" }}>
+              <div
+                style={{
+                  color: "red",
+                  fontStyle: "italic",
+                  marginLeft: "20px",
+                }}
+              >
                 Expected: {expLine}
               </div>
             </div>
@@ -87,10 +97,18 @@ function Lab() {
 
   // Static labs (เดโม)
   const staticLabs = [
-    { id: 1, title: "Lab 1 (Static Route)", content: "Details about Static Route" },
+    {
+      id: 1,
+      title: "Lab 1 (Static Route)",
+      content: "Details about Static Route",
+    },
     { id: 2, title: "Lab 2 (RIPv2)", content: "Details about RIPv2" },
     { id: 3, title: "Lab 3 (OSPF)", content: "Details about OSPF" },
-    { id: 4, title: "Lab 4 (Spanning Tree Protocol)", content: "Details about STP" },
+    {
+      id: 4,
+      title: "Lab 4 (Spanning Tree Protocol)",
+      content: "Details about STP",
+    },
     { id: 5, title: "Lab 5 (PTSD)", content: "Details about STP" },
   ];
   const [expanded, setExpanded] = useState(null);
@@ -105,7 +123,18 @@ function Lab() {
   };
 
   // *** ส่วนของ Custom Lab (API) ***
-  const [customLabs, setCustomLabs] = useState([]);
+  interface CustomLab {
+    id: number;
+    name: string;
+    description: string;
+    lab_commands: {
+      command: string;
+      command_type: string;
+      host_expected: { hostname: string; expected_output: string }[];
+    }[];
+  }
+
+  const [customLabs, setCustomLabs] = useState<CustomLab[]>([]);
   // State สำหรับ Form (ใช้ร่วมกันระหว่าง Create และ Edit)
   const [customLabForm, setCustomLabForm] = useState({
     id: null,
@@ -127,10 +156,34 @@ function Lab() {
 
   // State สำหรับ Check Lab Modal และผลลัพธ์การตรวจสอบ
   const [isCheckModalOpen, setIsCheckModalOpen] = useState(false);
-  const [checkResults, setCheckResults] = useState(null);
+  interface CheckResult {
+    comparison: {
+      details: {
+        matched: Record<string, { command: string; actual: string[] }[]>;
+        unmatch: Record<
+          string,
+          {
+            command: string;
+            actual: string[];
+            expected: string;
+            diff: { actual: string; expected: string }[];
+          }[]
+        >;
+      };
+    };
+  }
+  const [checkResults, setCheckResults] = useState<CheckResult | null>(null);
+  // ** NEW: loading state for Check Lab **
+  const [isLoading, setIsLoading] = useState(false);
 
   // hostList สำหรับ dropdown ในแต่ละ command (ดึงมาจาก backend)
-  const [hostList, setHostList] = useState([]);
+  interface Host {
+    id: number;
+    hostname: string;
+    deviceType: string;
+  }
+
+  const [hostList, setHostList] = useState<Host[]>([]);
 
   useEffect(() => {
     fetchCustomLabs();
@@ -251,7 +304,10 @@ function Lab() {
   // เพิ่ม host row ให้กับ command ที่เลือก
   const addHostExpected = (cmdIndex) => {
     const updatedCommands = [...customLabForm.lab_commands];
-    updatedCommands[cmdIndex].host_expected.push({ hostname: "", expected_output: "" });
+    updatedCommands[cmdIndex].host_expected.push({
+      hostname: "",
+      expected_output: "",
+    });
     setCustomLabForm((prev) => ({ ...prev, lab_commands: updatedCommands }));
   };
 
@@ -259,9 +315,9 @@ function Lab() {
   const removeHostExpected = (cmdIndex, hostIndex) => {
     const updatedCommands = [...customLabForm.lab_commands];
     if (updatedCommands[cmdIndex].host_expected.length === 1) return;
-    updatedCommands[cmdIndex].host_expected = updatedCommands[cmdIndex].host_expected.filter(
-      (_, idx) => idx !== hostIndex
-    );
+    updatedCommands[cmdIndex].host_expected = updatedCommands[
+      cmdIndex
+    ].host_expected.filter((_, idx) => idx !== hostIndex);
     setCustomLabForm((prev) => ({ ...prev, lab_commands: updatedCommands }));
   };
 
@@ -322,7 +378,11 @@ function Lab() {
         name: "",
         description: "",
         lab_commands: [
-          { command: "", command_type: "all", host_expected: [{ hostname: "", expected_output: "" }] },
+          {
+            command: "",
+            command_type: "all",
+            host_expected: [{ hostname: "", expected_output: "" }],
+          },
         ],
       });
       setIsEditing(false);
@@ -334,8 +394,11 @@ function Lab() {
     }
   };
 
-  // ฟังก์ชันสำหรับ Check Lab
+  // ฟังก์ชันสำหรับ Check Lab with loading state
   const handleCheckLab = async (lab) => {
+    // Open the modal and start loading immediately
+    setIsCheckModalOpen(true);
+    setIsLoading(true);
     try {
       const payload = {
         lab_id: lab.id,
@@ -352,12 +415,15 @@ function Lab() {
       }
       const result = await response.json();
       setCheckResults(result);
-      setIsCheckModalOpen(true);
     } catch (error) {
       console.error("Error checking lab:", error);
       alert("เกิดข้อผิดพลาดในการตรวจสอบ Lab");
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
     <div className="App">
@@ -377,15 +443,23 @@ function Lab() {
               marginBottom: "16px",
               padding: "8px",
               color: "#7b7b7b",
-              borderRadius: "8px",
-              zIndex: 50,
+              borderRadius: "50%",
               border: "none",
-              background: "#f5f7f9",
+              background: "#e2e6ea",
+              cursor: "pointer",
+              transition: "background 0.3s ease",
             }}
             onClick={() => setIsNavOpen(false)}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.background = "#d0d5da")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.background = "#e2e6ea")
+            }
           >
             <ArrowLeftFromLine size={24} />
           </button>
+
           <img src="/easible-name.png" alt="" className="dashboard-icon" />
         </div>
         <ul className="nav-links">
@@ -403,7 +477,11 @@ function Lab() {
             onMouseLeave={(e) => (e.currentTarget.style.color = "black")}
           >
             <a>Configuration</a>
-            <ChevronDown className={isNavDropdownOpen ? "chevron-nav rotated" : "chevron-nav"} />
+            <ChevronDown
+              className={
+                isNavDropdownOpen ? "chevron-nav rotated" : "chevron-nav"
+              }
+            />
           </li>
           <ul className={`nav-dropdown ${isNavDropdownOpen ? "open" : ""}`}>
             <li className="center sub-topic">
@@ -453,68 +531,32 @@ function Lab() {
         </div>
 
         {/* Custom Labs Header พร้อมปุ่มสำหรับ "Create Custom Lab" */}
-        <div
-          style={{
-            padding: "20px",
-            border: "1px solid #ddd",
-            marginBottom: "20px",
-            borderRadius: "8px",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <h3>Custom Labs</h3>
-            <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-              <button
-                onClick={openModalForCreate}
-                style={{
-                  background: "none",
-                  border: "1px solid #ccc",
-                  padding: "5px 10px",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                }}
-              >
-                <PlusCircle size={20} style={{ marginRight: "5px" }} />
+        <div className="container-lab">
+          <div className="header-lab">
+            <h3 className="title-lab">Custom Labs</h3>
+            <div className="buttonContainer-lab">
+              <button onClick={openModalForCreate} className="addButton-lab">
+                <PlusCircle size={20} className="icon-lab" />
                 Add Lab
               </button>
             </div>
           </div>
           {customLabs.length === 0 ? (
-            <p>No custom labs available.</p>
+            <p className="noLabs-lab">No custom labs available.</p>
           ) : (
-            <ul>
+            <ul className="labList-lab">
               {customLabs.map((lab) => (
-                <li key={lab.id} style={{ marginBottom: "10px" }}>
-                  <strong>{lab.name}</strong> - {lab.description}
-                  <button onClick={() => openModalForEdit(lab)} style={{ marginLeft: "10px" }}>
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (window.confirm("คุณต้องการลบ Lab นี้หรือไม่?"))
-                        fetch(`/api/custom_lab/${lab.id}`, { method: "DELETE" })
-                          .then((res) => {
-                            if (!res.ok) throw new Error("ไม่สามารถลบ Lab ได้");
-                            fetchCustomLabs();
-                          })
-                          .catch((err) => {
-                            console.error("Error deleting lab:", err);
-                            alert("เกิดข้อผิดพลาดในการลบ Lab");
-                          });
-                    }}
-                    style={{ marginLeft: "10px" }}
-                  >
-                    Delete
-                  </button>
-                  <button onClick={() => handleCheckLab(lab)} style={{ marginLeft: "10px" }}>
-                    Check Lab
-                  </button>
+                <li key={lab.id} className="labItem-lab">
+                  <div className="labInfo-lab">
+                    <strong className="labName-lab">{lab.name}</strong>
+                    <span className="labDescription-lab">
+                      {lab.description}
+                    </span>
+                    <SettingLab lab={lab} openModalForEdit={openModalForEdit} />
+                  </div>
+                  <div className="labActions-lab">
+                    <CheckLab lab={lab} handleCheckLab={handleCheckLab} />
+                  </div>
                 </li>
               ))}
             </ul>
@@ -523,165 +565,268 @@ function Lab() {
 
         {/* Modal สำหรับ Create / Edit Custom Lab */}
         {isModalOpen && (
-          <div
-            className="modal-overlay"
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              width: "100%",
-              height: "100%",
-              background: "rgba(0,0,0,0.5)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              zIndex: 1000,
-            }}
-          >
-            <div
-              className="modal-content"
-              style={{
-                background: "white",
-                padding: "20px",
-                borderRadius: "8px",
-                width: "700px",
-                maxHeight: "80vh",
-                overflowY: "auto",
-              }}
-            >
-              <h2>{isEditing ? "Edit Custom Lab" : "Create Custom Lab"}</h2>
+          <div className="popup-overlay">
+            <div className="popup-content-lab">
+              <h2>{isEditing ? "Edit Lab" : "Create Lab"}</h2>
               {formError && <p style={{ color: "red" }}>{formError}</p>}
               <form onSubmit={handleCustomLabSubmit}>
-                <div style={{ marginBottom: "10px" }}>
-                  <label>Lab Name:</label>
+                {/* name */}
+                <div style={{ marginBottom: "15px" }}>
+                  <label
+                    style={{
+                      fontWeight: "bold",
+                      marginRight: "10px",
+                      display: "inline-block",
+                      width: "100px",
+                    }}
+                  >
+                    Lab Name:
+                  </label>
                   <input
                     type="text"
                     name="name"
                     value={customLabForm.name}
                     onChange={handleFormChange}
                     required
-                    style={{ marginLeft: "10px" }}
+                    style={{
+                      padding: "8px",
+                      borderRadius: "4px",
+                      border: "1px solid #ccc",
+                      width: "calc(100% - 120px)",
+                    }}
                   />
                 </div>
-                <div style={{ marginBottom: "10px" }}>
-                  <label>Description:</label>
+                {/* description */}
+                <div style={{ marginBottom: "15px" }}>
+                  <label
+                    style={{
+                      fontWeight: "bold",
+                      marginRight: "10px",
+                      display: "inline-block",
+                      verticalAlign: "top",
+                      width: "100px",
+                    }}
+                  >
+                    Description:
+                  </label>
                   <textarea
                     name="description"
                     value={customLabForm.description}
                     onChange={handleFormChange}
-                    style={{ marginLeft: "10px", verticalAlign: "top" }}
+                    style={{
+                      padding: "8px",
+                      borderRadius: "4px",
+                      border: "1px solid #ccc",
+                      width: "calc(100% - 120px)",
+                      height: "80px",
+                      minHeight: "35px",
+                      verticalAlign: "top",
+                    }}
                   />
                 </div>
-                <div>
-                  <label>Commands:</label>
-                  {customLabForm.lab_commands.map((cmd, index) => (
-                    <div
-                      key={index}
-                      style={{
-                        marginBottom: "10px",
-                        border: "1px solid #ccc",
-                        padding: "10px",
-                        borderRadius: "6px",
-                      }}
-                    >
-                      <div className="dropdown-lab">
-                        <select
-                          className="dropdown-select-lab"
-                          value={cmd.command}
-                          onChange={(e) => handleCommandChange(index, "command", e.target.value)}
-                          required
-                          style={{ width: "40%", marginRight: "10px" }}
-                        >
-                          <option value="">Select command</option>
-                          {commandOptions.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </select>
-                        <select
-                          value={cmd.command_type}
-                          onChange={(e) => handleCommandChange(index, "command_type", e.target.value)}
-                          style={{ width: "20%", marginRight: "10px" }}
-                        >
-                          {commandTypeOptions.map((typeOption) => (
-                            <option key={typeOption} value={typeOption}>
-                              {typeOption}
-                            </option>
-                          ))}
-                        </select>
-                        {customLabForm.lab_commands.length > 1 && (
-                          <ArchiveX className="archive-x" onClick={() => removeCommand(index)} />
-                        )}
-                      </div>
-                      <div style={{ marginTop: "10px" }}>
-                        <strong>Hosts for this command:</strong>
-                        {(cmd.host_expected || []).map((hostExp, hIndex) => (
-                          <div
-                            key={hIndex}
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "10px",
-                              marginTop: "5px",
-                            }}
-                          >
-                            <select
-                              value={hostExp.hostname}
-                              onChange={(e) =>
-                                handleHostExpectedChange(index, hIndex, "hostname", e.target.value)
-                              }
-                              style={{ width: "40%" }}
-                              required
-                            >
-                              <option value="">Select host</option>
-                              {hostList
-                                .filter((h) =>
-                                  cmd.command_type === "all" ? true : h.deviceType === cmd.command_type
-                                )
-                                .map((h) => (
-                                  <option key={h.id} value={h.hostname}>
-                                    {h.hostname}
-                                  </option>
-                                ))}
-                            </select>
-                            <textarea
-                              placeholder="Expected output"
-                              value={hostExp.expected_output}
-                              onChange={(e) =>
-                                handleHostExpectedChange(index, hIndex, "expected_output", e.target.value)
-                              }
-                              style={{ width: "40%" }}
-                            />
-                            {cmd.host_expected.length > 1 && (
-                              <button type="button" onClick={() => removeHostExpected(index, hIndex)}>
-                                Remove
-                              </button>
-                            )}
-                          </div>
-                        ))}
-                        <button type="button" onClick={() => addHostExpected(index)}>
-                          Add Host
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                  <button type="button" onClick={addCommand}>
-                    Add Command
-                  </button>
-                </div>
-                <div style={{ marginTop: "10px" }}>
-                  <button className="green-round-lab" type="submit">
-                    {isEditing ? "Update Custom Lab" : "Create Custom Lab"}
-                  </button>
-                  <button
-                    className="cancel-btn"
-                    type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    style={{ marginLeft: "10px" }}
+                {/* command */}
+                <div className="commands-wrapper">
+                  <label
+                    style={{
+                      fontWeight: "bold",
+                      marginRight: "10px",
+                      display: "inline-block",
+                      verticalAlign: "top",
+                      width: "100px",
+                    }}
                   >
-                    Cancel
-                  </button>
+                    Commands:
+                  </label>
+                  <div className="command-add-lab">
+                    {customLabForm.lab_commands.map((cmd, index) => (
+                      <div
+                        key={index}
+                        style={{
+                          marginBottom: "10px",
+                          border: "1px solid #ccc",
+                          padding: "10px",
+                          borderRadius: "6px",
+                          boxShadow: "0 1px 4px rgba(0, 0, 0, 0.1)",
+                        }}
+                      >
+                        <div className="dropdown-lab">
+                          <select
+                            className="dropdown-select-lab"
+                            value={cmd.command}
+                            onChange={(e) =>
+                              handleCommandChange(
+                                index,
+                                "command",
+                                e.target.value
+                              )
+                            }
+                            required
+                            style={{ width: "40%", marginRight: "10px" }}
+                          >
+                            <option value="">Select command</option>
+                            {commandOptions.map((option) => (
+                              <option key={option} value={option}>
+                                {option}
+                              </option>
+                            ))}
+                          </select>
+                          <select
+                            value={cmd.command_type}
+                            onChange={(e) =>
+                              handleCommandChange(
+                                index,
+                                "command_type",
+                                e.target.value
+                              )
+                            }
+                            style={{ width: "20%", marginRight: "10px" }}
+                          >
+                            {commandTypeOptions.map((typeOption) => (
+                              <option key={typeOption} value={typeOption}>
+                                {typeOption}
+                              </option>
+                            ))}
+                          </select>
+                          {customLabForm.lab_commands.length > 1 && (
+                            <ArchiveX
+                              className="archive-x"
+                              onClick={() => removeCommand(index)}
+                            />
+                          )}
+                        </div>
+                        <div style={{ marginTop: "10px" }}>
+                          <strong>Hosts for this command:</strong>
+                          {(cmd.host_expected || []).map((hostExp, hIndex) => (
+                            <div
+                              key={hIndex}
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "10px",
+                                marginTop: "5px",
+                              }}
+                            >
+                              <select
+                                value={hostExp.hostname}
+                                onChange={(e) =>
+                                  handleHostExpectedChange(
+                                    index,
+                                    hIndex,
+                                    "hostname",
+                                    e.target.value
+                                  )
+                                }
+                                style={{ width: "40%" }}
+                                required
+                              >
+                                <option value="">Select host</option>
+                                {hostList
+                                  .filter((h) =>
+                                    cmd.command_type === "all"
+                                      ? true
+                                      : h.deviceType === cmd.command_type
+                                  )
+                                  .map((h) => (
+                                    <option key={h.id} value={h.hostname}>
+                                      {h.hostname}
+                                    </option>
+                                  ))}
+                              </select>
+                              <textarea
+                                placeholder="Expected output"
+                                value={hostExp.expected_output}
+                                onChange={(e) =>
+                                  handleHostExpectedChange(
+                                    index,
+                                    hIndex,
+                                    "expected_output",
+                                    e.target.value
+                                  )
+                                }
+                                style={{ width: "40%" }}
+                              />
+                              {cmd.host_expected.length > 1 && (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    removeHostExpected(index, hIndex)
+                                  }
+                                >
+                                  Remove
+                                </button>
+                              )}
+                            </div>
+                          ))}
+                          <button
+                            type="button"
+                            onClick={() => addHostExpected(index)}
+                          >
+                            Add Host
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                    <div style={{justifyContent: "center", display: "flex"}}>
+                      <button className="add-btn-lab"type="button" onClick={addCommand}>
+                      + Add Command
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                {/* button */}
+                <div
+                  style={{
+                    marginTop: "10px",
+                    display: "flex",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <div>
+                    {isEditing && (
+                      <button
+                        onClick={() => {
+                          if (
+                            window.confirm("คุณต้องการลบ Lab นี้หรือไม่?")
+                          ) {
+                            fetch(`/api/custom_lab/${customLabForm.id}`, {
+                              method: "DELETE",
+                            })
+                              .then((res) => {
+                                if (!res.ok) {
+                                  throw new Error("ไม่สามารถลบ Lab ได้");
+                                }
+                                fetchCustomLabs();
+                                setIsModalOpen(false);
+                              })
+                              .catch((err) => {
+                                console.error("Error deleting lab:", err);
+                                alert("เกิดข้อผิดพลาดในการลบ Lab");
+                              });
+                          }
+                        }}
+                        className="delete-btn-lab"
+                      >
+                        Delete
+                      </button>
+                    )}
+                  </div>
+
+                  <div>
+                    <button
+                      className="cancel-btn-lab"
+                      type="button"
+                      onClick={() => setIsModalOpen(false)}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      className="green-round-lab"
+                      type="submit"
+                      style={{ marginLeft: "10px" }}
+                    >
+                      {isEditing ? "Update" : "Create"}
+                    </button>
+                  </div>
                 </div>
               </form>
             </div>
@@ -690,39 +835,23 @@ function Lab() {
 
         {/* Modal สำหรับ Check Lab Result */}
         {isCheckModalOpen && (
-          <div
-            className="modal-overlay"
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              width: "100%",
-              height: "100%",
-              background: "rgba(0,0,0,0.5)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              zIndex: 1100,
-            }}
-          >
-            <div
-              className="modal-content"
-              style={{
-                background: "white",
-                padding: "20px",
-                borderRadius: "8px",
-                width: "600px",
-                maxHeight: "80vh",
-                overflowY: "auto",
-              }}
-            >
+          <div className="popup-overlay">
+            <div className="popup-content-lab">
               <h2>Check Lab Result</h2>
-              {checkResults ? (
+              {isLoading ? (
+                <div className="loading-container">
+                  <div className="spinner" />
+                  <p>Loading...</p>
+                </div>
+              ) : checkResults ? (
                 <div>
-                  {Object.keys(checkResults.comparison.details.matched).length > 0 && (
+                  {Object.keys(checkResults.comparison.details.matched)
+                    .length > 0 && (
                     <div>
                       <h3 style={{ color: "green" }}>Matched</h3>
-                      {Object.entries(checkResults.comparison.details.matched).map(([hostname, details]) => (
+                      {Object.entries(
+                        checkResults.comparison.details.matched
+                      ).map(([hostname, details]) => (
                         <div key={hostname}>
                           <h4>{hostname}</h4>
                           {details.map((item, idx) => (
@@ -730,7 +859,13 @@ function Lab() {
                               <p>
                                 <strong>Command:</strong> {item.command}
                               </p>
-                              <div style={{ fontFamily: "monospace", whiteSpace: "pre-wrap", color: "green" }}>
+                              <div
+                                style={{
+                                  fontFamily: "monospace",
+                                  whiteSpace: "pre-wrap",
+                                  color: "green",
+                                }}
+                              >
                                 {item.actual.join("\n")}
                               </div>
                             </div>
@@ -739,10 +874,13 @@ function Lab() {
                       ))}
                     </div>
                   )}
-                  {Object.keys(checkResults.comparison.details.unmatch).length > 0 && (
+                  {Object.keys(checkResults.comparison.details.unmatch)
+                    .length > 0 && (
                     <div>
                       <h3 style={{ color: "red" }}>Unmatched</h3>
-                      {Object.entries(checkResults.comparison.details.unmatch).map(([hostname, details]) => (
+                      {Object.entries(
+                        checkResults.comparison.details.unmatch
+                      ).map(([hostname, details]) => (
                         <div key={hostname}>
                           <h4>{hostname}</h4>
                           {details.map((item, idx) => (
@@ -761,9 +899,14 @@ function Lab() {
                       ))}
                     </div>
                   )}
-                  <button onClick={() => setIsCheckModalOpen(false)} style={{ marginTop: "10px" }}>
-                    Close
-                  </button>
+                  <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                    <button
+                      onClick={() => setIsCheckModalOpen(false)}
+                      className="cancel-btn-lab"
+                    >
+                      Close
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <p>No results available.</p>
@@ -771,79 +914,6 @@ function Lab() {
             </div>
           </div>
         )}
-
-        {/* Static Labs Section (สำหรับเดโม) */}
-        <div className="content-board-lab">
-          <div className="lab-topic">Choose lab</div>
-          <div className="lab-board-container">
-            <div className="lab-board">
-              {staticLabs.map((lab) => (
-                <div key={lab.id} style={{ marginBottom: "10px" }}>
-                  <div className="lab-item">
-                    <div
-                      style={{
-                        width: "100%",
-                        cursor: "pointer",
-                        fontSize: "20px",
-                        fontWeight: "450",
-                      }}
-                      onClick={() => toggleExpanded(lab.id)}
-                    >
-                      {lab.title}
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "50px" }}>
-                      <div className="host-name-lab">
-                        Host 1:
-                        <div className="dropdown-lab">
-                          <select className="dropdown-select-lab" value="" onChange={() => {}}>
-                            <option value="option1">Option 1</option>
-                            <option value="option2">Option 2</option>
-                            <option value="option3">Option 3</option>
-                          </select>
-                        </div>
-                      </div>
-                      <div className="host-name-lab">
-                        Host 2:
-                        <div className="dropdown-lab">
-                          <select className="dropdown-select-lab" value="" onChange={() => {}}>
-                            <option value="option1">Option 1</option>
-                            <option value="option2">Option 2</option>
-                            <option value="option3">Option 3</option>
-                          </select>
-                        </div>
-                      </div>
-                      <div
-                        style={{ width: "100%", height: "100%", cursor: "pointer" }}
-                        onClick={() => toggleExpanded(lab.id)}
-                      >
-                        {expanded === lab.id ? <ChevronDown size={24} /> : <ChevronRight size={24} />}
-                      </div>
-                    </div>
-                  </div>
-
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={expanded === lab.id ? { height: "auto", opacity: 1 } : { height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3, ease: "easeInOut" }}
-                    style={{ overflow: "hidden" }}
-                  >
-                    {expanded === lab.id && (
-                      <div className="lab-content">
-                        <p>{lab.content}</p>
-                        <div style={{ display: "flex", justifyContent: "flex-end", margin: "5px" }}>
-                          <button className="green-round-lab" onClick={() => handleCheckLab(lab)}>
-                            Check Lab
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </motion.div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-        {/* End Static Labs */}
       </div>
     </div>
   );
