@@ -85,7 +85,38 @@
 }
 
 
+.description-container{
+    height: 90%;
+    display: left;
+    width: 100%;
+    /* border: solid 2px blue; */
+}
 
+.description-section {
+    /* border: solid 2px red; */
+    padding: 5px;
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    height: 100%; /* Adjust height as needed */
+}
+
+.input-description {
+    margin-top: 10px;
+    flex-grow: 1; /* Allows it to take up remaining space */
+    display: flex; /* Ensures textarea can stretch */
+}
+
+.description-input {
+    width: 100%;
+    height: 100%; /* Makes textarea fill the full height */
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    background-color: #ebebeb;
+    resize: none; /* Prevent resizing if you want fixed height */
+}
 
 
 
