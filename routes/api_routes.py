@@ -2,15 +2,16 @@ import re
 import ipaddress
 from flask import Blueprint, request, jsonify
 from services.ssh_service import create_ssh_connection
-from services.parse import parse_result, parse_interface, parse_switchport, parse_configd, parse_dashboard
+from services.parse import parse_ansible_output, parse_result, parse_interface, parse_switchport, parse_configd, parse_dashboard
 from services.ansible_playbook import generate_playbook
-from services.database import add_device, fetch_all_devices, delete_device, assign_group_to_hosts, delete_group
+from services.database import add_device, fetch_all_devices, delete_device, assign_group_to_hosts, delete_group, create_custom_lab_in_db, fetch_all_custom_labs, delete_custom_lab_in_db, update_custom_lab_in_db
 from services.generate_inventory import generate_inventory_content
 from services.show_command import sh_ip_int_br, sh_ip_int_br_rt, sh_dashboard, sh_swtort
 from services.show_command.sh_config_sw import sh_config
 from services.cidr import cidr_to_subnet_mask
 from services.calculate_network_id import calculate_network_id
 from services.routing_service import RoutingService
+from services.compare import compare_expected_outputs
 
 api_bp = Blueprint('api', __name__)
 
@@ -1091,6 +1092,140 @@ def show_swtort():
 
         # Return the structured data including deviceType for each host
         return jsonify({"parsed_result": parsed_result})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@api_bp.route('/api/custom_lab', methods=['GET'])
+def get_custom_labs():
+    try:
+        labs = fetch_all_custom_labs()
+        return jsonify(labs), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@api_bp.route('/api/custom_lab', methods=['POST'])
+def create_custom_lab():
+    data = request.json
+    name = data.get("name")
+    description = data.get("description")
+    lab_commands = data.get("lab_commands", [])
+    try:
+        custom_lab_id = create_custom_lab_in_db(name, description, lab_commands)
+        response = {
+            "id": custom_lab_id,
+            "name": name,
+            "description": description,
+            "lab_commands": lab_commands
+        }
+        return jsonify(response), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@api_bp.route('/api/custom_lab/<int:lab_id>', methods=['PUT'])
+def update_custom_lab(lab_id):
+    data = request.json
+    name = data.get("name")
+    description = data.get("description")
+    lab_commands = data.get("lab_commands", [])
+    try:
+        update_custom_lab_in_db(lab_id, name, description, lab_commands)
+        return jsonify({"message": "Custom lab updated successfully."}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@api_bp.route('/api/custom_lab/<int:lab_id>', methods=['DELETE'])
+def delete_custom_lab(lab_id):
+    try:
+        delete_custom_lab_in_db(lab_id)
+        return jsonify({"message": "Custom lab deleted successfully."}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@api_bp.route('/api/custom_lab/check', methods=['POST'])
+def create_playbook_check_lab():
+    try:
+        # 1) รับข้อมูลจาก request
+        data = request.json
+        lab_id = data.get("lab_id")
+        lab_commands = data.get("lab_commands")
+        
+        # ตรวจสอบข้อมูลพื้นฐาน
+        if not lab_id:
+            return jsonify({"error": "Missing lab_id"}), 400
+        if not lab_commands or not isinstance(lab_commands, list):
+            return jsonify({"error": "Missing lab_commands or lab_commands is not a list"}), 400
+
+        # 2) สร้าง header ของ playbook
+        # เราใช้ hosts: all เพราะจะใช้ when conditions ในแต่ละ task
+        playbook_content = """---
+- name: Check Custom Lab Commands
+  hosts: all
+  gather_facts: no
+  tasks:
+"""
+
+        # 3) สร้าง task สำหรับแต่ละ command
+        # โดยเราจะ iterate ผ่าน lab_commands และภายในแต่ละ command จะวนลูปตาม host_expected ที่ส่งเข้ามา
+        for idx, cmd in enumerate(lab_commands, start=1):
+            command_text = cmd.get("command")
+            # command_order ไม่ได้ถูกใช้ใน playbook generation นี้ แต่สามารถนำไปใช้งานต่อได้หากต้องการ
+            command_order = cmd.get("command_order")
+            device_type = cmd.get("device_type")
+            host_expected = cmd.get("host_expected", [])
+            if not command_text:
+                return jsonify({"error": f"Missing command text for command #{idx}"}), 400
+
+            # สร้าง task สำหรับแต่ละ host ตามที่ระบุใน host_expected
+            for host in host_expected:
+                hostname = host.get("hostname")
+                if not hostname:
+                    return jsonify({"error": f"Missing hostname for command #{idx}"}), 400
+
+                # สร้าง task สำหรับรันคำสั่ง
+                playbook_content += f"""
+  - name: "Run {device_type.capitalize()} Command {idx} on {hostname}: {command_text}"
+    ios_command:
+      commands:
+        - "{command_text}"
+    register: {device_type}_result_{idx}_{hostname}
+    when: inventory_hostname == "{hostname}"
+"""
+                # สร้าง task สำหรับแสดงผลลัพธ์ (Display)
+                playbook_content += f"""
+  - name: "Display {device_type.capitalize()} Result {idx} on {hostname}"
+    debug:
+      msg: "{{{{ {device_type}_result_{idx}_{hostname}.stdout_lines | default('No output', true) }}}}"
+    when: {device_type}_result_{idx}_{hostname} is defined and ({device_type}_result_{idx}_{hostname}.stdout_lines | default([])) | length > 0
+"""
+
+        # 4) เขียน playbook ลงไฟล์บนเซิร์ฟเวอร์ผ่าน SSH
+        ssh, username = create_ssh_connection()
+        playbook_path = f"/home/{username}/playbook/custom_lab_check.yml"
+        inventory_path = f"/home/{username}/inventory/inventory.ini"
+        
+        sftp = ssh.open_sftp()
+        with sftp.open(playbook_path, "w") as playbook_file:
+            playbook_file.write(playbook_content)
+        sftp.close()
+
+        # 5) รัน playbook ด้วยคำสั่ง ansible-playbook
+        command = f"ansible-playbook -i {inventory_path} {playbook_path}"
+        stdin, stdout, stderr = ssh.exec_command(command)
+        ansible_output = stdout.read().decode('utf-8')
+        ansible_errors = stderr.read().decode('utf-8')
+        ssh.close()
+
+        # 6) แยกผลลัพธ์จาก task "Display" ด้วย regex (โดยสมมุติว่ามีฟังก์ชัน parse_ansible_output อยู่)
+        parsed_output = parse_ansible_output(ansible_output)
+        compare_result = compare_expected_outputs(parsed_output, lab_commands)
+        print(compare_result)
+
+        # 7) ส่งผลลัพธ์กลับไปยัง Frontend
+        return jsonify({
+            "parsed_output": parsed_output,
+            "comparison": compare_result
+        }), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
