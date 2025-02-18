@@ -6,9 +6,10 @@ const SettingLab = ({ lab, openModalForEdit }) => {
     return (
         <div style={{ position: "relative", display: "inline-block" }}>
             <Pencil
-                size={16}
-                color={isHovered ? "#FFB226" : "#AFAFAF"}
+                size={25}
+                color={isHovered ? "#FFB226" : "#FFFFFF"}
                 style={{
+                    paddingBottom: "4px",
                     marginLeft: "10px",
                     cursor: "pointer",
                     transform: isHovered ? "scale(1.05)" : "scale(1)",
@@ -31,7 +32,7 @@ const SettingLab = ({ lab, openModalForEdit }) => {
                         padding: "2px 5px",
                         borderRadius: "3px",
                         marginTop: "4px",
-                        fontSize: "10px",
+                        fontSize: "12px",
                         whiteSpace: "nowrap",
                         pointerEvents: "none", // so it doesn't interfere with hover events
                     }}

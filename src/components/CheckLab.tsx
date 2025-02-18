@@ -7,8 +7,8 @@ const CheckLab = ({ lab, handleCheckLab }) => {
   return (
     <div style={{ position: "relative", display: "inline-block" }}>
       <BookCheck
-        size={28}
-        color={isHovered ? "#00CC00" : "#AFAFAF"}
+        size={35}
+        color={isHovered ? "rgb(55, 255, 5)" : "#FFFFFF"}
         style={{
           marginRight: "10px",
           cursor: "pointer",
@@ -31,7 +31,7 @@ const CheckLab = ({ lab, handleCheckLab }) => {
             padding: "2px 5px",
             borderRadius: "3px",
             marginTop: "4px",
-            fontSize: "10px",
+            fontSize: "12px",
             whiteSpace: "nowrap",
             pointerEvents: "none", // so it doesn't interfere with hover events
           }}

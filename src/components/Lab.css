@@ -92,7 +92,6 @@
 
 .dropdown-select-lab {
     border-radius: 20px;
-    margin-top: 5px;
     padding: 5px;
     border: 1px solid #ccc;
     background-color: #fff;
@@ -214,12 +213,13 @@
 }
 
 .addButton-lab {
+    font-size: 18px;
     display: flex;
     align-items: center;
-    background: #6ad66d;
+    background: linear-gradient(135deg, #47afff, #a1fda5);
     border: none;
-    padding: 5px 10px;
-    border-radius: 16px;
+    padding: 8px 15px;
+    border-radius: 22px;
     color: #fff;
     cursor: pointer;
     transition: 0.3s ease;
@@ -227,7 +227,7 @@
 }
 
 .addButton-lab:hover {
-    background: #4bc051;
+    background: linear-gradient(135deg, #3d9ce4, #7fea86);
     transform: scale(1.02);
 }
 
@@ -247,15 +247,23 @@
 
 .labItem-lab {
     margin-bottom: 10px;
-    padding: 10px;
-    border: 1px solid #eee;
-    border-radius: 4px;
-    background: #f9f9f9;
+    padding: 10px 20px;
+    border: 1px solid #fedef3;
+    border-radius: 10px;
+    background: linear-gradient(270deg, #f9b1ea, #ffdfd5);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 70px;
+    height: 100px;
+    font-size: 22px;
+    box-shadow: 0 8px 8px rgba(251, 36, 168, 0.2);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
+
+.labItem-lab:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+  }
 
 .labInfo-lab .labName-lab {
     color: #333;
@@ -321,7 +329,7 @@
 
 .cancel-btn-lab:hover {
     transform: translateY(-2px);
-    background: linear-gradient(90deg, #6a6969, #5b5351);
+    background: linear-gradient(90deg, #8a8a8a, #8a8a8a);
     transform: scale(1.05);
 }
 
@@ -381,6 +389,43 @@
     transform: scale(1.05);
 }
 
+.add-device-lab {
+    background-color: #afd9e0;
+    border-radius: 20px;
+    border: 1px solid #e6e6e6;
+    color: rgb(51, 51, 51);
+    padding: 4px 12px;
+    margin: 10px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.add-device-lab:hover {
+    transform: translateY(-2px);
+    transform: scale(1.03);
+}
+
+.edit-btn-lab {
+    background-color: #e0e2ac;
+    border-radius: 20px;
+    border: 1px solid #e6e6e6;
+    color: rgb(51, 51, 51);
+    padding: 4px 12px;
+    margin: 5px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.edit-btn-lab:hover {
+    transform: translateY(-2px);
+    transform: scale(1.03);
+}
+
+
+
+
 
 
 
@@ -435,23 +480,55 @@
 
 .popup-content-lab {
     background-color: #fff;
-    padding: 25px;
+    padding: 25px 20px 25px 25px;
     border-radius: 8px;
-    height: 85%;
-    width: 35%;
-    min-width: 500px;
+    height: 92%;
+    width: 45%;
+    min-width: 600px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
     animation: showPopup 0.3s ease forwards;
     gap: 15px;
-}
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #c3c3c3 #f1f1f1;
+  }
+  
+  /* For WebKit browsers: Set the scrollbar’s default opacity to 0 */
+  .popup-content-lab::-webkit-scrollbar {
+    width: 8px;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  
+  /* On hover, show the scrollbar */
+  .popup-content-lab:hover::-webkit-scrollbar {
+    opacity: 1;
+  }
+  
+  .popup-content-lab::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 8px;
+  }
+  
+  .popup-content-lab::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  
+  .popup-content-lab::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+  
+
 
 .commands-wrapper {
     display: flex;
     flex-direction: column;
-    overflow: hidden;
-    height: 350px;
+    height: 410px;
 }
 
 
@@ -460,5 +537,43 @@
     display: flex;
     flex-direction: column;
     overflow-y: auto;
+    margin: 3px 0;
     padding: 10px 0;
+    scrollbar-width: thin;
+    scrollbar-color: #c3c3c3 #f1f1f1;
+  }
+  
+  /* For WebKit browsers */
+  .command-add-lab::-webkit-scrollbar {
+    width: 8px;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  
+  .command-add-lab:hover::-webkit-scrollbar {
+    opacity: 1;
+  }
+  
+  .command-add-lab::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 8px;
+  }
+  
+  .command-add-lab::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  
+  .command-add-lab::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+  
+
+
+
+.dropdown-lab {
+    display: flex;
+    justify-content: space-between;
 }

@@ -3,6 +3,8 @@ import {
   ArrowLeftFromLine,
   ChevronDown,
   ChevronRight,
+  Circle,
+  CircleMinus,
   Menu,
   PlusCircle,
 } from "lucide-react";
@@ -13,6 +15,8 @@ import "./Lab.css";
 import "./Popup.css";
 import CheckLab from "./CheckLab.tsx";
 import SettingLab from "./SettingLab.tsx";
+import Select from "react-select";
+import style from "./../../node_modules/dom-helpers/esm/css";
 
 // ตัวเลือกของ Command ที่แสดงใน dropdown
 const commandOptions = [
@@ -185,6 +189,13 @@ function Lab() {
 
   const [hostList, setHostList] = useState<Host[]>([]);
 
+  // New state for Expected Output Popup
+  const [expectedOutputPopup, setExpectedOutputPopup] = useState<{
+    cmdIndex: number;
+    hostIndex: number;
+    value: string;
+  } | null>(null);
+
   useEffect(() => {
     fetchCustomLabs();
   }, []);
@@ -197,11 +208,14 @@ function Lab() {
         throw new Error("Failed to fetch custom labs");
       }
       const data = await response.json();
+      // Sort by your desired criteria, e.g., by an 'order' field or original index.
+      data.sort((a, b) => a.order - b.order);
       setCustomLabs(data);
     } catch (error) {
       console.error(error);
     }
   };
+
 
   // ดึง host list จาก backend (ใช้ใน custom lab modal)
   const fetchHostList = async () => {
@@ -423,7 +437,41 @@ function Lab() {
     }
   };
 
-  const [isHovered, setIsHovered] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const handleDeleteLab = async () => {
+    try {
+      console.log("Lab ID to delete:", customLabForm.id);
+      const url = `/api/custom_lab/${customLabForm.id}`;
+      console.log("Deleting lab at URL:", url);
+
+      const response = await fetch(url, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        let errorMessage = "Failed to delete Lab";
+        try {
+          const contentType = response.headers.get("content-type");
+          if (contentType && contentType.includes("application/json")) {
+            const errorData = await response.json();
+            errorMessage = errorData.error || errorMessage;
+          } else {
+            errorMessage = await response.text();
+          }
+        } catch (parseError) {
+          console.error("Error parsing error response:", parseError);
+        }
+        throw new Error(errorMessage);
+      }
+
+      await fetchCustomLabs();
+      setIsDeleteModalOpen(false);
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Error deleting lab:", error);
+      alert("เกิดข้อผิดพลาดในการลบ Lab: " + error.message);
+    }
+  };
 
   return (
     <div className="App">
@@ -450,12 +498,8 @@ function Lab() {
               transition: "background 0.3s ease",
             }}
             onClick={() => setIsNavOpen(false)}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.background = "#d0d5da")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.background = "#e2e6ea")
-            }
+            onMouseEnter={(e) => (e.currentTarget.style.background = "#d0d5da")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "#e2e6ea")}
           >
             <ArrowLeftFromLine size={24} />
           </button>
@@ -536,8 +580,8 @@ function Lab() {
             <h3 className="title-lab">Custom Labs</h3>
             <div className="buttonContainer-lab">
               <button onClick={openModalForCreate} className="addButton-lab">
-                <PlusCircle size={20} className="icon-lab" />
-                Add Lab
+                <PlusCircle size={20} className="icon-lab" style={{ marginRight: "8px" }} />
+                Create new lab
               </button>
             </div>
           </div>
@@ -603,7 +647,6 @@ function Lab() {
                       fontWeight: "bold",
                       marginRight: "10px",
                       display: "inline-block",
-                      verticalAlign: "top",
                       width: "100px",
                     }}
                   >
@@ -618,8 +661,8 @@ function Lab() {
                       borderRadius: "4px",
                       border: "1px solid #ccc",
                       width: "calc(100% - 120px)",
-                      height: "80px",
-                      minHeight: "35px",
+                      height: "40px",
+                      minHeight: "40px",
                       verticalAlign: "top",
                     }}
                   />
@@ -644,58 +687,53 @@ function Lab() {
                         style={{
                           marginBottom: "10px",
                           border: "1px solid #ccc",
-                          padding: "10px",
+                          padding: "15px 18px",
                           borderRadius: "6px",
-                          boxShadow: "0 1px 4px rgba(0, 0, 0, 0.1)",
+                          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1, 0.15)",
                         }}
                       >
                         <div className="dropdown-lab">
-                          <select
-                            className="dropdown-select-lab"
-                            value={cmd.command}
-                            onChange={(e) =>
-                              handleCommandChange(
-                                index,
-                                "command",
-                                e.target.value
-                              )
-                            }
-                            required
-                            style={{ width: "40%", marginRight: "10px" }}
-                          >
-                            <option value="">Select command</option>
-                            {commandOptions.map((option) => (
-                              <option key={option} value={option}>
-                                {option}
-                              </option>
-                            ))}
-                          </select>
-                          <select
-                            value={cmd.command_type}
-                            onChange={(e) =>
-                              handleCommandChange(
-                                index,
-                                "command_type",
-                                e.target.value
-                              )
-                            }
-                            style={{ width: "20%", marginRight: "10px" }}
-                          >
-                            {commandTypeOptions.map((typeOption) => (
-                              <option key={typeOption} value={typeOption}>
-                                {typeOption}
-                              </option>
-                            ))}
-                          </select>
+                          <div>
+                            <strong>Select command:</strong>
+                            <select
+                              className="dropdown-select-lab"
+                              value={cmd.command}
+                              onChange={(e) =>
+                                handleCommandChange(
+                                  index,
+                                  "command",
+                                  e.target.value
+                                )
+                              }
+                              required
+                              style={{ width: "60%", marginLeft: "10px" }}
+                            >
+                              <option value="">Select command</option>
+                              {commandOptions.map((option) => (
+                                <option key={option} value={option}>
+                                  {option}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
                           {customLabForm.lab_commands.length > 1 && (
                             <ArchiveX
                               className="archive-x"
+                              style={{ marginTop: "5px" }}
                               onClick={() => removeCommand(index)}
                             />
                           )}
                         </div>
                         <div style={{ marginTop: "10px" }}>
-                          <strong>Hosts for this command:</strong>
+                          <strong>Select device:</strong>
+                          <button
+                            className="add-device-lab"
+                            type="button"
+                            onClick={() => addHostExpected(index)}
+                          >
+                            + Add Device
+                          </button>
+
                           {(cmd.host_expected || []).map((hostExp, hIndex) => (
                             <div
                               key={hIndex}
@@ -707,6 +745,7 @@ function Lab() {
                               }}
                             >
                               <select
+                                className="dropdown-select-lab"
                                 value={hostExp.hostname}
                                 onChange={(e) =>
                                   handleHostExpectedChange(
@@ -719,12 +758,10 @@ function Lab() {
                                 style={{ width: "40%" }}
                                 required
                               >
-                                <option value="">Select host</option>
-                                {hostList
-                                  .filter((h) =>
-                                    cmd.command_type === "all"
-                                      ? true
-                                      : h.deviceType === cmd.command_type
+                                <option value="">Select device</option>
+                                {[...hostList]
+                                  .sort((a, b) =>
+                                    a.hostname.localeCompare(b.hostname)
                                   )
                                   .map((h) => (
                                     <option key={h.id} value={h.hostname}>
@@ -732,47 +769,48 @@ function Lab() {
                                     </option>
                                   ))}
                               </select>
-                              <textarea
-                                placeholder="Expected output"
-                                value={hostExp.expected_output}
-                                onChange={(e) =>
-                                  handleHostExpectedChange(
-                                    index,
-                                    hIndex,
-                                    "expected_output",
-                                    e.target.value
-                                  )
+
+                              {/* Replace the textarea with a button */}
+                              <button
+                                className="edit-btn-lab"
+                                type="button"
+                                onClick={() =>
+                                  setExpectedOutputPopup({
+                                    cmdIndex: index,
+                                    hostIndex: hIndex,
+                                    value: hostExp.expected_output,
+                                  })
                                 }
-                                style={{ width: "40%" }}
-                              />
+                              >
+                                Edit Expected Output
+                              </button>
+
                               {cmd.host_expected.length > 1 && (
-                                <button
-                                  type="button"
+                                <CircleMinus
                                   onClick={() =>
                                     removeHostExpected(index, hIndex)
                                   }
-                                >
-                                  Remove
-                                </button>
+                                  color="red"
+                                  cursor={"pointer"}
+                                />
                               )}
                             </div>
                           ))}
-                          <button
-                            type="button"
-                            onClick={() => addHostExpected(index)}
-                          >
-                            Add Host
-                          </button>
                         </div>
                       </div>
                     ))}
-                    <div style={{justifyContent: "center", display: "flex"}}>
-                      <button className="add-btn-lab"type="button" onClick={addCommand}>
-                      + Add Command
+                    <div style={{ justifyContent: "center", display: "flex" }}>
+                      <button
+                        className="add-btn-lab"
+                        type="button"
+                        onClick={addCommand}
+                      >
+                        + Add Command
                       </button>
                     </div>
                   </div>
                 </div>
+
                 {/* button */}
                 <div
                   style={{
@@ -784,33 +822,14 @@ function Lab() {
                   <div>
                     {isEditing && (
                       <button
-                        onClick={() => {
-                          if (
-                            window.confirm("คุณต้องการลบ Lab นี้หรือไม่?")
-                          ) {
-                            fetch(`/api/custom_lab/${customLabForm.id}`, {
-                              method: "DELETE",
-                            })
-                              .then((res) => {
-                                if (!res.ok) {
-                                  throw new Error("ไม่สามารถลบ Lab ได้");
-                                }
-                                fetchCustomLabs();
-                                setIsModalOpen(false);
-                              })
-                              .catch((err) => {
-                                console.error("Error deleting lab:", err);
-                                alert("เกิดข้อผิดพลาดในการลบ Lab");
-                              });
-                          }
-                        }}
+                        type="button" // Prevents form submission
+                        onClick={() => setIsDeleteModalOpen(true)}
                         className="delete-btn-lab"
                       >
                         Delete
                       </button>
                     )}
                   </div>
-
                   <div>
                     <button
                       className="cancel-btn-lab"
@@ -833,6 +852,61 @@ function Lab() {
           </div>
         )}
 
+        {/* Popup Modal สำหรับแก้ไข Expected Output */}
+        {expectedOutputPopup && (
+          <div className="popup-overlay">
+            <div className="popup-content-lab">
+              <h2>Edit Expected Output</h2>
+              <textarea
+                value={expectedOutputPopup.value}
+                onChange={(e) =>
+                  setExpectedOutputPopup({
+                    ...expectedOutputPopup,
+                    value: e.target.value,
+                  })
+                }
+                style={{
+                  padding: "10px",
+                  width: "100%",
+                  height: "150px",
+                  marginTop: "10px",
+                }}
+                placeholder="Expected output.."
+              />
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  gap: "10px",
+                  marginTop: "10px",
+                }}
+              >
+                <button
+                  className="cancel-btn-lab"
+                  onClick={() => setExpectedOutputPopup(null)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="green-round-lab"
+                  onClick={() => {
+                    // Save the updated expected output
+                    handleHostExpectedChange(
+                      expectedOutputPopup.cmdIndex,
+                      expectedOutputPopup.hostIndex,
+                      "expected_output",
+                      expectedOutputPopup.value
+                    );
+                    setExpectedOutputPopup(null);
+                  }}
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Modal สำหรับ Check Lab Result */}
         {isCheckModalOpen && (
           <div className="popup-overlay">
@@ -845,60 +919,60 @@ function Lab() {
                 </div>
               ) : checkResults ? (
                 <div>
-                  {Object.keys(checkResults.comparison.details.matched)
-                    .length > 0 && (
-                    <div>
-                      <h3 style={{ color: "green" }}>Matched</h3>
-                      {Object.entries(
-                        checkResults.comparison.details.matched
-                      ).map(([hostname, details]) => (
-                        <div key={hostname}>
-                          <h4>{hostname}</h4>
-                          {details.map((item, idx) => (
-                            <div key={idx} style={{ marginBottom: "15px" }}>
-                              <p>
-                                <strong>Command:</strong> {item.command}
-                              </p>
-                              <div
-                                style={{
-                                  fontFamily: "monospace",
-                                  whiteSpace: "pre-wrap",
-                                  color: "green",
-                                }}
-                              >
-                                {item.actual.join("\n")}
+                  {Object.keys(checkResults.comparison.details.matched).length >
+                    0 && (
+                      <div>
+                        <h3 style={{ color: "green" }}>Matched</h3>
+                        {Object.entries(
+                          checkResults.comparison.details.matched
+                        ).map(([hostname, details]) => (
+                          <div key={hostname}>
+                            <h4>{hostname}</h4>
+                            {details.map((item, idx) => (
+                              <div key={idx} style={{ marginBottom: "15px" }}>
+                                <p>
+                                  <strong>Command:</strong> {item.command}
+                                </p>
+                                <div
+                                  style={{
+                                    fontFamily: "monospace",
+                                    whiteSpace: "pre-wrap",
+                                    color: "green",
+                                  }}
+                                >
+                                  {item.actual.join("\n")}
+                                </div>
                               </div>
-                            </div>
-                          ))}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {Object.keys(checkResults.comparison.details.unmatch)
-                    .length > 0 && (
-                    <div>
-                      <h3 style={{ color: "red" }}>Unmatched</h3>
-                      {Object.entries(
-                        checkResults.comparison.details.unmatch
-                      ).map(([hostname, details]) => (
-                        <div key={hostname}>
-                          <h4>{hostname}</h4>
-                          {details.map((item, idx) => (
-                            <div key={idx} style={{ marginBottom: "15px" }}>
-                              <p>
-                                <strong>Command:</strong> {item.command}
-                              </p>
-                              <OutputWithDiff
-                                actual={item.actual}
-                                expected={item.expected}
-                                diff={item.diff}
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  {Object.keys(checkResults.comparison.details.unmatch).length >
+                    0 && (
+                      <div>
+                        <h3 style={{ color: "red" }}>Unmatched</h3>
+                        {Object.entries(
+                          checkResults.comparison.details.unmatch
+                        ).map(([hostname, details]) => (
+                          <div key={hostname}>
+                            <h4>{hostname}</h4>
+                            {details.map((item, idx) => (
+                              <div key={idx} style={{ marginBottom: "15px" }}>
+                                <p>
+                                  <strong>Command:</strong> {item.command}
+                                </p>
+                                <OutputWithDiff
+                                  actual={item.actual}
+                                  expected={item.expected}
+                                  diff={item.diff}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   <div style={{ display: "flex", justifyContent: "flex-end" }}>
                     <button
                       onClick={() => setIsCheckModalOpen(false)}
@@ -914,6 +988,37 @@ function Lab() {
             </div>
           </div>
         )}
+
+        {isDeleteModalOpen && (
+          <div className="popup-overlay">
+            <div className="popup-content">
+              <h2>Confirm Delete</h2>
+              <div>Are you sure you want to delete this Lab </div>
+              <div style={{ color: "red" }}>
+                "{customLabForm.name}"
+              </div>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  gap: "10px",
+                  marginTop: "10px",
+                }}
+              >
+                <button
+                  className="cancel-btn-lab"
+                  onClick={() => setIsDeleteModalOpen(false)}
+                >
+                  Cancel
+                </button>
+                <button className="green-round-lab" onClick={handleDeleteLab}>
+                  Confirm
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );
