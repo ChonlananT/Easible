@@ -311,6 +311,8 @@ function SwitchSwitch() {
     setIsNavDropdownOpen(!isNavDropdownOpen);
   };
 
+  const [showPopup, setShowPopup] = useState(false);
+
   return (
     <div className="App">
       <div className={`nav-links-container ${isNavOpen ? '' : 'closed'}`}>
@@ -694,7 +696,22 @@ function SwitchSwitch() {
           </button>
         </div>
 
-        {error && <div className="error-sw-sw">Error: {error}</div>}
+        {error && (
+          <div className="popup-overlay">
+            <div className="popup-content-host">
+              <div className="error-rt-rt">{error}</div>
+              <button
+                className="cancel-btn"
+                onClick={() => {
+                  setError("");
+                  setShowPopup(false);
+                }}
+              >
+                close
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

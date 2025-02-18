@@ -292,6 +292,8 @@ function SwitchHost() {
     setIsNavDropdownOpen(!isNavDropdownOpen);
   };
 
+  const [showPopup, setShowPopup] = useState(false);
+
   return (
     <div className="App">
       <div className={`nav-links-container ${isNavOpen ? '' : 'closed'}`}>
@@ -441,7 +443,7 @@ function SwitchHost() {
                       <div className="command-section-swh">
                         {/* Loop through each interface configuration for this link */}
                         {link.interfaces.map((iface, ifaceIndex) => (
-                          
+
                           <div key={ifaceIndex} className="interface-config-swh">
                             <div className="interface-selection__vlan-configuration-swh">
                               <div className="host-selection__dropdown-swh">
@@ -509,12 +511,12 @@ function SwitchHost() {
                             </div>
                             {link.interfaces.length > 1 && (
                               <div>
-                                <CircleMinus style={{ width: '30px', height: '30px', color: 'red', marginTop:'55px', marginLeft:'10px', cursor: 'pointer'}} onClick={() => handleRemoveInterface(linkIndex, ifaceIndex)} />
+                                <CircleMinus style={{ width: '30px', height: '30px', color: 'red', marginTop: '55px', marginLeft: '10px', cursor: 'pointer' }} onClick={() => handleRemoveInterface(linkIndex, ifaceIndex)} />
                               </div>
-                              )}
+                            )}
                           </div>
                         ))}
-                        <span/>
+                        <span />
                         <button className="button-add-interface" onClick={() => handleAddInterface(linkIndex)}>
                           + Add Interface
                         </button>
@@ -593,11 +595,25 @@ function SwitchHost() {
           </div>
         )}
 
-        {error && <div className="error-sw-sw">Error: {error}</div>}
+        {error && (
+          <div className="popup-overlay">
+            <div className="popup-content-host">
+              <div className="error-rt-rt">{error}</div>
+              <button
+                className="cancel-btn"
+                onClick={() => {
+                  setError("");
+                  setShowPopup(false);
+                }}
+              >
+                close
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
 export default SwitchHost;
-  

@@ -670,7 +670,7 @@ function ConfigDevice() {
     }));
   };
 
-
+  const [showPopup, setShowPopup] = useState(false);
 
   return (
     <div className="App">
@@ -1202,7 +1202,22 @@ function ConfigDevice() {
             Submit All
           </button>
         </div>
-        {error && <div className="error-sw-sw">Error: {error}</div>}
+        {error && (
+          <div className="popup-overlay">
+            <div className="popup-content-host">
+              <div className="error-rt-rt">{error}</div>
+              <button
+                className="cancel-btn"
+                onClick={() => {
+                  setError("");
+                  setShowPopup(false);
+                }}
+              >
+                close
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

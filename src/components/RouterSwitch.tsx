@@ -119,16 +119,16 @@ function SwitchRouter() {
       const newLinks = [...prevLinks];
       // If the host selection changes, reset the related interface field
       if (field === 'selectedSwitchHost') {
-        newLinks[linkIndex] = { 
-          ...newLinks[linkIndex], 
-          [field]: value, 
-          selectedSwitchInterface: '' 
+        newLinks[linkIndex] = {
+          ...newLinks[linkIndex],
+          [field]: value,
+          selectedSwitchInterface: ''
         };
       } else if (field === 'selectedRouterHost') {
-        newLinks[linkIndex] = { 
-          ...newLinks[linkIndex], 
-          [field]: value, 
-          selectedRouterInterface: '' 
+        newLinks[linkIndex] = {
+          ...newLinks[linkIndex],
+          [field]: value,
+          selectedRouterInterface: ''
         };
       } else {
         newLinks[linkIndex] = { ...newLinks[linkIndex], [field]: value };
@@ -253,6 +253,8 @@ function SwitchRouter() {
   const togglePopup = () => {
     setIsPopupOpen(!isPopupOpen);
   };
+
+  const [showPopup, setShowPopup] = useState(false);
 
   return (
     <div className="App">
@@ -423,13 +425,13 @@ function SwitchRouter() {
 
                       <div className="connect-pic-rt-rt">
                         <img
-                            src="connect.png"  // Replace with your actual image path
-                            alt="Remove link"
-                            style={{ width: '150px', height: '100px'}}  // Adjust size as needed
-                          /> 
-                          <label>Inter-VLAN Routing</label>
+                          src="connect.png"  // Replace with your actual image path
+                          alt="Remove link"
+                          style={{ width: '150px', height: '100px' }}  // Adjust size as needed
+                        />
+                        <label>Inter-VLAN Routing</label>
                       </div>
-                        
+
 
                       {/* Router Host Card */}
                       <div style={{ marginTop: '20px' }}>
@@ -488,62 +490,78 @@ function SwitchRouter() {
                     {/* VLAN Configuration Section */}
                     <div className="vlan-rt-sw">
                       <h5 style={{ margin: '0px auto' }}>VLAN Configuration</h5>
-                      <p/>
-                      {link.vlanConfigs.map((vlan, vlanIndex) => (
-                        <div key={vlanIndex} className="vlan-rt-sw-input">
-                          <div className="input-sw-sw-group">
-                            <label>VLAN ID:</label>
-                            <div className="host-selection__dropdown-container">
-                              <select
-                                className="input-sw-sw"
-                                value={vlan.vlanId}
-                                onChange={(e) =>
-                                  handleVlanChange(index, vlanIndex, 'vlanId', e.target.value)
-                                }
-                              >
-                                <option value="">-- Select VLAN ID --</option>
-                                {getVlanIdsForHost(link.selectedSwitchHost).map((vlanOption) => (
-                                  <option key={vlanOption} value={vlanOption}>
-                                    {vlanOption}
-                                  </option>
-                                ))}
-                              </select>
+                      <p />
+                      {link.vlanConfigs.length === 0 ? (
+                        <p style={{ color: 'grey', textAlign: 'center' }}>
+                          No VLANs have been added yet.
+                        </p>
+                      ) : (
+                        link.vlanConfigs.map((vlan, vlanIndex) => (
+                          <div key={vlanIndex} className="vlan-rt-sw-input">
+                            <div className="input-sw-sw-group">
+                              <label>VLAN ID:</label>
+                              <div className="host-selection__dropdown-container">
+                                <select
+                                  className="input-sw-sw"
+                                  value={vlan.vlanId}
+                                  onChange={(e) =>
+                                    handleVlanChange(index, vlanIndex, 'vlanId', e.target.value)
+                                  }
+                                >
+                                  <option value="">-- Select VLAN ID --</option>
+                                  {getVlanIdsForHost(link.selectedSwitchHost).map((vlanOption) => (
+                                    <option key={vlanOption} value={vlanOption}>
+                                      {vlanOption}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
                             </div>
-                          </div>
-                          <div className="input-sw-sw-group">
-                            <label>Gateway:</label>
-                            <input
-                              type="text"
-                              value={vlan.gateway}
-                              onChange={(e) =>
-                                handleVlanChange(index, vlanIndex, 'gateway', e.target.value)
-                              }
-                              placeholder="Enter Gateway"
-                              className="input-sw-sw"
+                            <div className="input-sw-sw-group">
+                              <label>Gateway:</label>
+                              <input
+                                type="text"
+                                value={vlan.gateway}
+                                onChange={(e) =>
+                                  handleVlanChange(index, vlanIndex, 'gateway', e.target.value)
+                                }
+                                placeholder="Enter Gateway"
+                                className="input-sw-sw"
+                              />
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                              <span style={{ fontSize: '25px', marginTop: '10px' }}>/</span>
+                            </div>
+                            <div className="input-sw-sw-group" style={{ width: '35%' }}>
+                              <label>Subnet:</label>
+                              <input
+                                type="number"
+                                value={vlan.subnet || 24} // Default to 24 if vlan.subnet is empty
+                                onChange={(e) => handleVlanChange(index, vlanIndex, 'subnet', e.target.value)}
+                                placeholder="24"
+                                className="input-sw-sw"
+                                min="1"
+                                max="32"
+                              />
+                            </div>
+                            <CircleMinus
+                              style={{
+                                width: '95px',
+                                height: '95px',
+                                color: 'red',
+                                marginTop: '10px',
+                                cursor: 'pointer',
+                              }}
+                              onClick={() => handleRemoveVlan(index, vlanIndex)}
                             />
                           </div>
-                          <div style={{ display: 'flex', alignItems: 'center' }}>
-                            <span style={{ fontSize: '25px', marginTop: '10px' }}>/</span>
-                          </div>
-                          <div className="input-sw-sw-group" style={{ width: '35%' }}>
-                            <label>Subnet:</label>
-                            <input
-                              type="number"
-                              value={vlan.subnet || 24} // Set 24 as default if vlan.subnet is empty
-                              onChange={(e) => handleVlanChange(index, vlanIndex, 'subnet', e.target.value)}
-                              placeholder="24"
-                              className="input-sw-sw"
-                              min="1"
-                              max="32" 
-                            />
-                          </div>
-                          <CircleMinus style={{ width: '95px', height: '95px', color: 'red', marginTop:'10px', cursor: 'pointer'}} onClick={() => handleRemoveVlan(index, vlanIndex)} />
-                        </div>
-                      ))}
+                        ))
+                      )}
                       <button className="button-add-vlan" onClick={() => handleAddVlan(index)}>
                         + Add VLAN
                       </button>
                     </div>
+
                   </div>
                 </div>
               </div>
@@ -569,63 +587,63 @@ function SwitchRouter() {
         </div>
 
         {!error && isPopupOpen && (
-  <div className="popup-overlay">
-    <div className="popup-content-swh">
-      <h2>Summary</h2>
-      {links.length > 0 ? (
-        links.map((link, index) => (
-          <div key={index} className="popup-table">
-            <h5>{`Link ${index + 1}`}</h5>
-            <div className="popup-table-wrapper">
-              <table className="summary-table">
-                <thead>
-                  <tr>
-                    <th>VLAN</th>
-                    <th>Outgoing Interface Switch</th>
-                    <th>Outgoing Interface Router</th>
-                    <th>Gateway</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {link.vlanConfigs.length > 0 ? (
-                    link.vlanConfigs.map((vlanConfig, idx) => (
-                      <tr key={idx}>
-                        <td>{vlanConfig.vlanId || "Not Selected"}</td>
-                        <td>{link.selectedSwitchInterface || "Not Selected"}</td>
-                        <td>{link.selectedRouterInterface || "Not Selected"}</td>
-                        <td>
-                          {vlanConfig.gateway && vlanConfig.subnet
-                            ? `${vlanConfig.gateway} / ${vlanConfig.subnet}`
-                            : "Not Selected"}
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={4}>
-                        No VLAN configuration provided.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+          <div className="popup-overlay">
+            <div className="popup-content-swh">
+              <h2>Summary</h2>
+              {links.length > 0 ? (
+                links.map((link, index) => (
+                  <div key={index} className="popup-table">
+                    <h5>{`Link ${index + 1}`}</h5>
+                    <div className="popup-table-wrapper">
+                      <table className="summary-table">
+                        <thead>
+                          <tr>
+                            <th>VLAN</th>
+                            <th>Outgoing Interface Switch</th>
+                            <th>Outgoing Interface Router</th>
+                            <th>Gateway</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {link.vlanConfigs.length > 0 ? (
+                            link.vlanConfigs.map((vlanConfig, idx) => (
+                              <tr key={idx}>
+                                <td>{vlanConfig.vlanId || "Not Selected"}</td>
+                                <td>{link.selectedSwitchInterface || "Not Selected"}</td>
+                                <td>{link.selectedRouterInterface || "Not Selected"}</td>
+                                <td>
+                                  {vlanConfig.gateway && vlanConfig.subnet
+                                    ? `${vlanConfig.gateway} / ${vlanConfig.subnet}`
+                                    : "Not Selected"}
+                                </td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td colSpan={4}>
+                                No VLAN configuration provided.
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p>No links created.</p>
+              )}
+              <div className="submit-sw-sw-container" style={{ marginTop: '15px' }}>
+                <button className="button-swh-close" onClick={togglePopup}>
+                  Close
+                </button>
+                <button className="button-sw-sw-submit" onClick={handleSubmitAll}>
+                  Submit All
+                </button>
+              </div>
             </div>
           </div>
-        ))
-      ) : (
-        <p>No links created.</p>
-      )}
-      <div className="submit-sw-sw-container" style={{ marginTop: '15px' }}>
-        <button className="button-swh-close" onClick={togglePopup}>
-          Close
-        </button>
-        <button className="button-sw-sw-submit" onClick={handleSubmitAll}>
-          Submit All
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+        )}
 
 
 
@@ -639,7 +657,22 @@ function SwitchRouter() {
           </button>
         </div>
 
-        {error && <div className="error-sw-sw">Error: {error}</div>}
+        {error && (
+          <div className="popup-overlay">
+            <div className="popup-content-host">
+              <div className="error-rt-rt">{error}</div>
+              <button
+                className="cancel-btn"
+                onClick={() => {
+                  setError("");
+                  setShowPopup(false);
+                }}
+              >
+                close
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

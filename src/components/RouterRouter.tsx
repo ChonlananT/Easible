@@ -56,7 +56,7 @@ function RouterRouter() {
 
   // New states for popup and dynamic routing tables
   const [showPopup, setShowPopup] = useState(false);
-  const [popupData, setPopupData] = useState([]);
+  const [popupData, setPopupData] = useState<LinkConfig[]>([]);
   const [routingTables, setRoutingTables] = useState<any>({}); // NEW: dynamic routing tables
   const [isClosing, setIsClosing] = useState(false);
 
@@ -184,11 +184,16 @@ function RouterRouter() {
           link.staticRoute1 = {
             ...link.staticRoute1,
             [field.key]: value,
+            prefix: link.staticRoute1?.prefix || "",
+            subnet: link.staticRoute1?.subnet || 24,
+            nextHop: link.staticRoute1?.nextHop || "",
           };
-        } else if (field.group === "staticRoute2") {
           link.staticRoute2 = {
             ...link.staticRoute2,
             [field.key]: value,
+            prefix: link.staticRoute2?.prefix || "",
+            subnet: link.staticRoute2?.subnet || 24,
+            nextHop: link.staticRoute2?.nextHop || "",
           };
         }
       }
