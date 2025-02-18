@@ -92,7 +92,7 @@ function SwitchSwitch() {
             selectedHost2: '',
             selectedInterface1: '',
             selectedInterface2: '',
-            switchportMode: '',
+            switchportMode: 'trunk',
             vlans: [],
           },
         ]);
@@ -159,7 +159,7 @@ function SwitchSwitch() {
   // Handle adding a new VLAN selection to a link.
   const handleAddVlan = (linkIndex: number) => {
     // Only allow adding VLANs if switchport mode is "trunk"
-    if (links[linkIndex].switchportMode !== 'trunk') return;
+    // if (links[linkIndex].switchportMode !== 'trunk') return;
     setLinks((prevLinks) => {
       const newLinks = [...prevLinks];
       newLinks[linkIndex].vlans.push('');
@@ -194,7 +194,7 @@ function SwitchSwitch() {
         selectedHost2: '',
         selectedInterface1: '',
         selectedInterface2: '',
-        switchportMode: '',
+        switchportMode: 'trunk',
         vlans: [],
       },
     ]);
@@ -262,6 +262,10 @@ function SwitchSwitch() {
 
   const [isShowPopup, setIsShowPopup] = useState(false);
   const TogglePopup = () => setIsShowPopup(!isShowPopup);
+
+  // Add this state at the top with your other state declarations:
+  const [triggeredBySubmit, setTriggeredBySubmit] = useState(false);
+
 
   return (
     <div className="App">
@@ -543,9 +547,7 @@ function SwitchSwitch() {
                 </div>
                 <div className="popup-table-section">
                   {links.map((link, index) => {
-                    // Get the rows for the current link.
                     let rows: JSX.Element[] = [];
-                    // For trunk mode with VLANs selected, create a row per VLAN.
                     if (link.switchportMode === 'trunk') {
                       if (link.vlans.length > 0) {
                         rows = link.vlans.map((vlan, idx) => (
@@ -556,7 +558,6 @@ function SwitchSwitch() {
                           </tr>
                         ));
                       } else {
-                        // If trunk mode but no VLAN selected, show a row indicating no VLAN.
                         rows = [
                           <tr key="no-vlan">
                             <td>No VLAN selected</td>
@@ -566,7 +567,6 @@ function SwitchSwitch() {
                         ];
                       }
                     } else {
-                      // For access mode, we may not have VLANs and just show one row.
                       rows = [
                         <tr key="access">
                           <td>Access</td>
@@ -599,14 +599,17 @@ function SwitchSwitch() {
                   <button className="button-cancel-prev" onClick={TogglePopup}>
                     Cancel
                   </button>
-                  <button className="button-confirm-prev">Confirm</button>
+                  <button
+                    className="button-confirm-prev"
+                    onClick={TogglePopup}
+                  >
+                    Confirm
+                  </button>
+
                 </div>
               </div>
             </div>
           )}
-
-
-
 
 
           <div className="line-container">
@@ -625,11 +628,28 @@ function SwitchSwitch() {
           </div>
         </div>
         <div className="submit-sw-sw-container">
-          <button className="button-sw-sw-submit" onClick={TogglePopup}>Check</button>
-          <button className="button-sw-sw-submit" onClick={handleSubmitAll}>
+          <button
+            className="button-sw-sw-submit"
+            onClick={() => {
+              setTriggeredBySubmit(false);
+              TogglePopup();
+            }}
+          >
+            Check
+          </button>
+          <button
+            className="button-sw-sw-submit"
+            onClick={() => {
+              setTriggeredBySubmit(true);
+              handleSubmitAll(); // Immediately create the playbook.
+              TogglePopup();     // Then show the popup summary.
+            }}
+          >
             Submit All
           </button>
+
         </div>
+
         {error && <div className="error-sw-sw">Error: {error}</div>}
       </div>
     </div>
