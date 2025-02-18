@@ -43,6 +43,7 @@ function SwitchSwitch() {
   const [vlans, setVlans] = useState<{ [key: string]: string[] }>({});
   const [error, setError] = useState('');
   const [loading, setLoading] = useState<boolean>(true);
+  const [backendResult, setBackendResult] = useState<any>(null); // state สำหรับผลลัพธ์จาก backend
 
   const [isNavOpen, setIsNavOpen] = useState(() => {
     const savedNavState = localStorage.getItem('isNavOpen');
@@ -65,6 +66,7 @@ function SwitchSwitch() {
         return res.json();
       })
       .then((data) => {
+        // สมมติว่า backend ส่ง parsed_result กลับมาเป็น array ของ host objects
         setHosts(data.parsed_result);
 
         const iData = data.parsed_result.map((item: any) => ({
@@ -158,8 +160,6 @@ function SwitchSwitch() {
 
   // Handle adding a new VLAN selection to a link.
   const handleAddVlan = (linkIndex: number) => {
-    // Only allow adding VLANs if switchport mode is "trunk"
-    // if (links[linkIndex].switchportMode !== 'trunk') return;
     setLinks((prevLinks) => {
       const newLinks = [...prevLinks];
       newLinks[linkIndex].vlans.push('');
@@ -205,10 +205,56 @@ function SwitchSwitch() {
     setLinks((prevLinks) => prevLinks.filter((_, i) => i !== linkIndex));
   };
 
-  // Submit configuration data.
+  // New state: เปิด/ปิด popup summary
+  const [isShowPopup, setIsShowPopup] = useState(false);
+  const TogglePopup = () => setIsShowPopup(!isShowPopup);
+
+  // สำหรับการ submit configuration ไปยัง backend (ใช้ใน Confirm ใน popup)
+  const handleConfirm = () => {
+    setError('');
+    // Validate required fields for each link.
+    for (let link of links) {
+      if (
+        !link.selectedHost1 ||
+        !link.selectedHost2 ||
+        !link.selectedInterface1 ||
+        !link.selectedInterface2
+      ) {
+        setError('Please select both hosts and interfaces for all links before submitting.');
+        return;
+      }
+    }
+    const requestData = links.map((link) => ({
+      hostname1: link.selectedHost1,
+      hostname2: link.selectedHost2,
+      interface1: link.selectedInterface1,
+      interface2: link.selectedInterface2,
+      vlans: link.vlans.filter((vlan) => vlan !== ''), // filter out any empty values
+    }));
+    console.log('Sending data to backend:', requestData);
+
+    fetch('/api/run_playbook/swtosw', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestData),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.error) {
+          setError(data.error);
+        } else {
+          // เก็บผลลัพธ์จาก backend (รวมถึง comparison หรือผลลัพธ์อื่นๆ)
+          setBackendResult(data);
+        }
+      })
+      .catch((err) => {
+        setError(err.message);
+        console.error('Error submitting configuration:', err);
+      });
+  };
+
   const handleSubmitAll = () => {
     setError('');
-
     // Validate required fields for each link.
     for (let link of links) {
       if (
@@ -222,7 +268,10 @@ function SwitchSwitch() {
         return;
       }
     }
-
+    // เคลียร์ผลลัพธ์จาก backend (หากมี) เมื่อมีการ submit configuration ครั้งใหม่
+    setBackendResult(null);
+  
+    // ส่งข้อมูลไปยัง API เก่า (create_playbook_swtosw) เพื่อสร้าง playbook
     const requestData = links.map((link) => ({
       hostname1: link.selectedHost1,
       hostname2: link.selectedHost2,
@@ -231,9 +280,9 @@ function SwitchSwitch() {
       switchportMode: link.switchportMode,
       vlans: link.vlans.filter((vlan) => vlan !== ''), // filter out any empty values
     }));
-
-    console.log('Sending data to backend:', requestData);
-
+    
+    console.log('Sending data to backend (create_playbook_swtosw):', requestData);
+    
     fetch('/api/create_playbook_swtosw', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -244,28 +293,23 @@ function SwitchSwitch() {
         if (data.error) {
           setError(data.error);
         } else {
-          alert('Configuration submitted successfully!');
-          console.log('Playbook created:', data.playbook);
+          // เก็บผลลัพธ์จาก backend (API เก่า) ไว้ใน state เพื่อแสดงใน popup
+          console.log("Created Playbook")
         }
       })
       .catch((err) => {
         setError(err.message);
         console.error('Error submitting configuration:', err);
       });
+    
+    // เปิด popup summary
+    TogglePopup();
   };
 
   const [isNavDropdownOpen, setIsNavDropdownOpen] = useState(false);
   const toggleNavDropdown = () => {
     setIsNavDropdownOpen(!isNavDropdownOpen);
   };
-
-
-  const [isShowPopup, setIsShowPopup] = useState(false);
-  const TogglePopup = () => setIsShowPopup(!isShowPopup);
-
-  // Add this state at the top with your other state declarations:
-  const [triggeredBySubmit, setTriggeredBySubmit] = useState(false);
-
 
   return (
     <div className="App">
@@ -399,7 +443,6 @@ function SwitchSwitch() {
                                   value={link.selectedHost1}
                                 >
                                   <option value="">-- Select a Host --</option>
-                                  <option value="test">test</option>
                                   {hosts.map((host: DropdownOption) => (
                                     <option key={host.hostname} value={host.hostname}>
                                       {host.hostname}
@@ -417,7 +460,6 @@ function SwitchSwitch() {
                                   onChange={(e) => handleLinkChange(index, 'selectedInterface1', e.target.value)}
                                 >
                                   <option value="">-- Select Interface --</option>
-                                  <option value="test">test</option>
                                   {getInterfacesForHost(link.selectedHost1).map((intf) => (
                                     <option key={intf.interface} value={intf.interface}>
                                       {intf.interface} ({intf.status})
@@ -447,7 +489,6 @@ function SwitchSwitch() {
                                   value={link.selectedHost2}
                                 >
                                   <option value="">-- Select a Host --</option>
-                                  <option value="test">test</option>
                                   {hosts.map((host: DropdownOption) => (
                                     <option key={host.hostname} value={host.hostname}>
                                       {host.hostname}
@@ -465,7 +506,6 @@ function SwitchSwitch() {
                                   onChange={(e) => handleLinkChange(index, 'selectedInterface2', e.target.value)}
                                 >
                                   <option value="">-- Select Interface --</option>
-                                  <option value="test">test</option>
                                   {getInterfacesForHost(link.selectedHost2).map((intf) => (
                                     <option key={intf.interface} value={intf.interface}>
                                       {intf.interface} ({intf.status})
@@ -475,7 +515,6 @@ function SwitchSwitch() {
                               </div>
                             </div>
                           </div>
-
                         </div>
                       </div>
 
@@ -483,13 +522,11 @@ function SwitchSwitch() {
                       <div className="host-selection__switchport-configuration">
                         <div className="host-selection__vlan-multiple">
                           <h5 style={{ textAlign: 'center' }}>Add allowed VLAN(s):</h5>
-                          {/* If there are no VLANs, show a message */}
                           {link.vlans.length === 0 && (
                             <p style={{ color: 'grey', textAlign: 'center' }}>
                               No VLANs have been added yet.
                             </p>
                           )}
-                          {/* Render the VLAN list if any exist */}
                           {link.vlans.map((vlan, vlanIndex) => (
                             <div key={vlanIndex} className="vlan-selection-group">
                               <select
@@ -498,14 +535,12 @@ function SwitchSwitch() {
                                 onChange={(e) => handleVlanChange(index, vlanIndex, e.target.value)}
                               >
                                 <option value="">-- Select VLAN --</option>
-                                <option value="test">test vlan</option>
                                 {availableVlans.map((vlanOption) => (
                                   <option key={vlanOption} value={vlanOption}>
                                     {vlanOption}
                                   </option>
                                 ))}
                               </select>
-
                               <CircleMinus
                                 style={{
                                   width: '25px',
@@ -516,9 +551,7 @@ function SwitchSwitch() {
                                   cursor: 'pointer',
                                 }}
                                 onClick={() => handleRemoveVlan(index, vlanIndex)}
-                              >
-                                Remove
-                              </CircleMinus>
+                              />
                             </div>
                           ))}
                           <button
@@ -537,80 +570,96 @@ function SwitchSwitch() {
             })}
           </div>
 
-
-          {!error && isShowPopup && (
+          {/* Popup สำหรับ Summary/Confirm */}
+          {isShowPopup && (
             <div className="popup-overlay">
               <div className="popup-preview">
-                <h1 style={{ fontSize: '32px' }}>Summary</h1>
-                <div className="topology-prev">
-                  <h5 style={{ margin: '10px 20px' }}>Network Topology</h5>
-                </div>
-                <div className="popup-table-section">
-                  {links.map((link, index) => {
-                    let rows: JSX.Element[] = [];
-                    if (link.switchportMode === 'trunk') {
-                      if (link.vlans.length > 0) {
-                        rows = link.vlans.map((vlan, idx) => (
-                          <tr key={idx}>
-                            <td>{vlan || 'N/A'}</td>
-                            <td>{link.selectedInterface1 || 'N/A'}</td>
-                            <td>{link.selectedInterface2 || 'N/A'}</td>
-                          </tr>
-                        ));
-                      } else {
-                        rows = [
-                          <tr key="no-vlan">
-                            <td>No VLAN selected</td>
-                            <td>{link.selectedInterface1 || 'N/A'}</td>
-                            <td>{link.selectedInterface2 || 'N/A'}</td>
-                          </tr>
-                        ];
-                      }
-                    } else {
-                      rows = [
-                        <tr key="access">
-                          <td>Access</td>
-                          <td>{link.selectedInterface1 || 'N/A'}</td>
-                          <td>{link.selectedInterface2 || 'N/A'}</td>
-                        </tr>
-                      ];
-                    }
-
-                    return (
-                      <div key={index} className="popup-table">
-                        <h5>{`SW1-SW2 Link ${index + 1}`}</h5>
-                        <div className="popup-table-wrapper">
-                          <table border={1} style={{ width: '100%', borderCollapse: 'collapse' }}>
-                            <thead>
-                              <tr>
-                                <th>VLAN</th>
-                                <th>Outgoing Interface SW1</th>
-                                <th>Outgoing Interface SW2</th>
+                {backendResult ? (
+                  // ถ้า backendResult มีค่าแล้ว แสดงผลข้อมูลที่ backend ส่งมา
+                  <div>
+                    <h1 style={{ fontSize: '32px' }}>Result</h1>
+                    <pre style={{ background: '#f7f7f7', padding: '10px', maxHeight: '400px', overflowY: 'scroll' }}>
+                      {JSON.stringify(backendResult, null, 2)}
+                    </pre>
+                    <div className="button-prev-section">
+                      <button className="button-cancel-prev" onClick={TogglePopup}>
+                        Close
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  // ถ้า backendResult ยังไม่มีค่า ให้แสดง summary configuration เพื่อให้ตรวจสอบก่อนยืนยัน
+                  <div>
+                    <h1 style={{ fontSize: '32px' }}>Summary</h1>
+                    <div className="topology-prev">
+                      <h5 style={{ margin: '10px 20px' }}>Network Topology</h5>
+                    </div>
+                    <div className="popup-table-section">
+                      {links.map((link, index) => {
+                        let rows: JSX.Element[] = [];
+                        if (link.switchportMode === 'trunk') {
+                          if (link.vlans.length > 0) {
+                            rows = link.vlans.map((vlan, idx) => (
+                              <tr key={idx}>
+                                <td>{vlan || 'N/A'}</td>
+                                <td>{link.selectedInterface1 || 'N/A'}</td>
+                                <td>{link.selectedInterface2 || 'N/A'}</td>
                               </tr>
-                            </thead>
-                            <tbody>{rows}</tbody>
-                          </table>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-                <div className="button-prev-section">
-                  <button className="button-cancel-prev" onClick={TogglePopup}>
-                    Cancel
-                  </button>
-                  <button
-                    className="button-confirm-prev"
-                    onClick={TogglePopup}
-                  >
-                    Confirm
-                  </button>
+                            ));
+                          } else {
+                            rows = [
+                              <tr key="no-vlan">
+                                <td>No VLAN selected</td>
+                                <td>{link.selectedInterface1 || 'N/A'}</td>
+                                <td>{link.selectedInterface2 || 'N/A'}</td>
+                              </tr>
+                            ];
+                          }
+                        } else {
+                          rows = [
+                            <tr key="access">
+                              <td>Access</td>
+                              <td>{link.selectedInterface1 || 'N/A'}</td>
+                              <td>{link.selectedInterface2 || 'N/A'}</td>
+                            </tr>
+                          ];
+                        }
 
-                </div>
+                        return (
+                          <div key={index} className="popup-table">
+                            <h5>{`SW1-SW2 Link ${index + 1}`}</h5>
+                            <div className="popup-table-wrapper">
+                              <table border={1} style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                <thead>
+                                  <tr>
+                                    <th>VLAN</th>
+                                    <th>Outgoing Interface SW1</th>
+                                    <th>Outgoing Interface SW2</th>
+                                  </tr>
+                                </thead>
+                                <tbody>{rows}</tbody>
+                              </table>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="button-prev-section">
+                      <button className="button-cancel-prev" onClick={TogglePopup}>
+                        Cancel
+                      </button>
+                      <button
+                        className="button-confirm-prev"
+                        onClick={handleConfirm}
+                      >
+                        Confirm
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
-
 
           <div className="line-container">
             <div className="line"></div>
@@ -630,24 +679,19 @@ function SwitchSwitch() {
         <div className="submit-sw-sw-container">
           <button
             className="button-sw-sw-submit"
-            onClick={() => {
-              setTriggeredBySubmit(false);
-              TogglePopup();
-            }}
+            onClick={handleSubmitAll}
           >
             Check
           </button>
           <button
             className="button-sw-sw-submit"
             onClick={() => {
-              setTriggeredBySubmit(true);
-              handleSubmitAll(); // Immediately create the playbook.
-              TogglePopup();     // Then show the popup summary.
+              // เมื่อกด Submit All ให้แสดง popup summary ก่อน
+              handleSubmitAll();
             }}
           >
             Submit All
           </button>
-
         </div>
 
         {error && <div className="error-sw-sw">Error: {error}</div>}
