@@ -477,52 +477,54 @@ function SwitchSwitch() {
 
                       {/* Fixed Switchport configuration */}
                       <div className="host-selection__switchport-configuration">
-                        <div className="host-selection__dropdown-group">
-                          <h5 style={{ textAlign: 'center' }}>Switchport Mode:</h5>
-                          <div className="host-selection__dropdown-container">
-                            <select
-                              className="host-selection__dropdown"
-                              value={link.switchportMode}
-                              onChange={(e) => handleLinkChange(index, 'switchportMode', e.target.value)}
-                            >
-                              <option value="">-- Select Mode --</option>
-                              <option value="trunk">Trunk</option>
-                              <option value="access">Access</option>
-                            </select>
-                          </div>
-                        </div>
+                        <div className="host-selection__vlan-multiple">
+                          <h5 style={{ textAlign: 'center' }}>Add allowed VLAN(s):</h5>
+                          {/* If there are no VLANs, show a message */}
+                          {link.vlans.length === 0 && (
+                            <p style={{ color: 'grey', textAlign: 'center' }}>
+                              No VLANs have been added yet.
+                            </p>
+                          )}
+                          {/* Render the VLAN list if any exist */}
+                          {link.vlans.map((vlan, vlanIndex) => (
+                            <div key={vlanIndex} className="vlan-selection-group">
+                              <select
+                                className="host-selection__dropdown"
+                                value={vlan}
+                                onChange={(e) => handleVlanChange(index, vlanIndex, e.target.value)}
+                              >
+                                <option value="">-- Select VLAN --</option>
+                                <option value="test">test vlan</option>
+                                {availableVlans.map((vlanOption) => (
+                                  <option key={vlanOption} value={vlanOption}>
+                                    {vlanOption}
+                                  </option>
+                                ))}
+                              </select>
 
-                        {/* VLAN selection section is only shown for trunk mode */}
-                        {link.switchportMode === 'trunk' && (
-                          <div className="host-selection__vlan-multiple">
-                            <h5 style={{ textAlign: 'center' }}>Add allowed VLAN(s):</h5>
-                            {link.vlans.map((vlan, vlanIndex) => (
-                              <div key={vlanIndex} className="vlan-selection-group">
-                                <select
-                                  className="host-selection__dropdown"
-                                  value={vlan}
-                                  onChange={(e) => handleVlanChange(index, vlanIndex, e.target.value)}
-                                >
-                                  <option value="">-- Select VLAN --</option>
-                                  <option value="test">test vlan</option>
-                                  {availableVlans.map((vlanOption) => (
-                                    <option key={vlanOption} value={vlanOption}>
-                                      {vlanOption}
-                                    </option>
-                                  ))}
-                                </select>
-                                <CircleMinus style={{ width: '25px', height: '25px', color: 'red', marginTop: '20px', marginLeft: '5px', cursor: 'pointer' }}
-                                  onClick={() => handleRemoveVlan(index, vlanIndex)}
-                                >
-                                  Remove
-                                </CircleMinus>
-                              </div>
-                            ))}
-                            <button className="button-add-vlan" style={{ marginTop: '10px', width: '35%' }} onClick={() => handleAddVlan(index)}>
-                              + Add VLAN
-                            </button>
-                          </div>
-                        )}
+                              <CircleMinus
+                                style={{
+                                  width: '25px',
+                                  height: '25px',
+                                  color: 'red',
+                                  marginTop: '20px',
+                                  marginLeft: '5px',
+                                  cursor: 'pointer',
+                                }}
+                                onClick={() => handleRemoveVlan(index, vlanIndex)}
+                              >
+                                Remove
+                              </CircleMinus>
+                            </div>
+                          ))}
+                          <button
+                            className="button-add-vlan"
+                            style={{ marginTop: '10px', width: '35%' }}
+                            onClick={() => handleAddVlan(index)}
+                          >
+                            + Add VLAN
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
