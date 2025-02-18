@@ -2,21 +2,16 @@ import React, { useState, useEffect } from "react";
 import {
   ArrowLeftFromLine,
   ChevronDown,
-  ChevronRight,
-  Circle,
   CircleMinus,
   Menu,
   PlusCircle,
 } from "lucide-react";
 import { ArchiveX } from "lucide-react";
-import { motion } from "framer-motion";
 import "./Bar.css";
 import "./Lab.css";
 import "./Popup.css";
 import CheckLab from "./CheckLab.tsx";
 import SettingLab from "./SettingLab.tsx";
-import Select from "react-select";
-import style from "./../../node_modules/dom-helpers/esm/css";
 
 // ตัวเลือกของ Command ที่แสดงใน dropdown
 const commandOptions = [

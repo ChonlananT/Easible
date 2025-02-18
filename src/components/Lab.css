@@ -250,7 +250,7 @@
     padding: 10px 20px;
     border: 1px solid #fedef3;
     border-radius: 10px;
-    background: linear-gradient(270deg, #f9b1ea, #ffdfd5);
+    background: linear-gradient(50deg, #0a007d, hsl(320, 100%, 61%));
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -266,12 +266,12 @@
   }
 
 .labInfo-lab .labName-lab {
-    color: #333;
+    color: #ffffff;
 }
 
 .labInfo-lab .labDescription-lab {
     margin-left: 8px;
-    color: #555;
+    color: #ebebeb;
 }
 
 .labActions-lab button {
