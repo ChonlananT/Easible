@@ -4,6 +4,7 @@ import './Bar.css';
 import './Host.css';
 import './Popup.css'; // สมมติว่ามีไฟล์ CSS สำหรับ Popup
 import { ArchiveX, ArrowLeftFromLine, ChevronDown, ChevronLeft, ChevronRight, Menu, Pointer } from 'lucide-react';
+import Navbar from './Navbar.tsx';
 
 function Hosts() {
   const [hosts, setHosts] = useState<any[]>([]);
@@ -571,55 +572,7 @@ function Hosts() {
 
   return (
     <div className="App">
-      <div className={`nav-links-container ${isNavOpen ? "" : "closed"}`}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', paddingRight: '10px', paddingTop: '10px' }}>
-          <button
-            style={{
-              marginBottom: "16px",
-              padding: "8px",
-              color: "#7b7b7b",
-              borderRadius: "50%",
-              border: "none",
-              background: "#e2e6ea",
-              cursor: "pointer",
-              transition: "background 0.3s ease",
-            }}
-            onClick={() => setIsNavOpen(false)}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "#d0d5da")}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "#e2e6ea")}
-          >
-            <ArrowLeftFromLine size={24} />
-          </button>
-          <img src="/easible-name.png" alt="" className="dashboard-icon" />
-        </div>
-        <ul className="nav-links">
-          {/* <img src="/easible-name.png" alt='Logo' className="dashboard-icon" /> */}
-          <li className="center"><a href="/dashboard">Dashboard</a></li>
-          <li className="center"><a href="/hosts" style={{ color: '#8c94dc' }}>Devices</a></li>
-          <li
-            className="center"
-            onClick={toggleNavDropdown}
-            style={{ cursor: 'pointer', color: 'black' }}
-            onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.color = '#8c94dc'}
-            onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.color = 'black'}
-          >
-            <a>Configuration  </a>
-            <ChevronDown className={isNavDropdownOpen ? "chevron-nav rotated" : "chevron-nav"} />
-          </li>
-          <ul className={`nav-dropdown ${isNavDropdownOpen ? "open" : ""}`}>
-            <li className="center sub-topic"><a href="/routerrouter">router-router</a></li>
-            <li className="center sub-topic"><a href="/routerswitch">router-switch</a></li>
-            <li className="center sub-topic"><a href="/switchswitch">switch-switch</a></li>
-            <li className="center sub-topic"><a href="/switchhost">switch-host</a></li>
-            <li className="center sub-topic"><a href="/configdevice">config device</a></li>
-          </ul>
-          <li className="center"><a href="/lab">Lab Check</a></li>
-        </ul>
-      </div>
-
-      {/* -------------------------
-          เนื้อหา (Content)
-      ------------------------- */}
+      <Navbar isNavOpen={isNavOpen} setIsNavOpen={setIsNavOpen} />
       <div className={`content ${isNavOpen ? "expanded" : "full-width"}`}>
         <div className='content-topic-host'>
           {!isNavOpen && (

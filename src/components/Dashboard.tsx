@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { ArrowLeftFromLine, ChevronDown, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import "./Bar.css";
 import "./Dashboard.css";
+import Navbar from "./Navbar.tsx";
 
 /**
  * DonutChart component
@@ -180,76 +181,7 @@ function Dashboard() {
 
   return (
     <div className="App">
-      <div className={`nav-links-container ${isNavOpen ? "" : "closed"}`}>
-        <div className="nav-top">
-          <button
-            style={{
-              marginBottom: "16px",
-              padding: "8px",
-              color: "#7b7b7b",
-              borderRadius: "50%",
-              border: "none",
-              background: "#e2e6ea",
-              cursor: "pointer",
-              transition: "background 0.3s ease",
-            }}
-            onClick={() => setIsNavOpen(false)}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "#d0d5da")}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "#e2e6ea")}
-          >
-            <ArrowLeftFromLine size={24} />
-          </button>
-          <img src="/easible-name.png" alt="" className="dashboard-icon" />
-        </div>
-        <ul className="nav-links">
-          <li className="center">
-            <a href="/dashboard" style={{ color: "#8c94dc" }}>
-              Dashboard
-            </a>
-          </li>
-          <li className="center">
-            <a href="/hosts">Devices</a>
-          </li>
-          <li
-            className="center"
-            onClick={toggleNavDropdown}
-            style={{ cursor: "pointer", color: "black" }}
-            onMouseEnter={(e) =>
-              ((e.currentTarget as HTMLElement).style.color = "#8c94dc")
-            }
-            onMouseLeave={(e) =>
-              ((e.currentTarget as HTMLElement).style.color = "black")
-            }
-          >
-            <a>Configuration </a>
-            <ChevronDown
-              className={
-                isNavDropdownOpen ? "chevron-nav rotated" : "chevron-nav"
-              }
-            />
-          </li>
-          <ul className={`nav-dropdown ${isNavDropdownOpen ? "open" : ""}`}>
-            <li className="center sub-topic">
-              <a href="/routerrouter">router-router</a>
-            </li>
-            <li className="center sub-topic">
-              <a href="/routerswitch">router-switch</a>
-            </li>
-            <li className="center sub-topic">
-              <a href="/switchswitch">switch-switch</a>
-            </li>
-            <li className="center sub-topic">
-              <a href="/switchhost">switch-host</a>
-            </li>
-            <li className="center sub-topic">
-              <a href="/configdevice">config device</a>
-            </li>
-          </ul>
-          <li className="center">
-            <a href="/lab">Lab Check</a>
-          </li>
-        </ul>
-      </div>
+      <Navbar isNavOpen={isNavOpen} setIsNavOpen={setIsNavOpen} />
       <div className={`content ${isNavOpen ? "expanded" : "full-width"}`}>
         <div className="content-topic">
           {!isNavOpen && (
