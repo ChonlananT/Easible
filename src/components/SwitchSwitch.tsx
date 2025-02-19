@@ -509,7 +509,7 @@ function SwitchSwitch() {
               <div className="popup-preview">
                 {backendResult ? (
                   // ถ้า backendResult มีค่าแล้ว แสดงผลข้อมูลที่ backend ส่งมา
-                  <div>
+                  <div style={{height:"100%"}}>
                     <h1 style={{ fontSize: '32px' }}>Result</h1>
                     <pre style={{ background: '#f7f7f7', padding: '10px', maxHeight: '400px', overflowY: 'scroll' }}>
                       {JSON.stringify(backendResult, null, 2)}
@@ -522,7 +522,7 @@ function SwitchSwitch() {
                   </div>
                 ) : (
                   // ถ้า backendResult ยังไม่มีค่า ให้แสดง summary configuration เพื่อให้ตรวจสอบก่อนยืนยัน
-                  <div>
+                  <div style={{height:"100%"}}>
                     <h1 style={{ fontSize: '32px' }}>Summary</h1>
                     <div className="topology-prev">
                       <h5 style={{ margin: '10px 20px' }}>Network Topology</h5>
