@@ -2,11 +2,11 @@ import re
 import ipaddress
 from flask import Blueprint, request, jsonify
 from services.ssh_service import create_ssh_connection
-from services.parse import parse_ansible_output, parse_result, parse_interface, parse_switchport, parse_configd, parse_dashboard, parse_sh_int_trunk
+from services.parse import parse_ansible_output, parse_result, parse_interface, parse_switchport, parse_configd, parse_dashboard, parse_sh_int_trunk, parse_routes
 from services.ansible_playbook import generate_playbook
 from services.database import add_device, fetch_all_devices, delete_device, assign_group_to_hosts, delete_group, create_custom_lab_in_db, fetch_all_custom_labs, delete_custom_lab_in_db, update_custom_lab_in_db
 from services.generate_inventory import generate_inventory_content
-from services.show_command import sh_ip_int_br, sh_ip_int_br_rt, sh_dashboard, sh_swtort, sh_int_trunk
+from services.show_command import sh_ip_int_br, sh_ip_int_br_rt, sh_dashboard, sh_swtort, sh_int_trunk, sh_ip_route
 from services.show_command.sh_config_sw import sh_config
 from services.cidr import cidr_to_subnet_mask
 from services.calculate_network_id import calculate_network_id
@@ -1108,16 +1108,10 @@ def run_playbook_switchswitch():
             return iface
 
         data = request.json
-        # ตรวจสอบว่า data เป็น list หรือไม่ ถ้าใช่ ให้ใช้ตัวแรก
-        if isinstance(data, list):
-            data = data[0]
 
-        # ข้อมูลที่ได้รับจาก frontend
-        req_hostname1 = data.get("hostname1")
-        req_hostname2 = data.get("hostname2")
-        req_iface1 = data.get("interface1")
-        req_iface2 = data.get("interface2")
-        req_vlans = data.get("vlans", [])
+        # หาก data ไม่ใช่ list ให้แปลงให้เป็น listเพื่อ iterate ได้
+        if not isinstance(data, list):
+            data = [data]
 
         # สร้าง SSH connection, run playbook, etc.
         ssh, username = create_ssh_connection()
@@ -1144,43 +1138,87 @@ def run_playbook_switchswitch():
         # Parse output ที่ได้จาก verify_playbook
         parsed_result = parse_sh_int_trunk(verify_output)
 
-        # เตรียมข้อมูลเปรียบเทียบ
-        # แปลง interface name จาก GigabitEthernet เป็น Gi
-        conv_iface1 = convert_interface_name(req_iface1)
-        conv_iface2 = convert_interface_name(req_iface2)
+        # ฟังก์ชันสำหรับประมวลผล entry เดียว
+        def process_entry(entry):
+            req_hostname1 = entry.get("hostname1")
+            req_hostname2 = entry.get("hostname2")
+            req_iface1 = entry.get("interface1")
+            req_iface2 = entry.get("interface2")
+            req_vlans = entry.get("vlans", [])
 
-        # แปลง VLANs ใน request ให้เป็นตัวเลข ถ้าเป็นตัวเลข
-        expected_vlans = []
-        for v in req_vlans:
-            try:
-                expected_vlans.append(int(v))
-            except Exception:
-                expected_vlans.append(v)
+            # แปลง VLANs ใน request ให้เป็นตัวเลขถ้าเป็นตัวเลข
+            expected_vlans = []
+            for v in req_vlans:
+                try:
+                    expected_vlans.append(int(v))
+                except Exception:
+                    expected_vlans.append(v)
 
+            result = {}
+
+            # ประมวลผลสำหรับ hostname1
+            conv_iface1 = convert_interface_name(req_iface1)
+            host1_result = {"match": False, "parsed_vlans": []}
+            if req_hostname1 in parsed_result:
+                interfaces = parsed_result[req_hostname1].get("interfaces", {})
+                if conv_iface1 in interfaces:
+                    parsed_vlans = interfaces[conv_iface1].get("vlan", [])
+                    host1_result["parsed_vlans"] = parsed_vlans
+                    host1_result["match"] = set(parsed_vlans) == set(expected_vlans)
+            result[req_hostname1] = {req_iface1: host1_result}
+
+            # ประมวลผลสำหรับ hostname2
+            conv_iface2 = convert_interface_name(req_iface2)
+            host2_result = {"match": False, "parsed_vlans": []}
+            if req_hostname2 in parsed_result:
+                interfaces = parsed_result[req_hostname2].get("interfaces", {})
+                if conv_iface2 in interfaces:
+                    parsed_vlans = interfaces[conv_iface2].get("vlan", [])
+                    host2_result["parsed_vlans"] = parsed_vlans
+                    host2_result["match"] = set(parsed_vlans) == set(expected_vlans)
+            result[req_hostname2] = {req_iface2: host2_result}
+
+            return result
+
+        # รวมผลลัพธ์จากทุก entry ใน list
+        # โดยเราจะเก็บผลลัพธ์เป็น dictionary แยกตาม hostname แล้ว key ของ interface
         comparison = {}
-        # เปรียบเทียบสำหรับ hostname1
-        host1_result = {"match": False, "parsed_vlans": []}
-        if req_hostname1 in parsed_result:
-            interfaces = parsed_result[req_hostname1].get("interfaces", {})
-            if conv_iface1 in interfaces:
-                parsed_vlans = interfaces[conv_iface1].get("vlan", [])
-                host1_result["parsed_vlans"] = parsed_vlans
-                # เปรียบเทียบโดยใช้ set (order ไม่สำคัญ)
-                host1_result["match"] = set(parsed_vlans) == set(expected_vlans)
-        comparison[req_hostname1] = host1_result
+        for entry in data:
+            entry_result = process_entry(entry)
+            for hostname, iface_info in entry_result.items():
+                if hostname not in comparison:
+                    comparison[hostname] = {}
+                for iface, res in iface_info.items():
+                    comparison[hostname][iface] = res
 
-        # เปรียบเทียบสำหรับ hostname2
-        host2_result = {"match": False, "parsed_vlans": []}
-        if req_hostname2 in parsed_result:
-            interfaces = parsed_result[req_hostname2].get("interfaces", {})
-            if conv_iface2 in interfaces:
-                parsed_vlans = interfaces[conv_iface2].get("vlan", [])
-                host2_result["parsed_vlans"] = parsed_vlans
-                host2_result["match"] = set(parsed_vlans) == set(expected_vlans)
-        comparison[req_hostname2] = host2_result
+        # สมมติว่า hostname ที่เราต้องการจับคู่มี SW101 และ SW102
+        # เราจะสร้าง list ของคู่ link โดยใช้ interface ที่ปรากฏในทั้งสอง host
+        paired_links = []
+        host1 = "SW101"
+        host2 = "SW102"
+        interfaces = set()
+        if host1 in comparison:
+            interfaces.update(comparison[host1].keys())
+        if host2 in comparison:
+            interfaces.update(comparison[host2].keys())
+
+        # จัดเรียง interfaces ให้เป็นลำดับ (หรือคุณสามารถกำหนดเองได้)
+        for iface in sorted(list(interfaces)):
+            paired_links.append({
+                host1: {
+                    "interface": iface,
+                    "match": comparison.get(host1, {}).get(iface, {}).get("match", False),
+                    "parsed_vlans": comparison.get(host1, {}).get(iface, {}).get("parsed_vlans", [])
+                },
+                host2: {
+                    "interface": iface,
+                    "match": comparison.get(host2, {}).get(iface, {}).get("match", False),
+                    "parsed_vlans": comparison.get(host2, {}).get(iface, {}).get("parsed_vlans", [])
+                }
+            })
 
         return jsonify({
-            "comparison": comparison
+            "comparison": paired_links
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -1188,7 +1226,105 @@ def run_playbook_switchswitch():
 @api_bp.route('/api/run_playbook/rttort', methods=['POST'])
 def run_playbook_routerrouter():
     try:
-        return
+        data = request.json
+        # ตรวจสอบว่า data เป็น list หรือไม่ ถ้าใช่ ให้ใช้ตัวแรก
+        if isinstance(data, list):
+            data = data[0]
+
+        # ข้อมูลที่ได้รับจาก frontend
+        req_hostname1 = data.get("hostname1")
+        req_hostname2 = data.get("hostname2")
+        req_iface1 = data.get("interface1")
+        req_iface2 = data.get("interface2")
+        req_ipaddress1 = data.get("ip1")
+        req_ipaddress2 = data.get("ip2")
+        req_subnet = data.get("subnet")
+        req_protocol = data.get("protocol")
+
+        # สร้าง SSH connection, run playbook, etc.
+        ssh, username = create_ssh_connection()
+        playbook_path = f"/home/{username}/playbook/multi_links_playbook.yml"
+        inventory_path = f"/home/{username}/inventory/inventory.ini"
+
+        stdin, stdout, stderr = ssh.exec_command(f"ansible-playbook -i {inventory_path} {playbook_path}")
+        output = stdout.read().decode('utf-8')
+        errors = stderr.read().decode('utf-8')
+
+        playbook_content = sh_ip_route()  # สมมติว่าฟังก์ชันนี้ return playbook content ที่ต้องการ
+        verify_playbook_path = f"/home/{username}/playbook/verify_playbook.yml"
+
+        sftp = ssh.open_sftp()
+        with sftp.open(verify_playbook_path, "w") as playbook_file:
+            playbook_file.write(playbook_content)
+        sftp.close()
+
+        stdin, stdout, stderr = ssh.exec_command(f"ansible-playbook -i {inventory_path} {verify_playbook_path}")
+        verify_output = stdout.read().decode('utf-8')
+        verify_errors = stderr.read().decode('utf-8')
+        ssh.close()
+
+        parsed_result = parse_routes(verify_output)
+        results = {}
+
+        # ดึงข้อมูล route สำหรับแต่ละ host
+        host1_routes = parsed_result.get(req_hostname1, [])
+        host2_routes = parsed_result.get(req_hostname2, [])
+
+        # กำหนด dictionary สำหรับเก็บผลลัพธ์พร้อมรายละเอียด
+        result_host1 = {"match": False, "details": {}}
+        result_host2 = {"match": False, "details": {}}
+
+        if req_protocol == "none":
+            # เปรียบเทียบสำหรับ directly connected (C) โดยใช้ข้อมูลของ host นั้นเอง
+            for route in host1_routes:
+                if (route["protocol"] == "none" and
+                    route["ip_address"] == req_ipaddress1 and
+                    route["subnet"] == req_subnet and
+                    route["interface"] == req_iface1):
+                    result_host1["match"] = True
+                    result_host1["details"] = route
+                    break
+
+            for route in host2_routes:
+                if (route["protocol"] == "none" and
+                    route["ip_address"] == req_ipaddress2 and
+                    route["subnet"] == req_subnet and
+                    route["interface"] == req_iface2):
+                    result_host2["match"] = True
+                    result_host2["details"] = route
+                    break
+
+        elif req_protocol in ["ospf", "ripv2"]:
+            # เปรียบเทียบสำหรับ protocol ospf หรือ ripv2
+            # สำหรับ host1: ip_address, subnet, interface ของ R101 และ nexthop ต้องตรงกับ ip_address ของ R102
+            for route in host1_routes:
+                if (route["protocol"] == req_protocol and
+                    route["ip_address"] == req_ipaddress1 and
+                    route["subnet"] == req_subnet and
+                    route["interface"] == req_iface1 and
+                    route["nexthop"] == req_ipaddress2):
+                    result_host1["match"] = True
+                    result_host1["details"] = route
+                    break
+
+            # สำหรับ host2: ip_address, subnet, interface ของ R102 และ nexthop ต้องตรงกับ ip_address ของ R101
+            for route in host2_routes:
+                if (route["protocol"] == req_protocol and
+                    route["ip_address"] == req_ipaddress2 and
+                    route["subnet"] == req_subnet and
+                    route["interface"] == req_iface2 and
+                    route["nexthop"] == req_ipaddress1):
+                    result_host2["match"] = True
+                    result_host2["details"] = route
+                    break
+        else:
+            return jsonify({"error": "Unsupported protocol"}), 400
+
+        results[req_hostname1] = result_host1
+        results[req_hostname2] = result_host2
+
+        return jsonify(results)
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
