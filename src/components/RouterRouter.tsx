@@ -676,7 +676,7 @@ function RouterRouter() {
 
         <div className="submit-sw-sw-container">
           <button className="button-sw-sw-submit" onClick={handleSubmitAll}>
-            Submit All
+            Verify
           </button>
           {/* Popup Summary */}
           {!error && showPopup && (

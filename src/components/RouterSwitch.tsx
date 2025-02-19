@@ -235,7 +235,7 @@ function SwitchRouter() {
         if (data.error) {
           setError(data.error);
         } else {
-          alert('Configuration submitted successfully!');
+          // alert('Configuration submitted successfully!');
           console.log('Playbook created:', data.playbook);
         }
       })
@@ -243,6 +243,7 @@ function SwitchRouter() {
         setError(err.message);
         console.error('Error submitting configuration:', err);
       });
+    setIsPopupOpen(true);
   };
 
   const [isNavDropdownOpen, setIsNavDropdownOpen] = useState(false);
@@ -570,7 +571,7 @@ function SwitchRouter() {
                 <button className="button-swh-close" onClick={togglePopup}>
                   Close
                 </button>
-                <button className="button-sw-sw-submit" onClick={handleSubmitAll}>
+                <button className="button-sw-sw-submit" onClick={togglePopup}>
                   Submit All
                 </button>
               </div>
@@ -582,11 +583,8 @@ function SwitchRouter() {
 
 
         <div className="submit-sw-sw-container">
-          <button className="button-sw-sw-submit" onClick={togglePopup}>
-            Check
-          </button>
           <button className="button-sw-sw-submit" onClick={handleSubmitAll}>
-            Submit All
+            Verify
           </button>
         </div>
 

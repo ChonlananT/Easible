@@ -256,6 +256,11 @@ function SwitchHost() {
 
     console.log('Sending data to backend:', requestData);
 
+    // Show summary popup immediately.
+    setSummaryLinks([...links]);
+    setIsPopupOpen(true);
+
+    // Now send the configuration to the backend.
     fetch('/api/create_playbook_swtohost', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -266,7 +271,7 @@ function SwitchHost() {
         if (data.error) {
           setError(data.error);
         } else {
-          alert('Configuration submitted successfully!');
+          // alert('Configuration submitted successfully!');
           console.log('Playbook created:', data.playbook);
         }
       })
@@ -474,11 +479,8 @@ function SwitchHost() {
         </div>
 
         <div className="submit-sw-sw-container">
-          <button className="button-sw-sw-submit" onClick={handleTogglePopup}>
-            Check
-          </button>
           <button className="button-sw-sw-submit" onClick={handleSubmitAll}>
-            Submit All
+            Verify
           </button>
         </div>
 
@@ -516,8 +518,8 @@ function SwitchHost() {
                 <button className="button-swh-close" onClick={handleTogglePopup}>
                   Close
                 </button>
-                <button className="button-sw-sw-submit" onClick={handleSubmitAll}>
-                  Submit All
+                <button className="button-sw-sw-submit" onClick={handleTogglePopup}>
+                  Confirm
                 </button>
               </div>
             </div>

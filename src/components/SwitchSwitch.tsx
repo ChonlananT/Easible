@@ -271,7 +271,7 @@ function SwitchSwitch() {
     }
     // เคลียร์ผลลัพธ์จาก backend (หากมี) เมื่อมีการ submit configuration ครั้งใหม่
     setBackendResult(null);
-  
+
     // ส่งข้อมูลไปยัง API เก่า (create_playbook_swtosw) เพื่อสร้าง playbook
     const requestData = links.map((link) => ({
       hostname1: link.selectedHost1,
@@ -281,9 +281,9 @@ function SwitchSwitch() {
       switchportMode: link.switchportMode,
       vlans: link.vlans.filter((vlan) => vlan !== ''), // filter out any empty values
     }));
-    
+
     console.log('Sending data to backend (create_playbook_swtosw):', requestData);
-    
+
     fetch('/api/create_playbook_swtosw', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -302,7 +302,7 @@ function SwitchSwitch() {
         setError(err.message);
         console.error('Error submitting configuration:', err);
       });
-    
+
     // เปิด popup summary
     TogglePopup();
   };
@@ -509,7 +509,7 @@ function SwitchSwitch() {
               <div className="popup-preview">
                 {backendResult ? (
                   // ถ้า backendResult มีค่าแล้ว แสดงผลข้อมูลที่ backend ส่งมา
-                  <div style={{height:"100%"}}>
+                  <div style={{ height: "100%" }}>
                     <h1 style={{ fontSize: '32px' }}>Result</h1>
                     <pre style={{ background: '#f7f7f7', padding: '10px', maxHeight: '400px', overflowY: 'scroll' }}>
                       {JSON.stringify(backendResult, null, 2)}
@@ -522,7 +522,7 @@ function SwitchSwitch() {
                   </div>
                 ) : (
                   // ถ้า backendResult ยังไม่มีค่า ให้แสดง summary configuration เพื่อให้ตรวจสอบก่อนยืนยัน
-                  <div style={{height:"100%"}}>
+                  <div style={{ height: "100%" }}>
                     <h1 style={{ fontSize: '32px' }}>Summary</h1>
                     <div className="topology-prev">
                       <h5 style={{ margin: '10px 20px' }}>Network Topology</h5>
@@ -612,18 +612,12 @@ function SwitchSwitch() {
         <div className="submit-sw-sw-container">
           <button
             className="button-sw-sw-submit"
-            onClick={handleSubmitAll}
-          >
-            Check
-          </button>
-          <button
-            className="button-sw-sw-submit"
             onClick={() => {
               // เมื่อกด Submit All ให้แสดง popup summary ก่อน
               handleSubmitAll();
             }}
           >
-            Submit All
+            Verify
           </button>
         </div>
 
