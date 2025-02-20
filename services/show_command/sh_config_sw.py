@@ -4,7 +4,8 @@ def sh_config(device_type: str):
         commands = [
             "show ip interface brief",
             "show vlan brief",
-            "show spanning-tree"
+            "show spanning-tree",
+            "show lldp neighbors"
         ]
     elif device_type == "router":
         hosts_line = "selectedgrouprouter"
@@ -16,7 +17,8 @@ def sh_config(device_type: str):
         commands = [
             "show ip interface brief",
             "show vlan brief",
-            "show spanning-tree"
+            "show spanning-tree",
+            "show lldp neighbors"
         ]
 
     # สร้างเนื้อหา Playbook โดยใช้ hosts_line และ commands ที่ได้
