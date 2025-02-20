@@ -54,6 +54,12 @@ function SwitchHost() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState<boolean>(true);
 
+  // Popup state for summary and result
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [summaryLinks, setSummaryLinks] = useState<SwitchToHostLink[]>([]);
+  const [isResultPopupOpen, setIsResultPopupOpen] = useState(false);
+  const [resultData, setResultData] = useState<any>(null);
+
   // Navigation state
   const [isNavOpen, setIsNavOpen] = useState(() => {
     const savedNavState = localStorage.getItem('isNavOpen');
@@ -219,7 +225,7 @@ function SwitchHost() {
     setLinks((prevLinks) => prevLinks.filter((_, i) => i !== linkIndex));
   };
 
-  // Submit all links to the backend.
+  // Submit all links to the backend to create playbook.
   const handleSubmitAll = () => {
     setError('');
     // Validate each link and each interface config
@@ -254,13 +260,13 @@ function SwitchHost() {
       })),
     }));
 
-    console.log('Sending data to backend:', requestData);
+    console.log('Sending data to backend for playbook creation:', requestData);
 
     // Show summary popup immediately.
     setSummaryLinks([...links]);
     setIsPopupOpen(true);
 
-    // Now send the configuration to the backend.
+    // Now send the configuration to the backend (for creating playbook).
     fetch('/api/create_playbook_swtohost', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -271,7 +277,6 @@ function SwitchHost() {
         if (data.error) {
           setError(data.error);
         } else {
-          // alert('Configuration submitted successfully!');
           console.log('Playbook created:', data.playbook);
         }
       })
@@ -281,11 +286,50 @@ function SwitchHost() {
       });
   };
 
-  // Popup state for summary
-  const [isPopupOpen, setIsPopupOpen] = useState(false);
-  const [summaryLinks, setSummaryLinks] = useState<SwitchToHostLink[]>([]);
+  // New: Handle Confirm to execute the playbook and show result popup.
+  const handleConfirm = () => {
+    setError('');
+    // Prepare request data (same as before)
+    const requestData = links.map((link) => ({
+      hostname: link.selectedHost,
+      interfaces: link.interfaces.map((iface) => ({
+        interface: iface.selectedInterface,
+        vlanId: iface.vlanData.vlanId,
+        ipAddress: iface.vlanData.ipAddress,
+        subnetMask: iface.vlanData.subnetMask,
+      })),
+    }));
 
-  // Toggle the popup and store selected links
+    console.log('Confirming configuration to backend:', requestData);
+
+    // Send the configuration to the new API endpoint.
+    fetch('/api/run_playbook/swtohost', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestData),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.error) {
+          setError(data.error);
+        } else {
+          console.log('Playbook executed:', data);
+          // Save the result data to state.
+          setResultData(data);
+          // Show the result popup.
+          setIsResultPopupOpen(true);
+        }
+      })
+      .catch((err) => {
+        setError(err.message);
+        console.error('Error confirming configuration:', err);
+      });
+    
+    // Close the summary popup.
+    setIsPopupOpen(false);
+  };
+
+  // Toggle the summary popup.
   const handleTogglePopup = () => {
     if (!isPopupOpen) {
       setSummaryLinks([...links]);
@@ -333,7 +377,7 @@ function SwitchHost() {
                     {links.length > 1 && (
                       <button onClick={() => handleRemoveLink(linkIndex)} className="button-sw-sw-remove">
                         <img
-                          src="bin.png" // Replace with your actual image path
+                          src="bin.png"
                           alt="Remove link"
                           style={{ width: '45px', height: '27px' }}
                         />
@@ -358,7 +402,6 @@ function SwitchHost() {
                                 value={link.selectedHost}
                               >
                                 <option value="">-- Select a Host --</option>
-                                {/* Optionally include a test option */}
                                 <option value="test">test</option>
                                 {!loading &&
                                   hosts.map((host) => (
@@ -375,9 +418,7 @@ function SwitchHost() {
 
                     {link.selectedHost && (
                       <div className="command-section-swh">
-                        {/* Loop through each interface configuration for this link */}
                         {link.interfaces.map((iface, ifaceIndex) => (
-
                           <div key={ifaceIndex} className="interface-config-swh">
                             <div className="interface-selection__vlan-configuration-swh">
                               <div className="host-selection__dropdown-swh">
@@ -464,7 +505,7 @@ function SwitchHost() {
 
           <div className="line-container">
             <div className="line"></div>
-            <button onClick={handleAddLink} className={`button-sw-sw-add ${loading ? 'loading' : ''}`}>
+            <button className={`button-sw-sw-add ${loading ? 'loading' : ''}`} onClick={handleAddLink}>
               {loading ? (
                 <>
                   <Spinner color="white" size="small" />
@@ -484,6 +525,7 @@ function SwitchHost() {
           </button>
         </div>
 
+        {/* Summary Popup */}
         {!error && isPopupOpen && (
           <div className="popup-overlay">
             <div className="popup-content-swh">
@@ -518,8 +560,35 @@ function SwitchHost() {
                 <button className="button-swh-close" onClick={handleTogglePopup}>
                   Close
                 </button>
-                <button className="button-sw-sw-submit" onClick={handleTogglePopup}>
+                {/* Confirm now calls handleConfirm */}
+                <button className="button-sw-sw-submit" onClick={handleConfirm}>
                   Confirm
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Result Popup */}
+        {isResultPopupOpen && (
+          <div className="popup-overlay">
+            <div className="popup-content-swh">
+              <h2>Result</h2>
+              {resultData ? (
+                <div className="result-content">
+                  {resultData.comparison && (
+                    <>
+                      <p><strong>Comparison:</strong></p>
+                      <pre>{JSON.stringify(resultData.comparison, null, 2)}</pre>
+                    </>
+                  )}
+                </div>
+              ) : (
+                <p>No result data available.</p>
+              )}
+              <div className="submit-sw-sw-container" style={{ marginTop: '15px' }}>
+                <button className="button-swh-close" onClick={() => setIsResultPopupOpen(false)}>
+                  Close
                 </button>
               </div>
             </div>
@@ -537,7 +606,7 @@ function SwitchHost() {
                   setShowPopup(false);
                 }}
               >
-                close
+                Close
               </button>
             </div>
           </div>
