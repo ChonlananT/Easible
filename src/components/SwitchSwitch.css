@@ -143,6 +143,8 @@
 }
 
 .host-selection__switchport-configuration {
+    width: 37%;
+    margin: 20px auto 0px auto;
     background: #ebf2f9;
     padding: 18px;
     border-radius: 12px;
@@ -187,7 +189,7 @@
 
 
 .host-sw-sw {
-    margin-bottom: 80px;
+    margin-bottom: 0px;
 }
 
 
@@ -484,4 +486,8 @@
 
 
 
+
+.vlan-selection-group{
+    display: flex;
+}
 

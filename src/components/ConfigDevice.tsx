@@ -622,6 +622,9 @@ function ConfigDevice() {
         </ul>
       </div>
 
+=======
+      <Navbar isNavOpen={isNavOpen} setIsNavOpen={setIsNavOpen} />
+>>>>>>> ada2df61204bddb89de082d008d1399d52d8c8ce
       <div className={`content ${isNavOpen ? "expanded" : "full-width"}`}>
         <div className="content-topic">
           {!isNavOpen && (
