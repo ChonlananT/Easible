@@ -1192,31 +1192,27 @@ def run_playbook_switchswitch():
 
         # สร้าง list ของคู่ link โดยจับคู่ host ที่มีอยู่ใน comparison แบบ dynamic
         paired_links = []
-        hostnames = list(comparison.keys())
-        if len(hostnames) == 2:
-            # ถ้ามี host อยู่แค่ 2 รายการ ให้นำมาจับคู่กัน
-            host1, host2 = hostnames
-            # รวม interface จากทั้งสอง host
-            interfaces = set()
-            interfaces.update(comparison[host1].keys())
-            interfaces.update(comparison[host2].keys())
-
-            for iface in sorted(list(interfaces)):
-                paired_links.append({
-                    host1: {
-                        "interface": iface,
-                        "match": comparison.get(host1, {}).get(iface, {}).get("match", False),
-                        "parsed_vlans": comparison.get(host1, {}).get(iface, {}).get("parsed_vlans", [])
-                    },
-                    host2: {
-                        "interface": iface,
-                        "match": comparison.get(host2, {}).get(iface, {}).get("match", False),
-                        "parsed_vlans": comparison.get(host2, {}).get(iface, {}).get("parsed_vlans", [])
-                    }
-                })
-        else:
-            # กรณี host ไม่ใช่แค่ 2 รายการ สามารถปรับ logic ตามที่ต้องการได้
-            paired_links = comparison
+        for entry in data:
+            # ดำเนินการประมวลผล entry เดียว
+            entry_result = process_entry(entry)
+            req_hostname1 = entry.get("hostname1")
+            req_hostname2 = entry.get("hostname2")
+            req_iface1 = entry.get("interface1") or entry.get("interface1")  # สมมติว่า key สำหรับ interface ของ host1 คือ 'interface1'
+            req_iface2 = entry.get("interface2") or entry.get("interface2")  # และ key สำหรับ host2 คือ 'interface2'
+        
+            # สร้าง object สำหรับคู่ link จากข้อมูลใน entry
+            paired_links.append({
+                req_hostname1: {
+                    "interface": req_iface1,
+                    "match": entry_result.get(req_hostname1, {}).get(req_iface1, {}).get("match", False),
+                    "parsed_vlans": entry_result.get(req_hostname1, {}).get(req_iface1, {}).get("parsed_vlans", [])
+                },
+                req_hostname2: {
+                    "interface": req_iface2,
+                    "match": entry_result.get(req_hostname2, {}).get(req_iface2, {}).get("match", False),
+                    "parsed_vlans": entry_result.get(req_hostname2, {}).get(req_iface2, {}).get("parsed_vlans", [])
+                }
+            })
 
         return jsonify({
             "comparison": paired_links
