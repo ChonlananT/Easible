@@ -197,6 +197,14 @@
   overflow-x: auto; /* Horizontal scrollbar */
 }
 
+.popup-table-section-result {
+  border-radius: 10px;
+  width: 100%;
+  margin: 0px auto;
+  overflow-y: auto; /* Vertical scrollbar */
+  overflow-x: auto; /* Horizontal scrollbar */
+}
+
 
 
 

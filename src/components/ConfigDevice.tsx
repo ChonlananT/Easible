@@ -5,6 +5,7 @@ import './ConfigDevice.css';
 import './SwitchSwitch.css';
 import Spinner from './bootstrapSpinner.tsx';
 import { ArrowLeftFromLine, ChevronDown, Menu } from 'lucide-react';
+import Navbar from './Navbar.tsx';
 
 // Type Definitions
 type GetHostsData = {
@@ -622,9 +623,7 @@ function ConfigDevice() {
         </ul>
       </div>
 
-=======
       <Navbar isNavOpen={isNavOpen} setIsNavOpen={setIsNavOpen} />
->>>>>>> ada2df61204bddb89de082d008d1399d52d8c8ce
       <div className={`content ${isNavOpen ? "expanded" : "full-width"}`}>
         <div className="content-topic">
           {!isNavOpen && (

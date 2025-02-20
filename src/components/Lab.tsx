@@ -835,7 +835,7 @@ function Lab() {
               <h2>Check Lab Result</h2>
               {isLoading ? (
                 <div className="loading-container">
-                  <div className="spinner" />
+                  <div className="spinner-lab" />
                   <p>Loading...</p>
                 </div>
               ) : checkResults ? (
