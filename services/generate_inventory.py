@@ -34,7 +34,7 @@ def generate_inventory_content(selected_groups):
 
         # บล็อก [hostname]
         inventory_content += f"[{hostname}]\n"
-        inventory_content += f"{hostname} ansible_host={ip_address}\n\n"
+        inventory_content += f"{hostname} ansible_host={ip_address} ansible_ssh_timeout=3\n\n"
 
         # บล็อก [hostname:vars]
         inventory_content += f"[{hostname}:vars]\n"
