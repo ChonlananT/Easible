@@ -3,16 +3,17 @@ import json
 import ipaddress
 from flask import Blueprint, request, jsonify
 from services.ssh_service import create_ssh_connection
-from services.parse import parse_ansible_output, parse_result, parse_interface, parse_switchport, parse_configd, parse_dashboard, parse_sh_int_trunk, parse_routes
+from services.parse import parse_ansible_output, parse_result, parse_interface, parse_switchport, parse_configd, parse_dashboard, parse_sh_int_trunk, parse_routes, parse_switch_host
 from services.ansible_playbook import generate_playbook
 from services.database import add_device, fetch_all_devices, delete_device, assign_group_to_hosts, delete_group, create_custom_lab_in_db, fetch_all_custom_labs, delete_custom_lab_in_db, update_custom_lab_in_db
 from services.generate_inventory import generate_inventory_content
-from services.show_command import sh_ip_int_br, sh_ip_int_br_rt, sh_dashboard, sh_swtort, sh_int_trunk, sh_ip_route
+from services.show_command import sh_ip_int_br, sh_ip_int_br_rt, sh_dashboard, sh_swtort, sh_int_trunk, sh_ip_route, sh_sw_host
 from services.show_command.sh_config_sw import sh_config
 from services.cidr import cidr_to_subnet_mask
 from services.calculate_network_id import calculate_network_id
 from services.routing_service import RoutingService
 from services.compare import compare_expected_outputs
+from services.compare_swhost import compare_switch_host
 from services.stp_calculating_services import recalc_stp
 
 
@@ -947,6 +948,7 @@ def create_playbook_switchhost():
     ios_config:
       parents: interface {interface}
       lines:
+        - no switchport trunk allowed vlan
         - switchport mode access
         - switchport access vlan {vlan_id}
         - no shutdown
@@ -1219,7 +1221,7 @@ def run_playbook_switchswitch():
             req_hostname2 = entry.get("hostname2")
             req_iface1 = entry.get("interface1") or entry.get("interface1")  # สมมติว่า key สำหรับ interface ของ host1 คือ 'interface1'
             req_iface2 = entry.get("interface2") or entry.get("interface2")  # และ key สำหรับ host2 คือ 'interface2'
-        
+
             # สร้าง object สำหรับคู่ link จากข้อมูลใน entry
             paired_links.append({
                 req_hostname1: {
@@ -1356,9 +1358,51 @@ def run_playbook_configdevice():
 @api_bp.route('/api/run_playbook/swtohost', methods=['POST'])
 def run_playbook_switchhost():
     try:
+        # Get the JSON payload from the frontend
         data = request.json
-        #show run int {interface ที่ config}
-        return
+
+        # If data is not a list, convert it to a list to iterate over it
+        if not isinstance(data, list):
+            data = [data]
+
+        # Create SSH connection
+        ssh, username = create_ssh_connection()
+        playbook_path = f"/home/{username}/playbook/multi_links_playbook.yml"
+        inventory_path = f"/home/{username}/inventory/inventory.ini"
+
+        # Execute the first playbook
+        stdin, stdout, stderr = ssh.exec_command(
+            f"ansible-playbook -i {inventory_path} {playbook_path}"
+        )
+        output = stdout.read().decode('utf-8')
+        errors = stderr.read().decode('utf-8')
+
+        # Generate playbook content using sh_run_int by passing the data from the frontend.
+        playbook_content = sh_sw_host(data)
+        verify_playbook_path = f"/home/{username}/playbook/verify_playbook.yml"
+
+        # Write the generated playbook content to the file on the remote host
+        sftp = ssh.open_sftp()
+        with sftp.open(verify_playbook_path, "w") as playbook_file:
+            playbook_file.write(playbook_content)
+        sftp.close()
+
+        # Execute the verification playbook
+        stdin, stdout, stderr = ssh.exec_command(
+            f"ansible-playbook -i {inventory_path} {verify_playbook_path}"
+        )
+        verify_output = stdout.read().decode('utf-8')
+        verify_errors = stderr.read().decode('utf-8')
+        ssh.close()
+        print(verify_output)
+
+        parsed_result = parse_switch_host(verify_output)
+        comparison = compare_switch_host(data, parsed_result)
+
+        return jsonify({
+            "parsed": parsed_result,
+            "comparison": comparison
+        })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
