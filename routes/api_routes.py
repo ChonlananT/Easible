@@ -316,48 +316,6 @@ def show_swtort():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@api_bp.route('/api/show_detail_configdevice', methods=['POST'])
-def show_configd():
-    try:
-        # รับข้อมูล deviceType จาก request
-        data = request.get_json()
-        device_type = data.get('deviceType', '').lower()
-
-        # Generate playbook content โดยส่ง device_type ไปที่ sh_config
-        playbook_content = sh_config(device_type)
-
-        # Create SSH connection to the VM
-        ssh, username = create_ssh_connection()
-
-        # Define paths for inventory and playbook inside the VM
-        inventory_path = f"/home/{username}/inventory/inventory.ini"
-        playbook_path = f"/home/{username}/playbook/configd.yml"
-
-        # Write the playbook content to a file on the VM
-        sftp = ssh.open_sftp()
-        with sftp.open(playbook_path, "w") as playbook_file:
-            playbook_file.write(playbook_content)
-        sftp.close()
-
-        # Define the ansible command to run on the VM
-        ansible_command = f"ansible-playbook -i {inventory_path} {playbook_path}"
-
-        # Execute the command on the VM
-        stdin, stdout, stderr = ssh.exec_command(ansible_command)
-        output = stdout.read().decode("utf-8")
-        error = stderr.read().decode("utf-8")
-
-        # Parse the interface data
-        parsed_result = parse_configd(output)
-
-        # Close the SSH connection
-        ssh.close()
-
-        # Return the structured data
-        return jsonify({"parsed_result": parsed_result})
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
 
 @api_bp.route('/api/create_playbook_swtosw', methods=['POST'])
 def create_playbook():
@@ -928,64 +886,6 @@ def show_configd():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
-@api_bp.route('/api/dashboard', methods=['POST'])
-def dashboard():
-    try:
-        # Generate playbook content based on selected groups
-        playbook_content = sh_dashboard()
-
-        # Create SSH connection to the VM
-        ssh, username = create_ssh_connection()
-
-        # Define paths for inventory and playbook inside the VM
-        inventory_path = f"/home/{username}/inventory/inventory.ini"
-        playbook_path = f"/home/{username}/playbook/dashboard.yml"
-
-        # Write the playbook content to a file on the VM
-        sftp = ssh.open_sftp()
-        with sftp.open(playbook_path, "w") as playbook_file:
-            playbook_file.write(playbook_content)
-        sftp.close()
-
-        # Define the ansible command to run on the VM
-        ansible_command = f"ansible-playbook -i {inventory_path} {playbook_path}"
-
-        # Execute the command on the VM
-        stdin, stdout, stderr = ssh.exec_command(ansible_command)
-        output = stdout.read().decode("utf-8")
-        error = stderr.read().decode("utf-8")
-
-        # Parse the interface data
-        parsed_result = parse_dashboard(output)  # สมมติว่ามีฟังก์ชัน parse_dashboard
-
-        # Close the SSH connection
-        ssh.close()
-
-        # Fetch all devices from the database
-        devices = fetch_all_devices()  # Assumes this returns a list of dicts
-        # Create a mapping from hostname to deviceType
-        device_mapping = {}
-        for device in devices:
-            hostname = device.get("hostname")
-            device_type = device.get("deviceType")
-            if hostname:
-                device_mapping[hostname] = device_type
-
-        # Update the parsed_result to include deviceType for hostnames found in the database
-        for key in ["ok", "fatal"]:
-            updated_list = []
-            for hostname in parsed_result.get(key, []):
-                updated_list.append({
-                    "hostname": hostname,
-                    "deviceType": device_mapping.get(hostname)  # Will be None if not found
-                })
-            parsed_result[key] = updated_list
-
-        # Return the structured data with device type information
-        return jsonify({"parsed_result": parsed_result})
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
 
 @api_bp.route('/api/create_playbook_swtohost', methods=['POST'])
 def create_playbook_switchhost():
