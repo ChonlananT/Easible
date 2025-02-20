@@ -376,11 +376,13 @@ function SwitchSwitch() {
                                   value={link.selectedHost1}
                                 >
                                   <option value="">-- Select a Host --</option>
-                                  {hosts.map((host: DropdownOption) => (
-                                    <option key={host.hostname} value={host.hostname}>
-                                      {host.hostname}
-                                    </option>
-                                  ))}
+      {hosts
+        .filter((host) => host.hostname !== link.selectedHost2) // Exclude selectedHost2
+        .map((host) => (
+          <option key={host.hostname} value={host.hostname}>
+            {host.hostname}
+          </option>
+        ))}
                                 </select>
                               </div>
                             </div>
@@ -422,11 +424,13 @@ function SwitchSwitch() {
                                   value={link.selectedHost2}
                                 >
                                   <option value="">-- Select a Host --</option>
-                                  {hosts.map((host: DropdownOption) => (
-                                    <option key={host.hostname} value={host.hostname}>
-                                      {host.hostname}
-                                    </option>
-                                  ))}
+      {hosts
+        .filter((host) => host.hostname !== link.selectedHost1) // Exclude selectedHost1
+        .map((host) => (
+          <option key={host.hostname} value={host.hostname}>
+            {host.hostname}
+          </option>
+        ))}
                                 </select>
                               </div>
                             </div>
@@ -504,95 +508,100 @@ function SwitchSwitch() {
           </div>
 
           {/* Popup สำหรับ Summary/Confirm */}
-          {isShowPopup && (
-            <div className="popup-overlay">
-              <div className="popup-preview">
-                {backendResult ? (
-                  // ถ้า backendResult มีค่าแล้ว แสดงผลข้อมูลที่ backend ส่งมา
-                  <div style={{ height: "100%" }}>
-                    <h1 style={{ fontSize: '32px' }}>Result</h1>
-                    <pre style={{ background: '#f7f7f7', padding: '10px', maxHeight: '400px', overflowY: 'scroll' }}>
-                      {JSON.stringify(backendResult, null, 2)}
-                    </pre>
-                    <div className="button-prev-section">
-                      <button className="button-cancel-prev" onClick={TogglePopup}>
-                        Close
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  // ถ้า backendResult ยังไม่มีค่า ให้แสดง summary configuration เพื่อให้ตรวจสอบก่อนยืนยัน
-                  <div style={{ height: "100%" }}>
-                    <h1 style={{ fontSize: '32px' }}>Summary</h1>
-                    <div className="topology-prev">
-                      <h5 style={{ margin: '10px 20px' }}>Network Topology</h5>
-                    </div>
-                    <div className="popup-table-section">
-                      {links.map((link, index) => {
-                        let rows: JSX.Element[] = [];
-                        if (link.switchportMode === 'trunk') {
-                          if (link.vlans.length > 0) {
-                            rows = link.vlans.map((vlan, idx) => (
-                              <tr key={idx}>
-                                <td>{vlan || 'N/A'}</td>
-                                <td>{link.selectedInterface1 || 'N/A'}</td>
-                                <td>{link.selectedInterface2 || 'N/A'}</td>
-                              </tr>
-                            ));
-                          } else {
-                            rows = [
-                              <tr key="no-vlan">
-                                <td>No VLAN selected</td>
-                                <td>{link.selectedInterface1 || 'N/A'}</td>
-                                <td>{link.selectedInterface2 || 'N/A'}</td>
-                              </tr>
-                            ];
-                          }
-                        } else {
-                          rows = [
-                            <tr key="access">
-                              <td>Access</td>
-                              <td>{link.selectedInterface1 || 'N/A'}</td>
-                              <td>{link.selectedInterface2 || 'N/A'}</td>
-                            </tr>
-                          ];
-                        }
+{isShowPopup && (
+  <div className="popup-overlay">
+    <div className="popup-preview">
+      {backendResult ? (
+        // ถ้า backendResult มีค่าแล้ว แสดงผลข้อมูลที่ backend ส่งมา
+        <div style={{ height: "100%" }}>
+          <h1 style={{ fontSize: '32px' }}>Result</h1>
+          <pre style={{ background: '#f7f7f7', padding: '10px', maxHeight: '400px', overflowY: 'scroll' }}>
+            {JSON.stringify(backendResult, null, 2)}
+          </pre>
+          <div className="button-prev-section">
+            <button className="button-cancel-prev" onClick={TogglePopup}>
+              Close
+            </button>
+          </div>
+        </div>
+      ) : (
+        // ถ้า backendResult ยังไม่มีค่า ให้แสดง summary configuration เพื่อให้ตรวจสอบก่อนยืนยัน
+        <div style={{ height: "100%" }}>
+          <h1 style={{ fontSize: '32px' }}>Summary</h1>
+          <div className="topology-prev">
+            <h5 style={{ margin: '10px 20px' }}>Network Topology</h5>
+          </div>
+          <div className="popup-table-section">
+            {links.map((link, index) => {
+              let rows: JSX.Element[] = [];
+              if (link.switchportMode === 'trunk') {
+                if (link.vlans.length > 0) {
+                  rows = link.vlans.map((vlan, idx) => (
+                    <tr key={idx}>
+                      <td>{vlan || 'N/A'}</td>
+                      <td>{link.selectedInterface1 || 'N/A'}</td>
+                      <td>{link.selectedInterface2 || 'N/A'}</td>
+                    </tr>
+                  ));
+                } else {
+                  rows = [
+                    <tr key="no-vlan">
+                      <td>No VLAN selected</td>
+                      <td>{link.selectedInterface1 || 'N/A'}</td>
+                      <td>{link.selectedInterface2 || 'N/A'}</td>
+                    </tr>
+                  ];
+                }
+              } else {
+                rows = [
+                  <tr key="access">
+                    <td>Access</td>
+                    <td>{link.selectedInterface1 || 'N/A'}</td>
+                    <td>{link.selectedInterface2 || 'N/A'}</td>
+                  </tr>
+                ];
+              }
 
-                        return (
-                          <div key={index} className="popup-table">
-                            <h5>{`SW1-SW2 Link ${index + 1}`}</h5>
-                            <div className="popup-table-wrapper">
-                              <table border={1} style={{ width: '100%', borderCollapse: 'collapse' }}>
-                                <thead>
-                                  <tr>
-                                    <th>VLAN</th>
-                                    <th>Outgoing Interface SW1</th>
-                                    <th>Outgoing Interface SW2</th>
-                                  </tr>
-                                </thead>
-                                <tbody>{rows}</tbody>
-                              </table>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    <div className="button-prev-section">
-                      <button className="button-cancel-prev" onClick={TogglePopup}>
-                        Cancel
-                      </button>
-                      <button
-                        className="button-confirm-prev"
-                        onClick={handleConfirm}
-                      >
-                        Confirm
-                      </button>
-                    </div>
+              // Use selected host names dynamically. If not set, default to SW1/SW2.
+              const host1Name = link.selectedHost1 || 'SW1';
+              const host2Name = link.selectedHost2 || 'SW2';
+
+              return (
+                <div key={index} className="popup-table">
+                  <h5>{`${host1Name}-${host2Name} Link ${index + 1}`}</h5>
+                  <div className="popup-table-wrapper">
+                    <table border={1} style={{ width: '100%', borderCollapse: 'collapse' }}>
+                      <thead>
+                        <tr>
+                          <th>VLAN</th>
+                          <th>Outgoing Interface {host1Name}</th>
+                          <th>Outgoing Interface {host2Name}</th>
+                        </tr>
+                      </thead>
+                      <tbody>{rows}</tbody>
+                    </table>
                   </div>
-                )}
-              </div>
-            </div>
-          )}
+                </div>
+              );
+            })}
+          </div>
+          <div className="button-prev-section">
+            <button className="button-cancel-prev" onClick={TogglePopup}>
+              Cancel
+            </button>
+            <button
+              className="button-confirm-prev"
+              onClick={handleConfirm}
+            >
+              Confirm
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  </div>
+)}
+
 
           <div className="line-container">
             <div className="line"></div>

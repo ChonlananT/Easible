@@ -342,201 +342,160 @@ function RouterRouter() {
 
                 <div className="content-section">
                   <div className="content-align-rt-rt">
-                    <div className="host-section-rt-rt">
-                      <div className="host-group-rt-rt">
-                        <div className="host-card">
-                          <div className="host-selection__dropdown-group">
-                            <label>Router1 (Host):</label>
-                            <div className="host-selection__dropdown-container">
-                              <select
-                                className="host-selection__dropdown"
-                                value={link.hostname1}
-                                onChange={(e) =>
-                                  handleChange(
-                                    index,
-                                    "hostname1",
-                                    e.target.value
-                                  )
-                                }
-                              >
-                                <option value="">
-                                  -- Select Router (Host1) --
-                                </option>
-                                {!loading &&
-                                  hosts.map((host) => (
-                                    <option
-                                      key={host.hostname}
-                                      value={host.hostname}
-                                    >
-                                      {host.hostname}
-                                    </option>
-                                  ))}
-                              </select>
-                            </div>
-                          </div>
-                          <div className="host-selection__dropdown-group">
-                            <label>Interface of Router1:</label>
-                            <select
-                              className="host-selection__dropdown"
-                              value={link.interface1}
-                              onChange={(e) =>
-                                handleChange(
-                                  index,
-                                  "interface1",
-                                  e.target.value
-                                )
-                              }
-                            >
-                              <option value="">-- Select Interface --</option>
-                              {getInterfacesForHost(link.hostname1).map(
-                                (intf) => (
-                                  <option
-                                    key={intf.interface}
-                                    value={intf.interface}
-                                  >
-                                    {intf.interface} ({intf.status})
-                                  </option>
-                                )
-                              )}
-                            </select>
-                          </div>
-                          <div className="ip-subnet-group">
-                            <div className="host-selection__dropdown-group">
-                              <label>IP Address (Router1):</label>
-                              <input
-                                type="text"
-                                className="host-selection__dropdown"
-                                value={link.ip1}
-                                onChange={(e) =>
-                                  handleChange(index, "ip1", e.target.value)
-                                }
-                                placeholder="Enter IP for Router1"
-                              />
-                            </div>
-                            <div className="host-selection__dropdown-group">
-                              <label>Subnet (subnet):</label>
-                              <input
-                                type="number"
-                                min={1}
-                                max={32}
-                                className="host-selection__dropdown"
-                                value={link.subnet}
-                                onChange={(e) =>
-                                  handleChange(index, "subnet", e.target.value)
-                                }
-                                placeholder="24"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                  <div className="host-section-rt-rt">
+  <div className="host-group-rt-rt">
+    <div className="host-card">
+      <div className="host-selection__dropdown-group">
+        <label>Router1 (Host):</label>
+        <div className="host-selection__dropdown-container">
+          <select
+            className="host-selection__dropdown"
+            value={link.hostname1}
+            onChange={(e) => handleChange(index, "hostname1", e.target.value)}
+          >
+            <option value="">
+              -- Select Router (Host1) --
+            </option>
+            {!loading &&
+              hosts
+                .filter((host) => host.hostname !== link.hostname2)
+                .map((host) => (
+                  <option key={host.hostname} value={host.hostname}>
+                    {host.hostname}
+                  </option>
+                ))}
+          </select>
+        </div>
+      </div>
+      <div className="host-selection__dropdown-group">
+        <label>Interface of Router1:</label>
+        <select
+          className="host-selection__dropdown"
+          value={link.interface1}
+          onChange={(e) => handleChange(index, "interface1", e.target.value)}
+        >
+          <option value="">-- Select Interface --</option>
+          {getInterfacesForHost(link.hostname1).map((intf) => (
+            <option key={intf.interface} value={intf.interface}>
+              {intf.interface} ({intf.status})
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="ip-subnet-group">
+        <div className="host-selection__dropdown-group">
+          <label>IP Address (Router1):</label>
+          <input
+            type="text"
+            className="host-selection__dropdown"
+            value={link.ip1}
+            onChange={(e) => handleChange(index, "ip1", e.target.value)}
+            placeholder="Enter IP for Router1"
+          />
+        </div>
+        <div className="host-selection__dropdown-group">
+          <label>Subnet (subnet):</label>
+          <input
+            type="number"
+            min={1}
+            max={32}
+            className="host-selection__dropdown"
+            value={link.subnet}
+            onChange={(e) => handleChange(index, "subnet", e.target.value)}
+            placeholder="24"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
 
-                      <div className="connect-pic-rt-rt">
-                        <img
-                          src="connect.png"
-                          alt="Remove link"
-                          style={{ width: "150px", height: "100px" }}
-                        />
-                        <label style={{ fontSize: "15px" }}>
-                          Routing protocol activation:
-                        </label>
-                        <select
-                          className="host-selection__dropdown"
-                          value={link.protocol}
-                          onChange={(e) =>
-                            handleChange(index, "protocol", e.target.value)
-                          }
-                        >
-                          {protocols.map((prot) => (
-                            <option key={prot.value} value={prot.value}>
-                              {prot.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
+  <div className="connect-pic-rt-rt">
+    <img
+      src="connect.png"
+      alt="Remove link"
+      style={{ width: "150px", height: "100px" }}
+    />
+    <label style={{ fontSize: "15px" }}>
+      Routing protocol activation:
+    </label>
+    <select
+      className="host-selection__dropdown"
+      value={link.protocol}
+      onChange={(e) => handleChange(index, "protocol", e.target.value)}
+    >
+      {protocols.map((prot) => (
+        <option key={prot.value} value={prot.value}>
+          {prot.label}
+        </option>
+      ))}
+    </select>
+  </div>
 
-                      <div className="host-group-rt-rt">
-                        <div className="host-card">
-                          <div className="host-selection__dropdown-group">
-                            <label>Router2 (Host):</label>
-                            <select
-                              className="host-selection__dropdown"
-                              value={link.hostname2}
-                              onChange={(e) =>
-                                handleChange(index, "hostname2", e.target.value)
-                              }
-                            >
-                              <option value="">
-                                -- Select Router (Host2) --
-                              </option>
-                              {hosts.map((host) => (
-                                <option
-                                  key={host.hostname}
-                                  value={host.hostname}
-                                >
-                                  {host.hostname}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                          <div className="host-selection__dropdown-group">
-                            <label>Interface of Router2:</label>
-                            <select
-                              className="host-selection__dropdown"
-                              value={link.interface2}
-                              onChange={(e) =>
-                                handleChange(
-                                  index,
-                                  "interface2",
-                                  e.target.value
-                                )
-                              }
-                            >
-                              <option value="">-- Select Interface --</option>
-                              {getInterfacesForHost(link.hostname2).map(
-                                (intf) => (
-                                  <option
-                                    key={intf.interface}
-                                    value={intf.interface}
-                                  >
-                                    {intf.interface} ({intf.status})
-                                  </option>
-                                )
-                              )}
-                            </select>
-                          </div>
-                          <div className="ip-subnet-group">
-                            <div className="host-selection__dropdown-group">
-                              <label>IP Address (Router2):</label>
-                              <input
-                                type="text"
-                                className="host-selection__dropdown"
-                                value={link.ip2}
-                                onChange={(e) =>
-                                  handleChange(index, "ip2", e.target.value)
-                                }
-                                placeholder="Enter IP for Router2"
-                              />
-                            </div>
-                            <div className="host-selection__dropdown-group">
-                              <label>Subnet (subnet):</label>
-                              <input
-                                type="number"
-                                min={1}
-                                max={32}
-                                className="host-selection__dropdown"
-                                value={link.subnet}
-                                onChange={(e) =>
-                                  handleChange(index, "subnet", e.target.value)
-                                }
-                                placeholder="24"
-                                disabled={true}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+  <div className="host-group-rt-rt">
+    <div className="host-card">
+      <div className="host-selection__dropdown-group">
+        <label>Router2 (Host):</label>
+        <select
+          className="host-selection__dropdown"
+          value={link.hostname2}
+          onChange={(e) => handleChange(index, "hostname2", e.target.value)}
+        >
+          <option value="">
+            -- Select Router (Host2) --
+          </option>
+          {hosts
+            .filter((host) => host.hostname !== link.hostname1)
+            .map((host) => (
+              <option key={host.hostname} value={host.hostname}>
+                {host.hostname}
+              </option>
+            ))}
+        </select>
+      </div>
+      <div className="host-selection__dropdown-group">
+        <label>Interface of Router2:</label>
+        <select
+          className="host-selection__dropdown"
+          value={link.interface2}
+          onChange={(e) => handleChange(index, "interface2", e.target.value)}
+        >
+          <option value="">-- Select Interface --</option>
+          {getInterfacesForHost(link.hostname2).map((intf) => (
+            <option key={intf.interface} value={intf.interface}>
+              {intf.interface} ({intf.status})
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="ip-subnet-group">
+        <div className="host-selection__dropdown-group">
+          <label>IP Address (Router2):</label>
+          <input
+            type="text"
+            className="host-selection__dropdown"
+            value={link.ip2}
+            onChange={(e) => handleChange(index, "ip2", e.target.value)}
+            placeholder="Enter IP for Router2"
+          />
+        </div>
+        <div className="host-selection__dropdown-group">
+          <label>Subnet (subnet):</label>
+          <input
+            type="number"
+            min={1}
+            max={32}
+            className="host-selection__dropdown"
+            value={link.subnet}
+            onChange={(e) => handleChange(index, "subnet", e.target.value)}
+            placeholder="24"
+            disabled={true}
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 
                     {link.protocol === "static" && (
                       <>
