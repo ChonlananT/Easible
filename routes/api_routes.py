@@ -1,4 +1,5 @@
 import re
+import json
 import ipaddress
 from flask import Blueprint, request, jsonify
 from services.ssh_service import create_ssh_connection
@@ -14,6 +15,8 @@ from services.sh_config_sw import sh_config
 from services.sh_dashboard import sh_dashboard
 from services.routing_service import RoutingService
 from services.sh_swtort import sh_swtort
+from services.stp_calculating_services import recalc_stp
+
 
 api_bp = Blueprint('api', __name__)
 
@@ -455,6 +458,10 @@ def create_playbook_configdevice():
         elif not isinstance(data, list):
             return jsonify({"error": "Invalid data format. Expected a list of command configurations."}), 400
 
+        response_data = {
+            "message": "Bridge Priority processed successfully",
+            "stp_result": [],
+        }
         # Header for the playbook
         playbook_content = """---
 - name: Configure Device Commands
@@ -571,14 +578,20 @@ def create_playbook_configdevice():
             elif cmd_type == "bridge_priority":
                 if device_type != "switch":
                     return jsonify({"error": f"Command #{idx}: Bridge Priority command is only applicable to switches."}), 400
-
+                
                 bridge_priority = cmd.get("bridgePriority", {})
                 vlan = bridge_priority.get("vlan")
                 priority = bridge_priority.get("priority")
 
                 if vlan is None or priority is None:
                     return jsonify({"error": f"Command #{idx}: VLAN and Priority are required."}), 400
+                parsed_result = cmd.get("parsed_result")
+                if not parsed_result:
+                    return jsonify({"error": "Missing parsed configuration data."}), 400
+                print(f"🟢 [Backend] Processing Bridge Priority for {host}: VLAN {vlan}, Priority {priority}")
 
+                stp_result = recalc_stp(parsed_result, vlan, host, priority)
+                response_data["stp_result"].extend(stp_result)
                 playbook_content += f"""
   - name: "[Command#{idx}] Set Bridge Priority for VLAN {vlan} on {host}"
     ios_config:
@@ -658,6 +671,8 @@ def create_playbook_configdevice():
                 return jsonify({"error": f"Command #{idx}: Unsupported command type '{cmd_type}'."}), 400
 
         # 3) Write the combined playbook to a file on the server and optionally execute it
+        print("🟢 [Backend] Sending STP Results:", json.dumps(response_data["stp_result"], indent=2))
+
         ssh, username = create_ssh_connection()
         playbook_path = f"/home/{username}/playbook/configdevice_playbook.yml"
         inventory_path = f"/home/{username}/inventory/inventory.ini"
@@ -677,6 +692,7 @@ def create_playbook_configdevice():
         return jsonify({
             "message": "Playbook created successfully",
             "playbook": playbook_content,
+            "stp_result": stp_result
             # "output": output,
             # "errors": errors
         }), 200
@@ -718,6 +734,7 @@ def show_configd():
 
         # Parse the interface data
         parsed_result = parse_configd(output)
+        print(parsed_result)
 
         # Close the SSH connection
         ssh.close()
