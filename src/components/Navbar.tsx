@@ -10,14 +10,13 @@ const configPaths = [
   "/routerswitch",
   "/switchswitch",
   "/switchhost",
-  "/configdevice",
 ];
 
 
 
 const Navbar = ({ isNavOpen, setIsNavOpen }) => {
   const location = useLocation(); // Get current route
-const isConfigActive = configPaths.includes(location.pathname);
+  const isConfigActive = configPaths.includes(location.pathname);
   // Initialize dropdown state from localStorage.
   const [isNavDropdownOpen, setIsNavDropdownOpen] = useState(() => {
     const storedValue = localStorage.getItem("isNavDropdownOpen");
@@ -92,13 +91,17 @@ const isConfigActive = configPaths.includes(location.pathname);
           style={{
             cursor: "pointer",
             color: isConfigActive ? "#8c94dc" : "black",
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "center",
+            alignItems: "center",
           }}
           onMouseEnter={(e) => (e.currentTarget.style.color = "#8c94dc")}
           onMouseLeave={(e) =>
             (e.currentTarget.style.color = isConfigActive ? "#8c94dc" : "black")
           }
         >
-          <a>Configuration </a>
+          <a>Configure connenctions </a>
           <ChevronDown
             className={isNavDropdownOpen ? "chevron-nav rotated" : "chevron-nav"}
           />
@@ -136,15 +139,15 @@ const isConfigActive = configPaths.includes(location.pathname);
               switch-host
             </a>
           </li>
-          <li className="center sub-topic">
-            <a
-              href="/configdevice"
-              style={location.pathname === "/configdevice" ? activeStyle : {}}
-            >
-              config device
-            </a>
-          </li>
         </ul>
+        <li className="center">
+          <a
+            href="/configdevice"
+            style={location.pathname === "/configdevice" ? activeStyle : {}}
+          >
+            Configure devices
+          </a>
+        </li>
         <li className="center">
           <a
             href="/lab"
