@@ -191,7 +191,8 @@
   border: 1px solid #ddd;
   border-radius: 8px;
   margin: 0px auto 10px auto;
-  width:85%
+  width: 85%;
+  display: flex;
 }
 
 .switch-header {
@@ -199,6 +200,8 @@
   font-size: 16px;
   font-weight: bold;
   background: #f5f5f5;
+  width: 60%;
+  align-items: center;
 }
 
 .root-bridge {
@@ -209,12 +212,14 @@
 .switch-table {
   width: 100%;
   border-collapse: collapse;
+  text-align: center;
 }
 
 .switch-table th,
 .switch-table td {
   padding: 10px;
   border-bottom: 1px solid #ddd;
+  text-align: center;
 }
 
 .switch-table th {
@@ -284,7 +289,7 @@
 
 
 
-.summary-content-cd{
+.summary-content-cd {
   overflow-y: auto;
   height: 87%;
   padding: 10px 5px;
@@ -308,8 +313,8 @@
 }
 
 .summary-content-cd .root-bridge {
-  background: #0044cc;
-  color: #fff;
+  background: #8ad8eb;
+  color: #000000;
 }
 
 .summary-content-cd .switch-table {
@@ -320,7 +325,7 @@
 .summary-content-cd .switch-table th,
 .summary-content-cd .switch-table td {
   padding: 10px;
-  text-align: left;
+  text-align: center;
   border-bottom: 1px solid #ddd;
 }
 
@@ -335,4 +340,11 @@
 
 .summary-content-cd .switch-table tr:hover {
   background: #f1f1f1;
+}
+
+
+
+.root-label{
+  margin-left: 5px;
+  color: rgb(7, 188, 52);
 }

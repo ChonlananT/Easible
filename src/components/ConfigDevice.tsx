@@ -6,6 +6,7 @@ import './SwitchSwitch.css';
 import Spinner from './bootstrapSpinner.tsx';
 import { ArrowLeftFromLine, ChevronDown, Menu } from 'lucide-react';
 import Navbar from './Navbar.tsx';
+import { radialGradient } from 'framer-motion/client';
 
 // Type Definitions
 type GetHostsData = {
@@ -137,36 +138,51 @@ const SummaryPopup: React.FC<SummaryPopupProps> = ({ stpResults, onClose }) => {
       <div className="popup-preview">
         <h2 className="summary-title">Summary</h2>
         <div className="summary-content-cd">
-  {sortedResults.map((sw, index) => (
-    <div key={index} className="switch-card">
-      <div className={`switch-header ${sw.stp_detail?.isRoot ? 'root-bridge' : ''}`}>
-        {sw.hostname} – VLAN {sw.vlan_id} | Bridge Priority: {sw.stp_detail?.bridge_priority_in_brackets}
-        {sw.stp_detail?.isRoot && <span className="root-label"> – Root Bridge</span>}
-      </div>
-      {sw.stp_detail?.stp_interfaces && (
-        <table className="switch-table">
-          <thead>
-            <tr>
-              <th>Port</th>
-              <th>STP Role</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sw.stp_detail.stp_interfaces.map((port, idx) => (
-              <tr key={idx}>
-                <td>{port.interface}</td>
-                <td>{port.interface_role}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </div>
-  ))}
-</div>
+          {sortedResults.map((sw, index) => (
+            <div key={index} className="switch-card">
+              <div className={`switch-header ${sw.stp_detail?.isRoot ? 'root-bridge' : ''}`}>
+                <div style={{ display: "flex" }}>
+                  <strong>{sw.hostname}</strong> – VLAN {sw.vlan_id}{sw.stp_detail?.isRoot && (
+                    <span className="root-label"> Root Bridge</span>
+                  )}
+                </div>
+                <div style={{ display: "flex" }}>
+                  Bridge Priority: 
+                  <div style={{ marginLeft: "5px", color: "royalblue" }}>
+                  {sw.stp_detail?.bridge_priority_in_brackets}
+                  </div>
+                  
+                </div>
+                <div style={{ display: "flex" }}>
+                  MAC Address:
+                  <div style={{ marginLeft: "5px", color: "royalblue" }}> {sw.stp_detail?.bridge_mac}</div>
+                </div>
+              </div>
+
+              {sw.stp_detail?.stp_interfaces && (
+                <table className="switch-table">
+                  <thead>
+                    <tr>
+                      <th>Port</th>
+                      <th>STP Role</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sw.stp_detail.stp_interfaces.map((port, idx) => (
+                      <tr key={idx}>
+                        <td>{port.interface}</td>
+                        <td>{port.interface_role}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          ))}
+        </div>
 
         <div style={{ display: "flex", justifyContent: "flex-end" }}>
-          <button className="button-confirm-prev" style={{ fontSize:"16px" ,padding:"4px 15px"}}onClick={onClose}>Okay</button>
+          <button className="button-confirm-prev" style={{ fontSize: "16px", padding: "4px 15px" }} onClick={onClose}>Confirm</button>
         </div>
       </div>
     </div>
@@ -1018,7 +1034,7 @@ function ConfigDevice() {
         </div>
         <div className="submit-sw-sw-container">
           <button className="button-sw-sw-submit" onClick={handleSubmitAll}>
-            Submit All
+            Verify
           </button>
           {isBridgeOpen && <SummaryPopup stpResults={stpResults} onClose={() => setBridgeOpen(false)} />}
         </div>
