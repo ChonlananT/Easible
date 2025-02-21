@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import './Popup.css';
 import './Bar.css';
 import './SwitchHost.css';
 import './SwitchSwitch.css';
+import './Lab.css'
 import Spinner from './bootstrapSpinner.tsx';
 import { ArrowLeftFromLine, ChevronDown, CircleMinus, Menu } from 'lucide-react';
 import Navbar from "./Navbar.tsx";
@@ -59,6 +61,9 @@ function SwitchHost() {
   const [summaryLinks, setSummaryLinks] = useState<SwitchToHostLink[]>([]);
   const [isResultPopupOpen, setIsResultPopupOpen] = useState(false);
   const [resultData, setResultData] = useState<any>(null);
+  
+  // New state to track result loading (similar to SwitchSwitch)
+  const [isResultLoading, setIsResultLoading] = useState(false);
 
   // Navigation state
   const [isNavOpen, setIsNavOpen] = useState(() => {
@@ -286,10 +291,9 @@ function SwitchHost() {
       });
   };
 
-  // New: Handle Confirm to execute the playbook and show result popup.
+  // Updated: Handle Confirm to execute the playbook and show result popup with a loading state.
   const handleConfirm = () => {
     setError('');
-    // Prepare request data (same as before)
     const requestData = links.map((link) => ({
       hostname: link.selectedHost,
       interfaces: link.interfaces.map((iface) => ({
@@ -302,7 +306,7 @@ function SwitchHost() {
 
     console.log('Confirming configuration to backend:', requestData);
 
-    // Send the configuration to the new API endpoint.
+    setIsResultLoading(true);
     fetch('/api/run_playbook/swtohost', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -314,19 +318,20 @@ function SwitchHost() {
           setError(data.error);
         } else {
           console.log('Playbook executed:', data);
-          // Save the result data to state.
           setResultData(data);
-          // Show the result popup.
-          setIsResultPopupOpen(true);
         }
       })
       .catch((err) => {
         setError(err.message);
         console.error('Error confirming configuration:', err);
+      })
+      .finally(() => {
+        setIsResultLoading(false);
       });
     
-    // Close the summary popup.
+    // Close the summary popup and open the result popup.
     setIsPopupOpen(false);
+    setIsResultPopupOpen(true);
   };
 
   // Toggle the summary popup.
@@ -528,7 +533,7 @@ function SwitchHost() {
         {/* Summary Popup */}
         {!error && isPopupOpen && (
           <div className="popup-overlay">
-            <div className="popup-content-swh">
+            <div className="popup-content-host">
               <h2>Summary</h2>
               {summaryLinks.length > 0 ? (
                 <div className="popup-table-wrapper">
@@ -536,6 +541,7 @@ function SwitchHost() {
                     <thead>
                       <tr>
                         <th>Switch</th>
+                        <th>IP address</th>
                         <th>Outgoing Interface</th>
                         <th>VLAN ID</th>
                       </tr>
@@ -545,6 +551,11 @@ function SwitchHost() {
                         link.interfaces.map((iface, iIdx) => (
                           <tr key={`${lIdx}-${iIdx}`}>
                             <td>{link.selectedHost || "Not Selected"}</td>
+                            <td>
+                              {iface.vlanData.ipAddress && iface.vlanData.subnetMask
+                                ? `${iface.vlanData.ipAddress}/${iface.vlanData.subnetMask}`
+                                : "Not Selected"}
+                            </td>
                             <td>{iface.selectedInterface || "Not Selected"}</td>
                             <td>{iface.vlanData.vlanId || "Not Selected"}</td>
                           </tr>
@@ -556,7 +567,7 @@ function SwitchHost() {
               ) : (
                 <p>No links created.</p>
               )}
-              <div className="submit-sw-sw-container" style={{ marginTop: '15px' }}>
+              <div className="submit-sw-sw-container" style={{marginRight:"0px"}}>
                 <button className="button-swh-close" onClick={handleTogglePopup}>
                   Close
                 </button>
@@ -569,12 +580,19 @@ function SwitchHost() {
           </div>
         )}
 
-        {/* Result Popup */}
+        {/* Result Popup with Loading */}
         {isResultPopupOpen && (
           <div className="popup-overlay">
-            <div className="popup-content-swh">
+            <div className="popup-preview">
               <h2>Result</h2>
-              {resultData ? (
+              {isResultLoading ? (
+                <div style={{ height: "100%" }}>
+                  <div className="loading-container">
+                    <div className="spinner-lab" />
+                    <p>Loading...</p>
+                  </div>
+                </div>
+              ) : resultData ? (
                 <div className="result-content">
                   {resultData.comparison && (
                     <>
@@ -586,11 +604,13 @@ function SwitchHost() {
               ) : (
                 <p>No result data available.</p>
               )}
-              <div className="submit-sw-sw-container" style={{ marginTop: '15px' }}>
-                <button className="button-swh-close" onClick={() => setIsResultPopupOpen(false)}>
-                  Close
-                </button>
-              </div>
+              {!isResultLoading && (
+        <div className="submit-sw-sw-container" style={{ marginTop: '15px' }}>
+          <button className="button-swh-close" onClick={() => setIsResultPopupOpen(false)}>
+            Close
+          </button>
+        </div>
+      )}
             </div>
           </div>
         )}
