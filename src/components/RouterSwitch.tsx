@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './RouterSwitch.css';
+import './Lab.css';
 import './Bar.css';
 import './SwitchSwitch.css';
 import Spinner from './bootstrapSpinner.tsx';
@@ -52,6 +53,7 @@ function SwitchRouter() {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isResultPopupOpen, setIsResultPopupOpen] = useState(false);
   const [resultData, setResultData] = useState<any>(null);
+  const [isResultLoading, setIsResultLoading] = useState(false);
 
   const [isNavOpen, setIsNavOpen] = useState(() => {
     const savedNavState = localStorage.getItem('isNavOpen');
@@ -250,9 +252,10 @@ function SwitchRouter() {
   };
 
   // handleConfirm จะถูกเรียกเมื่อกด Confirm ใน Summary popup
+  // handleConfirm function update
   const handleConfirm = () => {
     setError('');
-    // Prepare the same request data (หรือปรับตามที่ต้องการ)
+    // Prepare the request data (or adjust as needed)
     const requestData = links.map((link) => ({
       switchHost: link.selectedSwitchHost,
       routerHost: link.selectedRouterHost,
@@ -263,7 +266,13 @@ function SwitchRouter() {
 
     console.log('Sending data to backend for execution:', requestData);
 
-    // เรียก endpoint run_playbook เพื่อ execute playbook และรับผลลัพธ์
+    // Open the result popup immediately and start the spinner
+    setIsPopupOpen(false);
+    setIsResultLoading(true);
+    setIsResultPopupOpen(true);
+
+
+    // Call the backend endpoint
     fetch('/api/run_playbook/swtort', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -274,18 +283,22 @@ function SwitchRouter() {
         if (data.error) {
           setError(data.error);
         } else {
-          // เก็บผลลัพธ์ที่ได้รับจาก backend
+          // Save the result data once it's available
           setResultData(data);
-          // ปิด summary popup และเปิด result popup
-          setIsPopupOpen(false);
-          setIsResultPopupOpen(true);
         }
       })
       .catch((err) => {
         setError(err.message);
         console.error('Error executing playbook:', err);
+      })
+      .finally(() => {
+        // Stop the spinner once the request is finished
+        setIsResultLoading(false);
+        // Optionally, if you want to auto-close the spinner even if result is empty,
+        // you could do additional logic here.
       });
   };
+
 
   return (
     <div className="App">
@@ -495,9 +508,8 @@ function SwitchRouter() {
                               <label>Subnet:</label>
                               <input
                                 type="number"
-                                value={vlan.subnet || 24}
+                                value={vlan.subnet}
                                 onChange={(e) => handleVlanChange(index, vlanIndex, 'subnet', e.target.value)}
-                                placeholder="24"
                                 className="input-sw-sw"
                                 min="1"
                                 max="32"
@@ -547,7 +559,7 @@ function SwitchRouter() {
         {/* Summary Popup after Verify */}
         {isPopupOpen && (
           <div className="popup-overlay">
-            <div className="popup-content-swh">
+            <div className="popup-content-host" style={{ width: "60%" }}>
               <h2>Summary</h2>
               {links.length > 0 ? (
                 links.map((link, index) => (
@@ -572,7 +584,7 @@ function SwitchRouter() {
                                 <td>{link.selectedRouterInterface || "Not Selected"}</td>
                                 <td>
                                   {vlanConfig.gateway && vlanConfig.subnet
-                                    ? `${vlanConfig.gateway} / ${vlanConfig.subnet}`
+                                    ? `${vlanConfig.gateway}/${vlanConfig.subnet}`
                                     : "Not Selected"}
                                 </td>
                               </tr>
@@ -602,18 +614,221 @@ function SwitchRouter() {
           </div>
         )}
 
-        {/* Result Popup after Confirm */}
+        {/* Result Popup after Confirm with loading animation */}
         {isResultPopupOpen && (
           <div className="popup-overlay">
-            <div className="popup-content-host">
-              <h2>Result from Backend</h2>
-              <pre>{JSON.stringify(resultData, null, 2)}</pre>
-              <button className="button-swh-close" onClick={() => setIsResultPopupOpen(false)}>
-                Close
-              </button>
+            <div className="popup-preview" style={{ width: "80%" }}>
+              {isResultLoading ? (
+                <div style={{ height: "100%" }}>
+                  <h1 style={{ fontSize: "38px" }}>Result</h1>
+                  <div className="loading-container">
+                    <div className="spinner-lab" />
+                    <p>Loading...</p>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ height: "100%" }}>
+                  <h1 style={{ fontSize: "38px" }}>Result</h1>
+                  {/* Extract comparisons as an array */}
+                  {(() => {
+                    const comparisons = Array.isArray(resultData.comparison)
+                      ? resultData.comparison
+                      : [resultData.comparison];
+                    return (
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          padding: "0px 10px",
+                        }}
+                      >
+                        {/* Applied on device Section */}
+                        <div
+                          style={{
+                            width: "49%",
+                            backgroundColor: "#e6f7ff",
+                            padding: "10px",
+                            border: "1px solid #b3daff",
+                            borderRadius: "5px",
+                          }}
+                        >
+                          <h4 style={{ marginTop: 0 }}>Applied on device:</h4>
+                          <div
+                            className="popup-table-section-result"
+                            style={{ maxHeight: "69vh", overflowX: "auto" }}
+                          >
+                            {comparisons.map((comp: any, index: number) => {
+                              // Using the same host names as in your snippet.
+                              const host1Name = "Switch";
+                              const host2Name = "Router";
+                              return (
+                                <div
+                                  key={index}
+                                  className="popup-table"
+                                  style={{
+                                    marginBottom: "20px",
+                                    backgroundColor: "#ffffff",
+                                    borderRadius: "4px",
+                                    padding: "10px",
+                                  }}
+                                >
+                                  <h5>{`${host1Name}-${host2Name} Link ${index + 1}`}</h5>
+                                  <div className="popup-table-wrapper" style={{ overflowX: "auto" }}>
+                                    <table
+                                      style={{
+                                        width: "100%",
+                                        borderCollapse: "collapse",
+                                        backgroundColor: "#fff",
+                                      }}
+                                      border={1}
+                                    >
+                                      <thead>
+                                        <tr style={{ backgroundColor: "#f0f8ff" }}>
+                                          <th>VLAN</th>
+                                          <th>Outgoing Interface Switch</th>
+                                          <th>Outgoing Interface Router</th>
+                                          <th>Gateway</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {Object.entries(comp.router).map(
+                                          ([vlan, details]: [string, any]) => (
+                                            <tr key={vlan}>
+                                              <td>{vlan}</td>
+                                              <td>
+                                                {comp.switch.backend &&
+                                                  comp.switch.backend.interface
+                                                  ? comp.switch.backend.interface
+                                                  : "Not Selected"}
+                                              </td>
+                                              <td>
+                                                {details.backend && details.backend.interface
+                                                  ? details.backend.interface
+                                                  : "Not Selected"}
+                                              </td>
+                                              <td>
+                                                {details.backend &&
+                                                  details.backend.gateway &&
+                                                  details.backend.subnet
+                                                  ? `${details.backend.gateway}/${details.backend.subnet}`
+                                                  : "Not Selected"}
+                                              </td>
+                                            </tr>
+                                          )
+                                        )}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Configuration sent Section */}
+                        <div
+                          style={{
+                            width: "49%",
+                            backgroundColor: "#fff9e6",
+                            padding: "10px",
+                            border: "1px solid #ffe6b3",
+                            borderRadius: "5px",
+                          }}
+                        >
+                          <h4 style={{ marginTop: 0 }}>Configuration sent:</h4>
+                          <div
+                            className="popup-table-section-result"
+                            style={{ maxHeight: "69vh", overflowX: "auto" }}
+                          >
+                            {comparisons.map((comp: any, index: number) => {
+                              const host1Name = "Switch";
+                              const host2Name = "Router";
+                              return (
+                                <div
+                                  key={index}
+                                  className="popup-table"
+                                  style={{
+                                    marginBottom: "20px",
+                                    backgroundColor: "#ffffff",
+                                    borderRadius: "4px",
+                                    padding: "10px",
+                                  }}
+                                >
+                                  <h5>{`${host1Name}-${host2Name} Link ${index + 1}`}</h5>
+                                  <div className="popup-table-wrapper" style={{ overflowX: "auto" }}>
+                                    <table
+                                      style={{
+                                        width: "100%",
+                                        borderCollapse: "collapse",
+                                        backgroundColor: "#fff",
+                                      }}
+                                      border={1}
+                                    >
+                                      <thead>
+                                        <tr style={{ backgroundColor: "#fff2e6" }}>
+                                          <th>VLAN</th>
+                                          <th>Outgoing Interface Switch</th>
+                                          <th>Outgoing Interface Router</th>
+                                          <th>Gateway</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {Object.entries(comp.router).map(
+                                          ([vlan, details]: [string, any]) => (
+                                            <tr key={vlan}>
+                                              <td>{vlan}</td>
+                                              <td>
+                                                {comp.switch.frontend &&
+                                                  comp.switch.frontend.interface
+                                                  ? comp.switch.frontend.interface
+                                                  : "Not Selected"}
+                                              </td>
+                                              <td>
+                                                {details.frontend && details.frontend.interface
+                                                  ? details.frontend.interface
+                                                  : "Not Selected"}
+                                              </td>
+                                              <td>
+                                                {details.frontend &&
+                                                  details.frontend.gateway &&
+                                                  details.frontend.subnet
+                                                  ? `${details.frontend.gateway}/${details.frontend.subnet}`
+                                                  : "Not Selected"}
+                                              </td>
+                                            </tr>
+                                          )
+                                        )}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                  <div className="button-prev-section" style={{ marginTop: "10px" }}>
+                    <button
+                      className="button-cancel-prev"
+                      style={{ fontSize: "15px" }}
+                      onClick={() => setIsResultPopupOpen(false)}
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
+
+
+
+
+
+
 
         {error && (
           <div className="popup-overlay">
