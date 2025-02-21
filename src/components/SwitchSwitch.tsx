@@ -395,6 +395,7 @@ function SwitchSwitch() {
                             alt="Connect"
                             style={{ width: '150px', height: '100px' }}
                           />
+                          <label>Trunk</label>
                         </div>
                         <div className="host-sw-sw">
                           <div className="host-card">
