@@ -705,7 +705,7 @@ function Lab() {
                               >
                                 Edit Expected Output
                               </button>
-
+                              <div style={{ fontStyle: "italic", color: "grey", fontSize: "12px" }}>*required</div>
                               {cmd.host_expected.length > 1 && (
                                 <CircleMinus
                                   onClick={() =>

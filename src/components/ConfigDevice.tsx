@@ -136,36 +136,37 @@ const SummaryPopup: React.FC<SummaryPopupProps> = ({ stpResults, onClose }) => {
     <div className="popup-overlay">
       <div className="popup-preview">
         <h2 className="summary-title">Summary</h2>
-        <div className="summary-content">
-          {sortedResults.map((sw, index) => (
-            <div key={index} className="switch-card">
-              <div className={`switch-header ${sw.stp_detail?.isRoot ? 'root-bridge' : ''}`}>
-                {sw.hostname} Spanning Tree (VLAN {sw.vlan_id}) Priority: {sw.stp_detail?.bridge_priority_in_brackets}
-                {sw.stp_detail?.isRoot && <span className="root-label">[ROOT BRIDGE]</span>}
-              </div>
-              {sw.stp_detail?.stp_interfaces && (
-                <table className="switch-table">
-                  <thead>
-                    <tr>
-                      <th>Interface</th>
-                      <th>Role</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sw.stp_detail.stp_interfaces.map((port, idx) => (
-                      <tr key={idx}>
-                        <td>{port.interface}</td>
-                        <td>{port.interface_role}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          ))}
-        </div>
-        <div className="button-group">
-          <button className="button-confirm-prev" onClick={onClose}>Okay</button>
+        <div className="summary-content-cd">
+  {sortedResults.map((sw, index) => (
+    <div key={index} className="switch-card">
+      <div className={`switch-header ${sw.stp_detail?.isRoot ? 'root-bridge' : ''}`}>
+        {sw.hostname} – VLAN {sw.vlan_id} | Bridge Priority: {sw.stp_detail?.bridge_priority_in_brackets}
+        {sw.stp_detail?.isRoot && <span className="root-label"> – Root Bridge</span>}
+      </div>
+      {sw.stp_detail?.stp_interfaces && (
+        <table className="switch-table">
+          <thead>
+            <tr>
+              <th>Port</th>
+              <th>STP Role</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sw.stp_detail.stp_interfaces.map((port, idx) => (
+              <tr key={idx}>
+                <td>{port.interface}</td>
+                <td>{port.interface_role}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  ))}
+</div>
+
+        <div style={{ display: "flex", justifyContent: "flex-end" }}>
+          <button className="button-confirm-prev" style={{ fontSize:"16px" ,padding:"4px 15px"}}onClick={onClose}>Okay</button>
         </div>
       </div>
     </div>
@@ -242,9 +243,9 @@ function ConfigDevice() {
         return null;
       })
       .filter((host) => host !== null) as DropdownOption[];
-  
+
     setCombinedHosts(combined);
-  
+
     const tempVlans: { [key: string]: VlanInfo[] } = {};
     combined.forEach((host) => {
       tempVlans[host.hostname] = host.vlans || [];
@@ -252,11 +253,11 @@ function ConfigDevice() {
 
     setVlans(tempVlans);
   };
-  
+
   useEffect(() => {
     combineHostsData();
   }, [hostsFromGetHosts, detailsByType]);
-  
+
   const getRootInfo = (vlanId: number): { hostname: string; priority: string } | null => {
     for (let host of combinedHosts) {
       if (host.vlans) {
@@ -474,57 +475,57 @@ function ConfigDevice() {
         }
       }
     }
-    
+
     const requestData = links.map((link) => ({
       deviceType: link.deviceType,
       hostname: link.selectedHost,
       command: link.selectedCommand,
       ...(link.selectedCommand === 'vlan' && link.vlanData
         ? {
-            vlanData: {
-              vlanId: link.vlanData.vlanId,
-              vlanName: link.vlanData.vlanName,
-              ipAddress: link.vlanData.ipAddress,
-              cidr: link.vlanData.cidr,
-              interface: link.vlanData.interface,
-              mode: link.vlanData.mode,
-            },
-          }
+          vlanData: {
+            vlanId: link.vlanData.vlanId,
+            vlanName: link.vlanData.vlanName,
+            ipAddress: link.vlanData.ipAddress,
+            cidr: link.vlanData.cidr,
+            interface: link.vlanData.interface,
+            mode: link.vlanData.mode,
+          },
+        }
         : {}),
       ...(link.selectedCommand === 'bridge_priority' && link.bridgePriority
         ? {
-            bridgePriority: {
-              vlan: link.bridgePriority.vlan,
-              priority: link.bridgePriority.priority,
-            },
-            parsed_result: [...combinedHosts],
-          }
+          bridgePriority: {
+            vlan: link.bridgePriority.vlan,
+            priority: link.bridgePriority.priority,
+          },
+          parsed_result: [...combinedHosts],
+        }
         : {}),
       ...(link.selectedCommand === 'config_ip_router' && link.configIp
         ? {
-            configIp: {
-              interface: link.configIp.interface,
-              ipAddress: link.configIp.ipAddress,
-              cidr: link.configIp.cidr,
-            },
-          }
+          configIp: {
+            interface: link.configIp.interface,
+            ipAddress: link.configIp.ipAddress,
+            cidr: link.configIp.cidr,
+          },
+        }
         : {}),
       ...(link.selectedCommand === 'loopback' && link.loopbackData
         ? {
-            loopbackData: {
-              loopbackNumber: link.loopbackData.loopbackNumber,
-              ipAddress: link.loopbackData.ipAddress,
-            },
-          }
+          loopbackData: {
+            loopbackNumber: link.loopbackData.loopbackNumber,
+            ipAddress: link.loopbackData.ipAddress,
+          },
+        }
         : {}),
       ...(link.selectedCommand === 'static_route' && link.staticRouteData
         ? {
-            staticRouteData: {
-              prefix: link.staticRouteData.prefix,
-              cidr: link.staticRouteData.cidr,
-              nextHop: link.staticRouteData.nextHop
-            },
-          }
+          staticRouteData: {
+            prefix: link.staticRouteData.prefix,
+            cidr: link.staticRouteData.cidr,
+            nextHop: link.staticRouteData.nextHop
+          },
+        }
         : {}),
     }));
 
@@ -602,15 +603,15 @@ function ConfigDevice() {
         <ul className="nav-links">
           <li className="center"><a href="/dashboard">Dashboard</a></li>
           <li className="center"><a href="/hosts">Devices</a></li>
-          <li 
-            className="center" 
-            onClick={toggleNavDropdown} 
-            style={{ cursor: 'pointer', color: 'black' }} 
-            onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.color = '#8c94dc'} 
+          <li
+            className="center"
+            onClick={toggleNavDropdown}
+            style={{ cursor: 'pointer', color: 'black' }}
+            onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.color = '#8c94dc'}
             onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.color = 'black'}
           >
             <a>Configuration  </a>
-            <ChevronDown className={isNavDropdownOpen ? "chevron-nav rotated" : "chevron-nav"}/>
+            <ChevronDown className={isNavDropdownOpen ? "chevron-nav rotated" : "chevron-nav"} />
           </li>
           <ul className={`nav-dropdown ${isNavDropdownOpen ? "open" : ""}`}>
             <li className="center sub-topic"><a href="/routerrouter">router-router</a></li>
@@ -689,8 +690,8 @@ function ConfigDevice() {
                             {!link.deviceType
                               ? "-- Select a Device --"
                               : combinedHosts.some((host) => host.deviceType === link.deviceType)
-                              ? "-- Select a Device --"
-                              : "Loading..."}
+                                ? "-- Select a Device --"
+                                : "Loading..."}
                           </option>
                           {combinedHosts
                             .filter((host) => host.deviceType === link.deviceType)
@@ -723,7 +724,7 @@ function ConfigDevice() {
                   </div>
                   <div className="config-command-section">
                     {link.selectedCommand === 'vlan' && link.vlanData && (
-                      <div className="config-command-board">
+                      <div className="config-command-board" style={{ width: "40%", minWidth: "40%" }}>
                         <div className="vlan-config-topic">
                           <h5>VLAN Configuration</h5>
                         </div>
@@ -870,7 +871,7 @@ function ConfigDevice() {
                                 )}
                                 {hostPriority && (
                                   <div style={{ marginTop: '8px' }}>
-                                    Your host priority: {hostPriority}
+                                    Your device's priority: {hostPriority}
                                   </div>
                                 )}
                               </>
@@ -1022,22 +1023,22 @@ function ConfigDevice() {
           {isBridgeOpen && <SummaryPopup stpResults={stpResults} onClose={() => setBridgeOpen(false)} />}
         </div>
         {error && (
-  <div className="popup-overlay">
-    <div className="popup-content-host">
-      <div className="error-rt-rt">{error}</div>
-      <button
-        className="cancel-btn"
-        onClick={() => {
-          setError("");
-          // Optionally, if you have a state controlling the popup visibility, reset it here.
-          // setShowPopup(false);
-        }}
-      >
-        close
-      </button>
-    </div>
-  </div>
-)}
+          <div className="popup-overlay">
+            <div className="popup-content-host">
+              <div className="error-rt-rt">{error}</div>
+              <button
+                className="cancel-btn"
+                onClick={() => {
+                  setError("");
+                  // Optionally, if you have a state controlling the popup visibility, reset it here.
+                  // setShowPopup(false);
+                }}
+              >
+                close
+              </button>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>
