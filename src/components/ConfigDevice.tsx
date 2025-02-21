@@ -576,7 +576,7 @@ function ConfigDevice() {
   //   }
   //   return acc;
   // }, []);
-  const [stpResults, setStpResults] = useState<VlanInfo[]>([]);
+  const [stpResults, setStpResults] = useState<StpResult[]>([]);
 
 
   return (
@@ -1021,7 +1021,24 @@ function ConfigDevice() {
           </button>
           {isBridgeOpen && <SummaryPopup stpResults={stpResults} onClose={() => setBridgeOpen(false)} />}
         </div>
-        {error && <div className="error-sw-sw">Error: {error}</div>}
+        {error && (
+  <div className="popup-overlay">
+    <div className="popup-content-host">
+      <div className="error-rt-rt">{error}</div>
+      <button
+        className="cancel-btn"
+        onClick={() => {
+          setError("");
+          // Optionally, if you have a state controlling the popup visibility, reset it here.
+          // setShowPopup(false);
+        }}
+      >
+        close
+      </button>
+    </div>
+  </div>
+)}
+
       </div>
     </div>
   );
