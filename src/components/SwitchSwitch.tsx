@@ -446,17 +446,11 @@ function SwitchSwitch() {
                             </p>
                           )}
                           {link.vlans.map((selectedVlan, vlanIndex) => {
-                            // Filter out VLANs that are used in other dropdowns for this link.
-                            // But still allow the "selectedVlan" so it remains visible to the user.
-                            const filteredVlans = availableVlans.filter((v) => {
-                              // If it's the currently selected VLAN in this row, keep it
-                              if (v === selectedVlan) return true;
-
-                              // Otherwise, exclude it if it's already selected in any other row
-                              return !link.vlans.some((otherVlan, otherIndex) =>
-                                otherIndex !== vlanIndex && otherVlan === v
-                              );
-                            });
+                            const filteredVlans = availableVlans.filter(v =>
+                              !link.vlans.includes(v)
+                            );
+                            ;
+                            
 
                             return (
                               <div key={vlanIndex} className="vlan-selection-group">
@@ -519,143 +513,182 @@ function SwitchSwitch() {
                   </div>
                 ) : backendResult ? (
                   <div style={{ height: "100%" }}>
-                    <h1 style={{ fontSize: '38px' }}>Result</h1>
-                    <div style={{ display: "flex", justifyContent: "space-between", padding: "0px 10px" }}>
-                      {backendResult && backendResult.comparison && (
-                        <div style={{ width: "48%" }}>
-                          <h4>Applied on device:</h4>
-                          <div className="popup-table-section-result" style={{ maxHeight: "69vh" }}>
-                            {backendResult.comparison.map((comp: any, index: number) => {
-                              // Get the host names (for header labels)
-                              const host1Name = links[index]?.selectedHost1 || "Host1";
-                              const host2Name = links[index]?.selectedHost2 || "Host2";
+  <h1 style={{ fontSize: '38px' }}>Result</h1>
+  <div style={{ display: "flex", justifyContent: "space-between", padding: "0px 10px" }}>
 
-                              // Suppose the keys in comp are "sw1" and "sw2" (adjust as needed).
-                              // Each key has structure like: { interface, match, parsed_vlans: [...] }
-                              const sw1Data = comp["sw1"];
-                              const sw2Data = comp["sw2"];
+    {/* APPLIED ON DEVICE SECTION */}
+    {backendResult && backendResult.comparison && (
+      <div
+        style={{
+          width: "48%",
+          backgroundColor: "#e6f7ff",  // Light bluish background
+          padding: "10px",
+          border: "1px solid #b3daff",
+          borderRadius: "5px",
+        }}
+      >
+        <h4 style={{ marginTop: 0 }}>Applied on device:</h4>
+        <div className="popup-table-section-result" style={{ maxHeight: "69vh" }}>
+          {backendResult.comparison.map((comp: any, index: number) => {
+            // Get the host names (for header labels)
+            const host1Name = links[index]?.selectedHost1 || "Host1";
+            const host2Name = links[index]?.selectedHost2 || "Host2";
 
-                              // Combine (union) all VLANs mentioned on both sides.
-                              // This way, if sw1 has VLAN 10, 20 and sw2 has VLAN 20, 30, you'll get [10,20,30].
-                              const allVlans = new Set([
-                                ...sw1Data.parsed_vlans,
-                                ...sw2Data.parsed_vlans
-                              ]);
+            // Suppose the keys in comp are "sw1" and "sw2"
+            const sw1Data = comp["sw1"];
+            const sw2Data = comp["sw2"];
 
-                              return (
-                                <div key={index} className="popup-table">
-                                  <h5>{`${host1Name}-${host2Name} Link ${index + 1}`}</h5>
-                                  <div className="popup-table-wrapper">
-                                    <table
-                                      border={1}
-                                      style={{ width: "100%", borderCollapse: "collapse" }}
-                                    >
-                                      <thead>
-                                        <tr>
-                                          <th>VLAN</th>
-                                          <th>Outgoing Interface {host1Name}</th>
-                                          <th>Outgoing Interface {host2Name}</th>
-                                          <th>Match</th>
-                                        </tr>
-                                      </thead>
-                                      <tbody>
-                                        {[...allVlans].map((vlan) => {
-                                          // Check if the VLAN is on both sides and if both sides say "match".
-                                          const hasVlanOnSw1 = sw1Data.parsed_vlans.includes(vlan);
-                                          const hasVlanOnSw2 = sw2Data.parsed_vlans.includes(vlan);
-                                          // For example, you might define "Yes" only if *both* sides list the VLAN and *both* have match = true:
-                                          const isMatched =
-                                            sw1Data.match &&
-                                            sw2Data.match &&
-                                            hasVlanOnSw1 &&
-                                            hasVlanOnSw2;
+            // Union of VLANs from both sides
+            const allVlans = new Set([...sw1Data.parsed_vlans, ...sw2Data.parsed_vlans]);
 
-                                          return (
-                                            <tr key={vlan}>
-                                              <td>{vlan}</td>
-                                              <td>{sw1Data.interface}</td>
-                                              <td>{sw2Data.interface}</td>
-                                              <td>{isMatched ? "Yes" : "No"}</td>
-                                            </tr>
-                                          );
-                                        })}
-                                      </tbody>
-                                    </table>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
+            return (
+              <div
+                key={index}
+                className="popup-table"
+                style={{
+                  marginBottom: "20px",
+                  backgroundColor: "#ffffff",
+                  borderRadius: "4px",
+                  padding: "10px",
+                }}
+              >
+                <h5>{`${host1Name}-${host2Name} Link ${index + 1}`}</h5>
+                <div className="popup-table-wrapper" style={{ overflowX: "auto" }}>
+                  <table
+                    border={1}
+                    style={{
+                      width: "100%",
+                      borderCollapse: "collapse",
+                      backgroundColor: "#fff",
+                    }}
+                  >
+                    <thead>
+                      <tr style={{ backgroundColor: "#f0f8ff" }}>
+                        <th>VLAN</th>
+                        <th>Outgoing Interface {host1Name}</th>
+                        <th>Outgoing Interface {host2Name}</th>
+                        {/* <th>Match</th> */}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[...allVlans].map((vlan) => {
+                        const hasVlanOnSw1 = sw1Data.parsed_vlans.includes(vlan);
+                        const hasVlanOnSw2 = sw2Data.parsed_vlans.includes(vlan);
+                        const isMatched =
+                          sw1Data.match &&
+                          sw2Data.match &&
+                          hasVlanOnSw1 &&
+                          hasVlanOnSw2;
 
+                        return (
+                          <tr key={vlan}>
+                            <td>{vlan}</td>
+                            <td>{sw1Data.interface}</td>
+                            <td>{sw2Data.interface}</td>
+                            {/* <td>{isMatched ? "Yes" : "No"}</td> */}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    )}
 
-                      <div style={{ width: "48%" }}>
-                        <h4>Configuration sent:</h4>
-                        <div className="popup-table-section-result" style={{ maxHeight: "69vh" }}>
-                          {links.map((link, index) => {
-                            let rows: JSX.Element[] = [];
-                            if (link.switchportMode === 'trunk') {
-                              if (link.vlans.length > 0) {
-                                rows = link.vlans.map((vlan, idx) => (
-                                  <tr key={idx}>
-                                    <td>{vlan || 'N/A'}</td>
-                                    <td>{link.selectedInterface1 || 'N/A'}</td>
-                                    <td>{link.selectedInterface2 || 'N/A'}</td>
-                                  </tr>
-                                ));
-                              } else {
-                                rows = [
-                                  <tr key="no-vlan">
-                                    <td>No VLAN selected</td>
-                                    <td>{link.selectedInterface1 || 'N/A'}</td>
-                                    <td>{link.selectedInterface2 || 'N/A'}</td>
-                                  </tr>
-                                ];
-                              }
-                            } else {
-                              rows = [
-                                <tr key="access">
-                                  <td>Access</td>
-                                  <td>{link.selectedInterface1 || 'N/A'}</td>
-                                  <td>{link.selectedInterface2 || 'N/A'}</td>
-                                </tr>
-                              ];
-                            }
+    {/* CONFIGURATION SENT SECTION */}
+    <div
+      style={{
+        width: "48%",
+        backgroundColor: "#fff9e6", // Light yellowish background
+        padding: "10px",
+        border: "1px solid #ffe6b3",
+        borderRadius: "5px",
+      }}
+    >
+      <h4 style={{ marginTop: 0 }}>Configuration sent:</h4>
+      <div className="popup-table-section-result" style={{ maxHeight: "69vh" }}>
+        {links.map((link, index) => {
+          let rows: JSX.Element[] = [];
+          if (link.switchportMode === 'trunk') {
+            if (link.vlans.length > 0) {
+              rows = link.vlans.map((vlan, idx) => (
+                <tr key={idx}>
+                  <td>{vlan || 'N/A'}</td>
+                  <td>{link.selectedInterface1 || 'N/A'}</td>
+                  <td>{link.selectedInterface2 || 'N/A'}</td>
+                </tr>
+              ));
+            } else {
+              rows = [
+                <tr key="no-vlan">
+                  <td>No VLAN selected</td>
+                  <td>{link.selectedInterface1 || 'N/A'}</td>
+                  <td>{link.selectedInterface2 || 'N/A'}</td>
+                </tr>
+              ];
+            }
+          } else {
+            rows = [
+              <tr key="access">
+                <td>Access</td>
+                <td>{link.selectedInterface1 || 'N/A'}</td>
+                <td>{link.selectedInterface2 || 'N/A'}</td>
+              </tr>
+            ];
+          }
 
-                            const host1Name = link.selectedHost1;
-                            const host2Name = link.selectedHost2;
+          const host1Name = link.selectedHost1;
+          const host2Name = link.selectedHost2;
 
-                            return (
+          return (
+            <div
+              key={index}
+              className="popup-table"
+              style={{
+                marginBottom: "20px",
+                backgroundColor: "#ffffff",
+                borderRadius: "4px",
+                padding: "10px",
+              }}
+            >
+              <h5>{`${host1Name}-${host2Name} Link ${index + 1}`}</h5>
+              <div className="popup-table-wrapper" style={{ overflowX: "auto" }}>
+                <table
+                  border={1}
+                  style={{
+                    width: '100%',
+                    borderCollapse: 'collapse',
+                    backgroundColor: "#fff",
+                  }}
+                >
+                  <thead>
+                    <tr style={{ backgroundColor: "#fff2e6" }}>
+                      <th>VLAN</th>
+                      <th>Outgoing Interface {host1Name}</th>
+                      <th>Outgoing Interface {host2Name}</th>
+                    </tr>
+                  </thead>
+                  <tbody>{rows}</tbody>
+                </table>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  </div>
 
-                              <div key={index} className="popup-table">
-                                <h5>{`${host1Name}-${host2Name} Link ${index + 1}`}</h5>
-                                <div className="popup-table-wrapper">
-                                  <table border={1} style={{ width: '100%', borderCollapse: 'collapse' }}>
-                                    <thead>
-                                      <tr>
-                                        <th>VLAN</th>
-                                        <th>Outgoing Interface {host1Name}</th>
-                                        <th>Outgoing Interface {host2Name}</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>{rows}</tbody>
-                                  </table>
-                                </div>
-                              </div>
+  <div className="button-prev-section">
+    <button className="button-cancel-prev" style={{ fontSize: "15px" }} onClick={TogglePopup}>
+      Close
+    </button>
+  </div>
+</div>
 
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="button-prev-section">
-                      <button className="button-cancel-prev" style={{ fontSize: "16px" }} onClick={TogglePopup}>
-                        Close
-                      </button>
-                    </div>
-                  </div>
                 ) : (
                   <div style={{ height: "100%" }}>
                     <h1 style={{ fontSize: '32px' }}>Summary</h1>
