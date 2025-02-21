@@ -3,11 +3,11 @@ import json
 import ipaddress
 from flask import Blueprint, request, jsonify
 from services.ssh_service import create_ssh_connection
-from services.parse import parse_ansible_output, parse_result, parse_interface, parse_switchport, parse_configd, parse_dashboard, parse_sh_int_trunk, parse_routes, parse_switch_host
+from services.parse import parse_ansible_output, parse_result, parse_interface, parse_switchport, parse_configd, parse_dashboard, parse_sh_int_trunk, parse_routes, parse_switch_host, parse_router_switch
 from services.ansible_playbook import generate_playbook
 from services.database import add_device, fetch_all_devices, delete_device, assign_group_to_hosts, delete_group, create_custom_lab_in_db, fetch_all_custom_labs, delete_custom_lab_in_db, update_custom_lab_in_db
 from services.generate_inventory import generate_inventory_content
-from services.show_command import sh_ip_int_br, sh_ip_int_br_rt, sh_dashboard, sh_swtort, sh_int_trunk, sh_ip_route, sh_sw_host
+from services.show_command import sh_ip_int_br, sh_ip_int_br_rt, sh_dashboard, sh_swtort, sh_int_trunk, sh_ip_route, sh_sw_host, sh_router_switch
 from services.show_command.sh_config_sw import sh_config
 from services.cidr import cidr_to_subnet_mask
 from services.calculate_network_id import calculate_network_id
@@ -15,6 +15,7 @@ from services.routing_service import RoutingService
 from services.compare import compare_expected_outputs
 from services.compare_swhost import compare_switch_host
 from services.stp_calculating_services import recalc_stp
+from services.compare_router_switch import compare_router_switch
 
 
 api_bp = Blueprint('api', __name__)
@@ -317,7 +318,6 @@ def show_swtort():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
 @api_bp.route('/api/create_playbook_swtosw', methods=['POST'])
 def create_playbook():
     try:
@@ -548,6 +548,23 @@ def create_playbook_routerrouter():
             routing_tables = routing_service.process_links(data)
         except ValueError as ve:
             return jsonify({"error": f"Validation failed: {str(ve)}"}), 400
+        
+        ssh, username = create_ssh_connection()  
+        playbook_path = f"/home/{username}/playbook/multi_links_playbook.yml"
+        inventory_path = f"/home/{username}/inventory/inventory.ini"
+
+        sftp = ssh.open_sftp()
+        with sftp.open(playbook_path, "w") as playbook_file:
+            playbook_file.write(playbook_content)
+        sftp.close()
+
+        # Optionally, you can execute the playbook immediately:
+        # stdin, stdout, stderr = ssh.exec_command(f"ansible-playbook -i {inventory_path} {playbook_path}")
+        # output = stdout.read().decode('utf-8')
+        # errors = stderr.read().decode('utf-8')
+        # (handle output/errors as needed)
+
+        ssh.close()
 
         # Return both the playbook content and the calculated routing tables back to the frontend.
         return jsonify({
@@ -842,7 +859,6 @@ def create_playbook_configdevice():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
 @api_bp.route('/api/show_detail_configdevice', methods=['POST'])
 def show_configd():
     try:
@@ -876,7 +892,6 @@ def show_configd():
 
         # Parse the interface data
         parsed_result = parse_configd(output)
-        print(parsed_result)
 
         # Close the SSH connection
         ssh.close()
@@ -887,7 +902,6 @@ def show_configd():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
-
 @api_bp.route('/api/create_playbook_swtohost', methods=['POST'])
 def create_playbook_switchhost():
     try:
@@ -997,6 +1011,8 @@ def create_playbook_switchrouter():
     try:
         # 1) Retrieve data from the request (support both a single link and a list)
         data = request.json
+        # switch: show run int 
+        # router: show ip int br
         if isinstance(data, dict):
             data = [data]
         elif not isinstance(data, list):
@@ -1055,6 +1071,7 @@ def create_playbook_switchrouter():
                 else:
                     # Not configured as trunk yet => configure trunk mode and allowed VLAN
                     switch_lines = [
+                        "no switchport access vlan",
                         "switchport mode trunk",
                         f"switchport trunk allowed vlan {vlan_id}"
                     ]
@@ -1079,7 +1096,8 @@ def create_playbook_switchrouter():
                 router_commands = [
                     f"interface {subinterface}",
                     f"encapsulation dot1q {vlan_id}",
-                    f"ip address {gateway} {netmask}"
+                    f"ip address {gateway} {netmask}",
+                    f"no shutdown"
                 ]
 
                 playbook_content += f"""
@@ -1351,6 +1369,8 @@ def run_playbook_routerrouter():
 def run_playbook_configdevice():
     try:
         data = request.json
+        if isinstance(data, list):
+            data = data[0]
         return
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -1394,7 +1414,6 @@ def run_playbook_switchhost():
         verify_output = stdout.read().decode('utf-8')
         verify_errors = stderr.read().decode('utf-8')
         ssh.close()
-        print(verify_output)
 
         parsed_result = parse_switch_host(verify_output)
         comparison = compare_switch_host(data, parsed_result)
@@ -1409,7 +1428,45 @@ def run_playbook_switchhost():
 @api_bp.route('/api/run_playbook/swtort', methods=['POST'])
 def run_playbook_switchrouter():
     try:
-        return
+        data = request.json
+        #router show run int subinterface(eg. g0/1.201 interface.vlan_id)
+        #switch show run int
+        if isinstance(data, list):
+            data = data[0]
+        req_switch_host = data.get("switchHost")
+        req_router_host = data.get("routerHost")
+        req_switch_interface = data.get("switchInterface")
+        req_router_interface = data.get("routerInterface")
+        req_vlan_configs = data.get("vlanConfigs", [])
+
+        # สร้าง SSH connection, run playbook, etc.
+        ssh, username = create_ssh_connection()
+        playbook_path = f"/home/{username}/playbook/multi_links_playbook.yml"
+        inventory_path = f"/home/{username}/inventory/inventory.ini"
+
+        stdin, stdout, stderr = ssh.exec_command(f"ansible-playbook -i {inventory_path} {playbook_path}")
+        output = stdout.read().decode('utf-8')
+        errors = stderr.read().decode('utf-8')
+
+        playbook_content = sh_router_switch(data)  # สมมติว่าฟังก์ชันนี้ return playbook content ที่ต้องการ
+        verify_playbook_path = f"/home/{username}/playbook/verify_playbook.yml"
+
+        sftp = ssh.open_sftp()
+        with sftp.open(verify_playbook_path, "w") as playbook_file:
+            playbook_file.write(playbook_content)
+        sftp.close()
+
+        stdin, stdout, stderr = ssh.exec_command(f"ansible-playbook -i {inventory_path} {verify_playbook_path}")
+        verify_output = stdout.read().decode('utf-8')
+        verify_errors = stderr.read().decode('utf-8')
+        ssh.close()
+
+        parsed_result = parse_router_switch(verify_output)
+        comparison = compare_router_switch(data, parsed_result)
+
+        return jsonify({
+            "comparison": comparison
+        })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

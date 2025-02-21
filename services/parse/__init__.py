@@ -7,3 +7,4 @@ from services.parse.parse_lab import parse_ansible_output
 from services.parse.parse_sh_int_trunk import parse_sh_int_trunk
 from services.parse.parse_routes import parse_routes
 from services.parse.parse_switch_host import parse_switch_host
+from services.parse.parse_router_switch import parse_router_switch
