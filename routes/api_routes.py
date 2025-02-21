@@ -480,24 +480,24 @@ def create_playbook_routerrouter():
 
             # Create playbook task for configuring IP on Host1.
             playbook_content += f"""
-- name: "[Link#{idx}] Config IP on {hostname1}"
-  ios_config:
-    parents: interface {interface1}
-    lines:
-      - ip address {ip1} {netmask1}
-      - no shutdown
-  when: inventory_hostname == "{hostname1}"
+    - name: "[Link#{idx}] Config IP on {hostname1}"
+      ios_config:
+        parents: interface {interface1}
+        lines:
+          - ip address {ip1} {netmask1}
+          - no shutdown
+      when: inventory_hostname == "{hostname1}"
 """
 
             # Create playbook task for configuring IP on Host2.
             playbook_content += f"""
-- name: "[Link#{idx}] Config IP on {hostname2}"
-  ios_config:
-    parents: interface {interface2}
-    lines:
-      - ip address {ip2} {netmask2}
-      - no shutdown
-  when: inventory_hostname == "{hostname2}"
+    - name: "[Link#{idx}] Config IP on {hostname2}"
+      ios_config:
+        parents: interface {interface2}
+        lines:
+          - ip address {ip2} {netmask2}
+          - no shutdown
+      when: inventory_hostname == "{hostname2}"
 """
 
             # Additional configuration based on the protocol (e.g., RIP, OSPF) if provided.
@@ -506,39 +506,39 @@ def create_playbook_routerrouter():
                     netaddr1 = str(network1.network_address)
                     netaddr2 = str(network2.network_address)
                     playbook_content += f"""
-- name: "[Link#{idx}] Configure RIP on {hostname1}"
-  ios_config:
-    lines:
-      - router rip
-      - version 2
-      - network {netaddr1}
-  when: inventory_hostname == "{hostname1}"
+    - name: "[Link#{idx}] Configure RIP on {hostname1}"
+      ios_config:
+        lines:
+          - router rip
+          - version 2
+          - network {netaddr1}
+      when: inventory_hostname == "{hostname1}"
 """
                     playbook_content += f"""
-- name: "[Link#{idx}] Configure RIP on {hostname2}"
-  ios_config:
-    lines:
-      - router rip
-      - version 2
-      - network {netaddr2}
-  when: inventory_hostname == "{hostname2}"
+    - name: "[Link#{idx}] Configure RIP on {hostname2}"
+      ios_config:
+        lines:
+          - router rip
+          - version 2
+          - network {netaddr2}
+      when: inventory_hostname == "{hostname2}"
 """
                 elif protocol.lower() == "ospf":
                     playbook_content += f"""
-- name: "[Link#{idx}] Configure OSPF on {hostname1}"
-  ios_config:
-    lines:
-      - router ospf 1
-      - network {ip1} 0.0.0.0 area 0
-  when: inventory_hostname == "{hostname1}"
+    - name: "[Link#{idx}] Configure OSPF on {hostname1}"
+      ios_config:
+        lines:
+          - router ospf 1
+          - network {ip1} 0.0.0.0 area 0
+      when: inventory_hostname == "{hostname1}"
 """
                     playbook_content += f"""
-- name: "[Link#{idx}] Configure OSPF on {hostname2}"
-  ios_config:
-    lines:
-      - router ospf 1
-      - network {ip2} 0.0.0.0 area 0
-  when: inventory_hostname == "{hostname2}"
+    - name: "[Link#{idx}] Configure OSPF on {hostname2}"
+      ios_config:
+        lines:
+          - router ospf 1
+          - network {ip2} 0.0.0.0 area 0
+      when: inventory_hostname == "{hostname2}"
 """
 
         # Now call the RoutingService after processing all the links.
@@ -548,7 +548,22 @@ def create_playbook_routerrouter():
             routing_tables = routing_service.process_links(data)
         except ValueError as ve:
             return jsonify({"error": f"Validation failed: {str(ve)}"}), 400
+        ssh, username = create_ssh_connection()  
+        playbook_path = f"/home/{username}/playbook/multi_links_playbook.yml"
+        inventory_path = f"/home/{username}/inventory/inventory.ini"
 
+        sftp = ssh.open_sftp()
+        with sftp.open(playbook_path, "w") as playbook_file:
+            playbook_file.write(playbook_content)
+        sftp.close()
+
+        # Optionally, you can execute the playbook immediately:
+        # stdin, stdout, stderr = ssh.exec_command(f"ansible-playbook -i {inventory_path} {playbook_path}")
+        # output = stdout.read().decode('utf-8')
+        # errors = stderr.read().decode('utf-8')
+        # (handle output/errors as needed)
+
+        ssh.close()
         # Return both the playbook content and the calculated routing tables back to the frontend.
         return jsonify({
             "message": "Router-Router playbook created successfully",
