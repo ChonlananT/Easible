@@ -528,15 +528,11 @@ function SwitchSwitch() {
                           <h4 style={{ marginTop: 0 }}>Applied on device:</h4>
                           <div className="popup-table-section-result" style={{ maxHeight: "69vh" }}>
                             {backendResult.comparison.map((comp: any, index: number) => {
-                              // Get the host names (for header labels)
-                              const host1Name = links[index]?.selectedHost1 || "Host1";
-                              const host2Name = links[index]?.selectedHost2 || "Host2";
-
-                              // Suppose the keys in comp are "sw1" and "sw2"
-                              const sw1Data = comp["sw1"];
-                              const sw2Data = comp["sw2"];
-
-                              // Union of VLANs from both sides
+                              const hostKeys = Object.keys(comp);
+                              const sw1Data = comp[hostKeys[0]];
+                              const sw2Data = comp[hostKeys[1]];
+                              const host1Name = links[index]?.selectedHost1 || hostKeys[0];
+                              const host2Name = links[index]?.selectedHost2 || hostKeys[1];
                               const allVlans = new Set([...sw1Data.parsed_vlans, ...sw2Data.parsed_vlans]);
 
                               return (
@@ -569,24 +565,15 @@ function SwitchSwitch() {
                                         </tr>
                                       </thead>
                                       <tbody>
-                                        {[...allVlans].map((vlan) => {
-                                          const hasVlanOnSw1 = sw1Data.parsed_vlans.includes(vlan);
-                                          const hasVlanOnSw2 = sw2Data.parsed_vlans.includes(vlan);
-                                          const isMatched =
-                                            sw1Data.match &&
-                                            sw2Data.match &&
-                                            hasVlanOnSw1 &&
-                                            hasVlanOnSw2;
-
-                                          return (
-                                            <tr key={vlan}>
-                                              <td>{vlan}</td>
-                                              <td>{sw1Data.interface}</td>
-                                              <td>{sw2Data.interface}</td>
-                                              {/* <td>{isMatched ? "Yes" : "No"}</td> */}
-                                            </tr>
-                                          );
-                                        })}
+                                      {[...allVlans].map((vlan) => {
+                                        return (
+                                          <tr key={vlan}>
+                                            <td>{vlan}</td>
+                                            <td>{sw1Data.interface}</td>
+                                            <td>{sw2Data.interface}</td>
+                                          </tr>
+                                        );
+                                      })}
                                       </tbody>
                                     </table>
                                   </div>
