@@ -3,19 +3,18 @@ import json
 import ipaddress
 from flask import Blueprint, request, jsonify
 from services.ssh_service import create_ssh_connection
-from services.parse import parse_ansible_output, parse_result, parse_interface, parse_switchport, parse_configd, parse_dashboard, parse_sh_int_trunk, parse_routes, parse_switch_host, parse_router_switch
-from services.ansible_playbook import generate_playbook
+from services.parse import parse_ansible_output, parse_result, parse_interface, parse_configd, parse_dashboard, parse_sh_int_trunk, parse_routes, parse_switch_host, parse_router_switch, parse_config_device
 from services.database import add_device, fetch_all_devices, delete_device, assign_group_to_hosts, delete_group, create_custom_lab_in_db, fetch_all_custom_labs, delete_custom_lab_in_db, update_custom_lab_in_db
 from services.generate_inventory import generate_inventory_content
-from services.show_command import sh_ip_int_br, sh_ip_int_br_rt, sh_dashboard, sh_swtort, sh_int_trunk, sh_ip_route, sh_sw_host, sh_router_switch
+from services.show_command import sh_ip_int_br, sh_ip_int_br_rt, sh_dashboard, sh_swtort, sh_int_trunk, sh_ip_route, sh_sw_host, sh_router_switch, sh_config_device
 from services.show_command.sh_config_sw import sh_config
-from services.cidr import cidr_to_subnet_mask
 from services.calculate_network_id import calculate_network_id
 from services.routing_service import RoutingService
 from services.compare import compare_expected_outputs
 from services.compare_swhost import compare_switch_host
 from services.stp_calculating_services import recalc_stp
 from services.compare_router_switch import compare_router_switch
+from services.compare_config_device import compare_config_device
 
 
 api_bp = Blueprint('api', __name__)
@@ -508,6 +507,7 @@ def create_playbook_routerrouter():
                     playbook_content += f"""
     - name: "[Link#{idx}] Configure RIP on {hostname1}"
       ios_config:
+        match: none
         lines:
           - router rip
           - version 2
@@ -517,6 +517,7 @@ def create_playbook_routerrouter():
                     playbook_content += f"""
     - name: "[Link#{idx}] Configure RIP on {hostname2}"
       ios_config:
+        match: none
         lines:
           - router rip
           - version 2
@@ -527,6 +528,7 @@ def create_playbook_routerrouter():
                     playbook_content += f"""
     - name: "[Link#{idx}] Configure OSPF on {hostname1}"
       ios_config:
+        match: none
         lines:
           - router ospf 1
           - network {ip1} 0.0.0.0 area 0
@@ -535,6 +537,7 @@ def create_playbook_routerrouter():
                     playbook_content += f"""
     - name: "[Link#{idx}] Configure OSPF on {hostname2}"
       ios_config:
+        match: none
         lines:
           - router ospf 1
           - network {ip2} 0.0.0.0 area 0
@@ -603,7 +606,7 @@ def create_playbook_configdevice():
         # Use a set to track interfaces already set to trunk mode
         trunked_interfaces = set()
 
-        import ipaddress
+        stp_result = []
 
         # 2) Process each command configuration
         for idx, cmd in enumerate(data, start=1):
@@ -746,8 +749,8 @@ def create_playbook_configdevice():
                 playbook_content += f"""
   - name: "[Command#{idx}] Configure IP Address on Interface {interface} on {host}"
     ios_config:
+      parents: interface {interface}
       lines:
-        - interface {interface}
         - ip address {ip_address} {subnet_mask}
     when: inventory_hostname == "{host}"
 """
@@ -889,9 +892,15 @@ def show_configd():
         stdin, stdout, stderr = ssh.exec_command(ansible_command)
         output = stdout.read().decode("utf-8")
         error = stderr.read().decode("utf-8")
+        print(output)
 
-        # Parse the interface data
-        parsed_result = parse_configd(output)
+        # เลือก parse output ตามประเภทของ device
+        if device_type == "switch":
+            parsed_result = parse_configd(output)
+        elif device_type == "router":
+            parsed_result = parse_interface(output)
+        else:
+            parsed_result = {}  # กรณี deviceType ไม่ตรงกับที่ต้องการ
 
         # Close the SSH connection
         ssh.close()
@@ -1242,12 +1251,12 @@ def run_playbook_switchswitch():
 
             # สร้าง object สำหรับคู่ link จากข้อมูลใน entry
             paired_links.append({
-                req_hostname1: {
+                "sw1": {
                     "interface": req_iface1,
                     "match": entry_result.get(req_hostname1, {}).get(req_iface1, {}).get("match", False),
                     "parsed_vlans": entry_result.get(req_hostname1, {}).get(req_iface1, {}).get("parsed_vlans", [])
                 },
-                req_hostname2: {
+                "sw2": {
                     "interface": req_iface2,
                     "match": entry_result.get(req_hostname2, {}).get(req_iface2, {}).get("match", False),
                     "parsed_vlans": entry_result.get(req_hostname2, {}).get(req_iface2, {}).get("parsed_vlans", [])
@@ -1369,9 +1378,37 @@ def run_playbook_routerrouter():
 def run_playbook_configdevice():
     try:
         data = request.json
-        if isinstance(data, list):
-            data = data[0]
-        return
+        # สร้าง SSH connection, run playbook, etc.
+        ssh, username = create_ssh_connection()
+        playbook_path = f"/home/{username}/playbook/configdevice_playbook.yml"
+        inventory_path = f"/home/{username}/inventory/inventory.ini"
+
+        stdin, stdout, stderr = ssh.exec_command(f"ansible-playbook -i {inventory_path} {playbook_path}")
+        output = stdout.read().decode('utf-8')
+        errors = stderr.read().decode('utf-8')
+
+        playbook_content = sh_config_device(data)
+        verify_playbook_path = f"/home/{username}/playbook/verify_playbook.yml"
+
+        sftp = ssh.open_sftp()
+        with sftp.open(verify_playbook_path, "w") as playbook_file:
+            playbook_file.write(playbook_content)
+        sftp.close()
+
+        stdin, stdout, stderr = ssh.exec_command(f"ansible-playbook -i {inventory_path} {verify_playbook_path}")
+        verify_output = stdout.read().decode('utf-8')
+        verify_errors = stderr.read().decode('utf-8')
+        ssh.close()
+        print(verify_output)
+        parsed_result = parse_config_device(verify_output)
+        print(parsed_result)
+        comparison = compare_config_device(data, parsed_result)
+        print("Comparison:")
+        print(comparison)
+
+        return jsonify({
+            "comparison": comparison
+        })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
