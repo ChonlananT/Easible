@@ -58,6 +58,9 @@ function RouterRouter() {
   const [showPopup, setShowPopup] = useState(false);
   const [popupData, setPopupData] = useState<LinkConfig[]>([]);
   const [routingTables, setRoutingTables] = useState<any>({}); // NEW: dynamic routing tables
+  const [showComparisonPopup, setShowComparisonPopup] = useState(false);
+  const [comparisonResult, setComparisonResult] = useState<any>(null);
+  const [parsedRoutes, setParsedRoutes] = useState<any>(null);
   const [isClosing, setIsClosing] = useState(false);
 
   // protocol ที่มีให้เลือก
@@ -203,6 +206,48 @@ function RouterRouter() {
     });
   };
 
+  const handleConfirm = () => {
+    // 1) We need the routing_tables that came from /api/create_playbook_rttort
+    if (!routingTables || Object.keys(routingTables).length === 0) {
+      setError("No routing tables found to verify.");
+      return;
+    }
+  
+    // 2) Prepare payload
+    const payload = {
+      routing_tables: routingTables
+    };
+  
+    fetch("/api/run_playbook/rttort", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.error) {
+          setError(data.error);
+          return;
+        }
+        // data may have { parsed_routes, comparison, ... }
+        console.log("Verification data:", data);
+  
+        // 3) Close the first popup
+        handleClosePopup();
+  
+        // 4) Show the second popup with the comparison
+        setComparisonResult(data.comparison); // or data.whateverYouReturn
+        setParsedRoutes(data.parsed_routes);
+        
+        setShowComparisonPopup(true);
+      })
+      .catch((err) => {
+        setError(err.message);
+        console.error("Error verifying:", err);
+      });
+  };
+  
+
   // ฟังก์ชัน Submit ทั้งหมด
   const handleSubmitAll = () => {
     setError("");
@@ -256,7 +301,7 @@ function RouterRouter() {
 
     setPopupData(requestData);
     setShowPopup(true);
-
+    
     fetch("/api/create_playbook_rttort", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -270,7 +315,9 @@ function RouterRouter() {
           // alert('Configuration submitted successfully!');
           console.log("Playbook created:", data.playbook);
           // Set the routing tables from backend response
+          
           setRoutingTables(data.routing_tables);
+          console.log("routing_tables:", JSON.stringify(data.routing_tables, null, 2));
         }
       })
       .catch((err) => {
@@ -694,13 +741,121 @@ function RouterRouter() {
                   >
                     Cancel
                   </button>
-                  <button className="button-confirm-prev" style={{fontSize:"16px"}}>Confirm</button>
+                  <button 
+                    className="button-confirm-prev" 
+                    style={{fontSize:"16px"}} 
+                    onClick={handleConfirm}
+                  >
+                    Confirm
+                  </button>
                 </div>
               </div>
             </div>
           )}
         </div>
-
+        
+        {/* SHOW COMPARISON POPUP*/}
+        {showComparisonPopup && comparisonResult && parsedRoutes && (
+          <div className="popup-overlay">
+            <div className="popup-preview">
+              <h1 style={{ fontSize: "32px" }}>Comparison Result</h1>
+                  
+              {/* Wrap all the data in a scrollable container using our CSS class */}
+              <div className="scrollable-comparison-content">
+                {/* 1) Show the EXPECTED routes (frontend data) */}
+                <h2>Expected Routes (Frontend Data)</h2>
+                {Object.entries(routingTables).map(([hostname, routes]: [string, any]) => (
+                  <div key={hostname} className="popup-table">
+                    <h3>{hostname}</h3>
+                    <table border={1} style={{ width: "100%", borderCollapse: "collapse" }}>
+                      <thead>
+                        <tr>
+                          <th>Protocol</th>
+                          <th>Subnet</th>
+                          <th>Next Hop</th>
+                          <th>Outgoing Intf</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {routes.map((route: any, i: number) => (
+                          <tr key={i}>
+                            <td>{route.protocol}</td>
+                            <td>{route.subnet}</td>
+                            <td>{route.nexthop}</td>
+                            <td>{route.outgoing_interface}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ))}
+          
+                {/* 2) Show the ACTUAL parsed routes (from the backend) */}
+                <h2>Actual Routes (Backend Parsed)</h2>
+                {Object.entries(parsedRoutes).map(([hostname, routes]: [string, any]) => (
+                  <div key={hostname} className="popup-table">
+                    <h3>{hostname}</h3>
+                    <table border={1} style={{ width: "100%", borderCollapse: "collapse" }}>
+                      <thead>
+                        <tr>
+                          <th>Protocol</th>
+                          <th>Subnet</th>
+                          <th>Next Hop</th>
+                          <th>Outgoing Intf</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {routes.map((route: any, i: number) => (
+                          <tr key={i}>
+                            <td>{route.protocol}</td>
+                            <td>{route.subnet}</td>
+                            <td>{route.nexthop}</td>
+                            <td>{route.outgoing_interface}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ))}
+          
+                {/* 3) Show the COMPARISON summary */}
+                <h2>Comparison Summary</h2>
+                {Object.entries(comparisonResult).map(([hostname, compData]: [string, any]) => (
+                  <div key={hostname} className="popup-table">
+                    <h3>{hostname}</h3>
+                    <p>All Matched? {compData.all_matched ? "Yes" : "No"}</p>
+                    <h4>Matched Entries:</h4>
+                    <ul>
+                      {compData.matched_entries.map((entry: any, index: number) => (
+                        <li key={index}>{JSON.stringify(entry, null, 2)}</li>
+                      ))}
+                    </ul>
+                    <h4>Unmatched Entries:</h4>
+                    <ul>
+                      {compData.unmatched_entries.map((entry: any, index: number) => (
+                        <li key={index}>{JSON.stringify(entry, null, 2)}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+                
+              <div className="button-prev-section">
+                <button 
+                  className="button-cancel-prev"
+                  style={{ fontSize: "16px" }}
+                  onClick={() => setShowComparisonPopup(false)}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+          )}
+          
+          
+          
+          
         {error && (
           <div className="popup-overlay">
             <div className="popup-content-host">
