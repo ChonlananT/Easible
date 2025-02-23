@@ -71,7 +71,9 @@ const NetworkTopology: React.FC<NetworkTopologyProps> = ({ links }) => {
           from: link.hostname1,
           to: link.hostname2,
           // Use the computed network CIDR and activated protocol as the edge title.
-          title: `Network: ${networkCIDR}\nActivated Protocol: ${link.protocol}`,
+          title: `${link.hostname1} [${link.interface1} (${link.ip1})] ⇄ ${link.hostname2} [${link.interface2} (${link.ip2})]
+Network: ${networkCIDR}
+Activated Protocol: ${link.protocol}`,
         };
       });
 

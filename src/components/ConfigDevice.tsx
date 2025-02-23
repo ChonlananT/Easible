@@ -974,82 +974,6 @@ function ConfigDevice() {
 
   return (
     <div className="App">
-      <div className={`nav-links-container ${isNavOpen ? "" : "closed"}`}>
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-end",
-            paddingRight: "10px",
-            paddingTop: "10px",
-          }}
-        >
-          <button
-            style={{
-              marginBottom: "16px",
-              padding: "8px",
-              color: "#7b7b7b",
-              borderRadius: "8px",
-              zIndex: 50,
-              border: "none",
-              background: "#f5f7f9",
-            }}
-            onClick={() => setIsNavOpen(false)}
-          >
-            <ArrowLeftFromLine size={24} />
-          </button>
-          <img src="/easible-name.png" alt="" className="dashboard-icon" />
-        </div>
-        <ul className="nav-links">
-          <li className="center">
-            <a href="/dashboard">Dashboard</a>
-          </li>
-          <li className="center">
-            <a href="/hosts">Devices</a>
-          </li>
-          <li
-            className="center"
-            onClick={toggleNavDropdown}
-            style={{ cursor: "pointer", color: "black" }}
-            onMouseEnter={(e) =>
-              ((e.currentTarget as HTMLElement).style.color = "#8c94dc")
-            }
-            onMouseLeave={(e) =>
-              ((e.currentTarget as HTMLElement).style.color = "black")
-            }
-          >
-            <a>Configuration </a>
-            <ChevronDown
-              className={
-                isNavDropdownOpen ? "chevron-nav rotated" : "chevron-nav"
-              }
-            />
-          </li>
-          <ul className={`nav-dropdown ${isNavDropdownOpen ? "open" : ""}`}>
-            <li className="center sub-topic">
-              <a href="/routerrouter">router-router</a>
-            </li>
-            <li className="center sub-topic">
-              <a href="/routerswitch">router-switch</a>
-            </li>
-            <li className="center sub-topic">
-              <a href="/switchswitch">switch-switch</a>
-            </li>
-            <li className="center sub-topic">
-              <a href="/switchhost">switch-host</a>
-            </li>
-            <li className="center sub-topic">
-              <a href="/configdevice" style={{ color: "#8c94dc" }}>
-                config device
-              </a>
-            </li>
-          </ul>
-          <li className="center">
-            <a href="/lab">Lab Check</a>
-          </li>
-        </ul>
-      </div>
-
       <Navbar isNavOpen={isNavOpen} setIsNavOpen={setIsNavOpen} />
       <div className={`content ${isNavOpen ? "expanded" : "full-width"}`}>
         <div className="content-topic">
@@ -1069,8 +993,8 @@ function ConfigDevice() {
               <Menu size={24} />
             </button>
           )}
-          Configuration
-          <span className="content-topic-small"> (Config Device)</span>
+          Configure Devices
+          {/* <span className="content-topic-small"> (Config Device)</span> */}
         </div>
         <div className="content-board">
           <div className="all-links">
