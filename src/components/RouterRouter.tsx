@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./Bar.css";
 import "./RouterRouter.css"; // สมมติ reuse style เดิม หรือเปลี่ยนชื่อไฟล์ใหม่
 import "./SwitchSwitch.css"; // สมมติ reuse style เดิม หรือเปลี่ยนชื่อไฟล์ใหม่
-import NetworkTopology from "./NetworkTopology.tsx";
+import NetworkTopology from "./NetworkTopology(Router).tsx";
 import Navbar from "./Navbar.tsx";
 import Spinner from "./bootstrapSpinner.tsx";
 import { ArrowLeftFromLine, ChevronDown, Menu } from "lucide-react";
@@ -759,7 +759,7 @@ function RouterRouter() {
           <div className="popup-overlay">
             <div className="popup-preview">
               <h1 style={{ fontSize: "32px" }}>Comparison Result</h1>
-                  
+
               {/* Wrap all the data in a scrollable container using our CSS class */}
               <div className="scrollable-comparison-content">
                 {/* 1) Show the EXPECTED routes (frontend data) */}
@@ -789,7 +789,7 @@ function RouterRouter() {
                     </table>
                   </div>
                 ))}
-          
+
                 {/* 2) Show the ACTUAL parsed routes (from the backend) */}
                 <h2>Actual Routes (Backend Parsed)</h2>
                 {Object.entries(parsedRoutes).map(([hostname, routes]: [string, any]) => (
@@ -817,7 +817,7 @@ function RouterRouter() {
                     </table>
                   </div>
                 ))}
-          
+
                 {/* 3) Show the COMPARISON summary */}
                 <h2>Comparison Summary</h2>
                 {Object.entries(comparisonResult).map(([hostname, compData]: [string, any]) => (
@@ -839,7 +839,7 @@ function RouterRouter() {
                   </div>
                 ))}
               </div>
-                
+
               <div className="button-prev-section">
                 <button 
                   className="button-cancel-prev"
@@ -852,10 +852,10 @@ function RouterRouter() {
             </div>
           </div>
           )}
-          
-          
-          
-          
+
+
+
+
         {error && (
           <div className="popup-overlay">
             <div className="popup-content-host">
