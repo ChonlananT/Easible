@@ -1,85 +1,107 @@
-.config-command-section{
-    margin-top: 30px;
-    margin-bottom: 10px;
-    display: flex;
-    width: 100%;
-    flex-direction: column;
-    gap: 20px;
-    align-items: center;
-    justify-content: center;
+.config-command-section {
+  margin-top: 30px;
+  margin-bottom: 10px;
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
+  justify-content: center;
 }
 
-.config-command-board{
-    width: 100%;
-    display: flex; /* Enable flexbox layout */
-    flex-direction: column; /* Ensure items are stacked vertically */
-    justify-content: center; /* Center content vertically */
-    align-items: center; /* Center content horizontally */
-    background: #ebf2f9;
-    padding: 30px 18px;
-    border-radius: 12px;
-    border: 2px solid #aad3f0;
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
-    transition: all 0.3s ease-in-out;
-    animation: spreadFromCenter 0.2s ease; /* Apply the animation */
-    transform-origin: center;
-    overflow: hidden;
+.config-command-board {
+  width: 45%;
+  min-width: 50vh;
+  display: flex;
+  /* Enable flexbox layout */
+  flex-direction: column;
+  /* Ensure items are stacked vertically */
+  justify-content: center;
+  /* Center content vertically */
+  align-items: center;
+  /* Center content horizontally */
+  background: #ebf2f9;
+  padding: 30px 18px;
+  border-radius: 12px;
+  border: 2px solid #aad3f0;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease-in-out;
+  animation: spreadFromCenter 0.2s ease;
+  /* Apply the animation */
+  transform-origin: center;
+  overflow: hidden;
 }
 
 .config-command-board.collapsed {
-    width: 30%;  /* Smaller when collapsed */
-    height: 50px;  /* Reduce height when collapsed */
-    padding: 50px;
-  }
-  
-  .config-command-board.expanded {
-    width: 100%;   /* Expand to full width */
-    height: auto;  /* Allow it to grow */
-  }
+  width: 30%;
+  /* Smaller when collapsed */
+  height: 50px;
+  /* Reduce height when collapsed */
+  padding: 50px;
+}
+
+.config-command-board.expanded {
+  width: 100%;
+  /* Expand to full width */
+  height: auto;
+  /* Allow it to grow */
+}
 
 
 
 
 
 
-.ip-text{
-    margin: 5px;
-    width: 50%;
-    display: flex;
-    flex-direction: column;
+.ip-text {
+  margin: 5px;
+  width: 50%;
+  display: flex;
+  flex-direction: column;
 }
 
 .ip-text label {
-    margin-bottom: 5px; /* Adds spacing below the label */
+  margin-bottom: 5px;
+  /* Adds spacing below the label */
 }
 
 .ip-text input {
-    padding: 12px 14px; /* Adds padding inside the input field */
-    border: 1px solid #ccc; /* Creates a subtle border for the input */
-    border-radius: 16px; /* Slightly rounds the corners of the input field */
+  padding: 12px 14px;
+  /* Adds padding inside the input field */
+  border: 1px solid #ccc;
+  /* Creates a subtle border for the input */
+  border-radius: 16px;
+  /* Slightly rounds the corners of the input field */
 }
 
 .config-device-input-text {
-    margin: 5px;
-    width: 100%;
-    display: flex;
-    flex-direction: column; /* Stacks the label and input vertically */
+  margin: 5px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  /* Stacks the label and input vertically */
 }
 
 .config-device-input-text label {
-    margin-bottom: 5px; /* Adds spacing below the label */
+  margin-bottom: 5px;
+  /* Adds spacing below the label */
 }
 
 .config-device-input-text input {
-    padding: 12px 14px; /* Adds padding inside the input field */
-    border: 1px solid #ccc; /* Creates a subtle border for the input */
-    border-radius: 16px; /* Slightly rounds the corners of the input field */
+  padding: 12px 14px;
+  /* Adds padding inside the input field */
+  border: 1px solid #ccc;
+  /* Creates a subtle border for the input */
+  border-radius: 16px;
+  /* Slightly rounds the corners of the input field */
 }
 
 .config-device-input-text input:focus {
-    border-color: #0096bb; /* Changes border color when the input is focused */
-    outline: none; /* Removes the default focus outline */
-    box-shadow: 0 0 5px rgba(0, 208, 255, 0.5); /* Adds a subtle glow for focus */
+  border-color: #0096bb;
+  /* Changes border color when the input is focused */
+  outline: none;
+  /* Removes the default focus outline */
+  box-shadow: 0 0 5px rgba(0, 208, 255, 0.5);
+  /* Adds a subtle glow for focus */
 }
 
 
@@ -87,61 +109,64 @@
 
 
 
-.vlan-config-content{
-    display: flex;
-    flex-direction: row;
-    gap: 20px;
-    width: 100%;
-    align-items: center;
-    justify-content: center;
+.vlan-config-content {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
 }
 
-.vlan-name-id{
-    width: 90%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+.vlan-name-id {
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .ip-subnet-group-confdev {
-    width: 92%;
-    display: flex;
-    gap: 5px;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
+  width: 92%;
+  display: flex;
+  gap: 5px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
 }
 
 
 .vlan-config-device {
-    width: 100%;
-    height: 310px; /* Set a fixed height */
-    display: flex;
-    gap: 20px;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    overflow-y: auto; /* Enable vertical scrolling */
-    overflow-x: hidden; /* Prevent horizontal scrolling */
+  width: 100%;
+  height: 310px;
+  /* Set a fixed height */
+  display: flex;
+  gap: 20px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+  /* Enable vertical scrolling */
+  overflow-x: hidden;
+  /* Prevent horizontal scrolling */
 }
 
 .vlan-config-device-left {
-    width: 50%;
-    display: flex;
-    gap: 30px;
-    flex-direction: column;
-    align-items: center;
+  width: 50%;
+  display: flex;
+  gap: 30px;
+  flex-direction: column;
+  align-items: center;
 }
 
 .vlan-config-device-right {
-    margin-top: 10px;
-    width: 50%;
-    display: flex;
-    gap: 20px;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+  margin-top: 10px;
+  width: 50%;
+  display: flex;
+  gap: 20px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 
@@ -149,11 +174,13 @@
 
 
 
-.line-vertical-confdev{
-    height: 350px; /* Add a unit like px to define a valid height */
-    width: 2px;
-    background-color: #aad3f0; /* Adjust the color to your preference */
-    border-radius: 20px;
+.line-vertical-confdev {
+  height: 350px;
+  /* Add a unit like px to define a valid height */
+  width: 2px;
+  background-color: #aad3f0;
+  /* Adjust the color to your preference */
+  border-radius: 20px;
 }
 
 
@@ -161,32 +188,38 @@
 
 
 .switch-card {
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    margin-bottom: 10px;
-  }
-  
-  .switch-header {
-    padding: 10px;
-    font-size: 18px;
-    font-weight: bold;
-    background: #f5f5f5;
-  }
-  
-  .root-bridge {
-    background: #0044cc;
-    color: white;
-  }
-  
-  .switch-table {
-    width: 100%;
-    border-collapse: collapse;
-  }
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin: 0px auto 10px auto;
+  width: 85%;
+  display: flex;
+}
 
-  .switch-table th,
+.switch-header {
+  padding: 10px;
+  font-size: 16px;
+  font-weight: bold;
+  background: #f5f5f5;
+  width: 60%;
+  align-items: center;
+}
+
+.root-bridge {
+  background: #0044cc;
+  color: white;
+}
+
+.switch-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+}
+
+.switch-table th,
 .switch-table td {
   padding: 10px;
   border-bottom: 1px solid #ddd;
+  text-align: center;
 }
 
 .switch-table th {
@@ -199,47 +232,119 @@
 
 
 .button-add-interface-confdev {
-    width: 25%;
-    border: 2px solid #aad3f0; /* Slightly darker blue for better contrast */
-    border-radius: 24px;
-    background: #81c6f7;
-    color: white; /* Correct property, 'text-color' is invalid */
-    display: flex;
-    align-items: center; /* Center text/icon inside */
-    justify-content: center;
-    padding: 8px; /* More padding for a modern button look */
-    font-size: 16px;
-    cursor: pointer;
-    transition: all 0.3s ease-in-out; /* Smooth hover effect */
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
-    display: block;
-    margin: 0 auto;
-  }
-  
-  .button-add-interface-confdev:hover {
-    transform: scale(1.01); /* Slight scale-up effect */
-    box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.2);
-  }
-  
-  .button-add-interface-confdev:active {
-    transform: scale(0.98); /* Pressed button effect */
-  }
+  width: 25%;
+  border: 2px solid #aad3f0;
+  /* Slightly darker blue for better contrast */
+  border-radius: 24px;
+  background: #81c6f7;
+  color: white;
+  /* Correct property, 'text-color' is invalid */
+  display: flex;
+  align-items: center;
+  /* Center text/icon inside */
+  justify-content: center;
+  padding: 8px;
+  /* More padding for a modern button look */
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+  /* Smooth hover effect */
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  /* Soft shadow for depth */
+  display: block;
+  margin: 0 auto;
+}
 
+.button-add-interface-confdev:hover {
+  transform: scale(1.01);
+  /* Slight scale-up effect */
+  box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.2);
+}
 
-
-
-
-
-  .vlan-interface-config{
-    display: flex;
-    width: 100%;
-    gap:10px;
+.button-add-interface-confdev:active {
+  transform: scale(0.98);
+  /* Pressed button effect */
 }
 
 
 
 
-.vlan-config-topic{
-    display: flex;
-    gap:10px;
+
+
+.vlan-interface-config {
+  display: flex;
+  width: 100%;
+  gap: 10px;
+}
+
+
+
+
+.vlan-config-topic {
+  display: flex;
+  gap: 10px;
+}
+
+
+
+
+
+.summary-content-cd {
+  overflow-y: auto;
+  height: 87%;
+  padding: 10px 5px;
+  margin-bottom: 15px;
+}
+
+.summary-content-cd .switch-card {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.summary-content-cd .switch-header {
+  padding: 12px;
+  font-size: 16px;
+  font-weight: bold;
+  background: #e0e0e0;
+  color: #333;
+}
+
+.summary-content-cd .root-bridge {
+  background: #8ad8eb;
+  color: #000000;
+}
+
+.summary-content-cd .switch-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.summary-content-cd .switch-table th,
+.summary-content-cd .switch-table td {
+  padding: 10px;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
+}
+
+.summary-content-cd .switch-table th {
+  background: #f2f2f2;
+  font-weight: 600;
+}
+
+.summary-content-cd .switch-table tr:nth-child(even) {
+  background: #f9f9f9;
+}
+
+.summary-content-cd .switch-table tr:hover {
+  background: #f1f1f1;
+}
+
+
+
+.root-label{
+  margin-left: 5px;
+  color: rgb(7, 188, 52);
 }
