@@ -16,6 +16,7 @@ from services.compare import compare_expected_outputs
 from services.compare_swhost import compare_switch_host
 from services.stp_calculating_services import recalc_stp
 from services.compare_router_switch import compare_router_switch
+from services.compare_routing_table import compare_routing_tables
 
 
 api_bp = Blueprint('api', __name__)
@@ -527,16 +528,18 @@ def create_playbook_routerrouter():
                     playbook_content += f"""
     - name: "[Link#{idx}] Configure OSPF on {hostname1}"
       ios_config:
-        lines:
+        parents:
           - router ospf 1
+        lines:
           - network {ip1} 0.0.0.0 area 0
       when: inventory_hostname == "{hostname1}"
 """
                     playbook_content += f"""
     - name: "[Link#{idx}] Configure OSPF on {hostname2}"
       ios_config:
-        lines:
+        parents:
           - router ospf 1
+        lines:
           - network {ip2} 0.0.0.0 area 0
       when: inventory_hostname == "{hostname2}"
 """
@@ -1261,6 +1264,7 @@ def run_playbook_switchswitch():
         return jsonify({"error": str(e)}), 500
 
 @api_bp.route('/api/run_playbook/rttort', methods=['POST'])
+
 def run_playbook_routerrouter():
     try:
         data = request.json
@@ -1277,6 +1281,8 @@ def run_playbook_routerrouter():
         req_ipaddress2 = data.get("ip2")
         req_subnet = data.get("subnet")
         req_protocol = data.get("protocol")
+
+        expected_tables = data.get("routing_tables", {})
 
         # สร้าง SSH connection, run playbook, etc.
         ssh, username = create_ssh_connection()
@@ -1301,66 +1307,15 @@ def run_playbook_routerrouter():
         ssh.close()
 
         parsed_result = parse_routes(verify_output)
-        results = {}
-
-        # ดึงข้อมูล route สำหรับแต่ละ host
-        host1_routes = parsed_result.get(req_hostname1, [])
-        host2_routes = parsed_result.get(req_hostname2, [])
-
-        # กำหนด dictionary สำหรับเก็บผลลัพธ์พร้อมรายละเอียด
-        result_host1 = {"match": False, "details": {}}
-        result_host2 = {"match": False, "details": {}}
-
-        if req_protocol == "none":
-            # เปรียบเทียบสำหรับ directly connected (C) โดยใช้ข้อมูลของ host นั้นเอง
-            for route in host1_routes:
-                if (route["protocol"] == "none" and
-                    route["ip_address"] == req_ipaddress1 and
-                    route["subnet"] == req_subnet and
-                    route["interface"] == req_iface1):
-                    result_host1["match"] = True
-                    result_host1["details"] = route
-                    break
-
-            for route in host2_routes:
-                if (route["protocol"] == "none" and
-                    route["ip_address"] == req_ipaddress2 and
-                    route["subnet"] == req_subnet and
-                    route["interface"] == req_iface2):
-                    result_host2["match"] = True
-                    result_host2["details"] = route
-                    break
-
-        elif req_protocol in ["ospf", "ripv2"]:
-            # เปรียบเทียบสำหรับ protocol ospf หรือ ripv2
-            # สำหรับ host1: ip_address, subnet, interface ของ R101 และ nexthop ต้องตรงกับ ip_address ของ R102
-            for route in host1_routes:
-                if (route["protocol"] == req_protocol and
-                    route["ip_address"] == req_ipaddress1 and
-                    route["subnet"] == req_subnet and
-                    route["interface"] == req_iface1 and
-                    route["nexthop"] == req_ipaddress2):
-                    result_host1["match"] = True
-                    result_host1["details"] = route
-                    break
-
-            # สำหรับ host2: ip_address, subnet, interface ของ R102 และ nexthop ต้องตรงกับ ip_address ของ R101
-            for route in host2_routes:
-                if (route["protocol"] == req_protocol and
-                    route["ip_address"] == req_ipaddress2 and
-                    route["subnet"] == req_subnet and
-                    route["interface"] == req_iface2 and
-                    route["nexthop"] == req_ipaddress1):
-                    result_host2["match"] = True
-                    result_host2["details"] = route
-                    break
+        if expected_tables:
+            comparison_result = compare_routing_tables(expected_tables, parsed_result)
         else:
-            return jsonify({"error": "Unsupported protocol"}), 400
+            comparison_result = {"message": "No routing_tables provided. Skipping compare."}
 
-        results[req_hostname1] = result_host1
-        results[req_hostname2] = result_host2
-
-        return jsonify(results)
+        return jsonify({
+            "parsed_routes": parsed_result,
+            "comparison": comparison_result
+        })
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
