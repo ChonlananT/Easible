@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import './Bar.css';
-import './RouterRouter.css';
-import './ConfigDevice.css';
-import './SwitchSwitch.css';
-import Spinner from './bootstrapSpinner.tsx';
-import { ArrowLeftFromLine, ChevronDown, Menu } from 'lucide-react';
-import Navbar from './Navbar.tsx';
-import { radialGradient } from 'framer-motion/client';
+import React, { useState, useEffect } from "react";
+import "./Bar.css";
+import "./RouterRouter.css";
+import "./ConfigDevice.css";
+import "./SwitchSwitch.css";
+import Spinner from "./bootstrapSpinner.tsx";
+import { ArrowLeftFromLine, ChevronDown, Menu } from "lucide-react";
+import Navbar from "./Navbar.tsx";
+import { radialGradient } from "framer-motion/client";
 
 // Type Definitions
 type GetHostsData = {
@@ -39,7 +39,12 @@ export type VlanInfo = {
     bridge_priority_in_brackets: string;
     bridge_mac: string;
     isRoot: boolean;
-    stp_interfaces?: { interface: string; interface_role: string; cost: string; bpdu_port?: number }[];
+    stp_interfaces?: {
+      interface: string;
+      interface_role: string;
+      cost: string;
+      bpdu_port?: number;
+    }[];
   };
 };
 
@@ -51,7 +56,12 @@ export type StpResult = {
     bridge_priority_in_brackets: string;
     bridge_mac: string;
     isRoot: boolean;
-    stp_interfaces?: { interface: string; interface_role: string; cost: string; bpdu_port?: number }[];
+    stp_interfaces?: {
+      interface: string;
+      interface_role: string;
+      cost: string;
+      bpdu_port?: number;
+    }[];
   };
 };
 
@@ -118,117 +128,272 @@ type HostConfig = {
 
 type SummaryPopupProps = {
   stpResults: StpResult[];
+  resultData?: any;
+  selectedCommand: string;
   onClose: () => void;
 };
 
-const SummaryPopup: React.FC<SummaryPopupProps> = ({ stpResults, onClose }) => {
-  // First, sort by hostname (ascending)
-  const sortedByHostname = [...stpResults].sort((a, b) =>
-    a.hostname.localeCompare(b.hostname)
-  );
-  // Then, sort so that results with isRoot true appear at the top.
-  const sortedResults = sortedByHostname.sort((a, b) => {
-    if (a.stp_detail?.isRoot && !b.stp_detail?.isRoot) return -1;
-    if (!a.stp_detail?.isRoot && b.stp_detail?.isRoot) return 1;
-    return 0;
-  });
-
-  return (
-    <div className="popup-overlay">
-      <div className="popup-preview">
-        <h2 className="summary-title">Summary</h2>
-        <div className="summary-content-cd">
-          {sortedResults.map((sw, index) => (
-            <div key={index} className="switch-card">
-              <div className={`switch-header ${sw.stp_detail?.isRoot ? 'root-bridge' : ''}`}>
-                <div style={{ display: "flex" }}>
-                  <strong>{sw.hostname}</strong> – VLAN {sw.vlan_id}{sw.stp_detail?.isRoot && (
-                    <span className="root-label"> Root Bridge</span>
-                  )}
-                </div>
-                <div style={{ display: "flex" }}>
-                  Bridge Priority: 
-                  <div style={{ marginLeft: "5px", color: "royalblue" }}>
-                  {sw.stp_detail?.bridge_priority_in_brackets}
-                  </div>
-                  
-                </div>
-                <div style={{ display: "flex" }}>
-                  MAC Address:
-                  <div style={{ marginLeft: "5px", color: "royalblue" }}> {sw.stp_detail?.bridge_mac}</div>
-                </div>
-              </div>
-
-              {sw.stp_detail?.stp_interfaces && (
-                <table className="switch-table">
-                  <thead>
-                    <tr>
-                      <th>Port</th>
-                      <th>STP Role</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sw.stp_detail.stp_interfaces.map((port, idx) => (
-                      <tr key={idx}>
-                        <td>{port.interface}</td>
-                        <td>{port.interface_role}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          ))}
-        </div>
-
-        <div style={{ display: "flex", justifyContent: "flex-end" }}>
-          <button className="button-confirm-prev" style={{ fontSize: "16px", padding: "4px 15px" }} onClick={onClose}>Confirm</button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-
 function ConfigDevice() {
-  const [hostsFromGetHosts, setHostsFromGetHosts] = useState<GetHostsData[]>([]);
-  const [detailsByType, setDetailsByType] = useState<{ [deviceType: string]: ShowDetailData[] }>({});
+  const [hostsFromGetHosts, setHostsFromGetHosts] = useState<GetHostsData[]>(
+    []
+  );
+  const [detailsByType, setDetailsByType] = useState<{
+    [deviceType: string]: ShowDetailData[];
+  }>({});
   const [combinedHosts, setCombinedHosts] = useState<DropdownOption[]>([]);
   const [links, setLinks] = useState<HostConfig[]>([]);
   const [vlans, setVlans] = useState<{ [key: string]: VlanInfo[] }>({});
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState<boolean>(true);
+  const [resultData, setResultData] = useState<any>(null);
+  const [selectedCommand, setSelectedCommand] = useState("");
+
 
   // Commands available by device type
-  const commandsByDeviceType: { [key: string]: { label: string; value: string }[] } = {
+  const commandsByDeviceType: {
+    [key: string]: { label: string; value: string }[];
+  } = {
     switch: [
-      { label: 'VLAN', value: 'vlan' },
-      { label: 'Bridge Priority', value: 'bridge_priority' },
+      { label: "VLAN", value: "vlan" },
+      { label: "Bridge Priority", value: "bridge_priority" },
     ],
     router: [
-      { label: 'Config IP Router', value: 'config_ip_router' },
-      { label: 'Loopback', value: 'loopback' },
-      { label: 'Static Route', value: 'static_route' },
+      { label: "Config IP Router", value: "config_ip_router" },
+      { label: "Loopback", value: "loopback" },
+      { label: "Static Route", value: "static_route" },
     ],
   };
 
   const deviceTypes = [
-    { label: '-- Select Device Type --', value: '' },
-    { label: 'Switch', value: 'switch' },
-    { label: 'Router', value: 'router' },
+    { label: "-- Select Device Type --", value: "" },
+    { label: "Switch", value: "switch" },
+    { label: "Router", value: "router" },
   ];
+
+  const SummaryPopup: React.FC<SummaryPopupProps> = ({
+    stpResults,
+    resultData,
+    selectedCommand,
+    onClose,
+  }) => {
+    if (resultData) {
+      if (selectedCommand === "bridge_priority") {
+        // ถ้าเป็น bridge_priority ให้ render stpResults โดยตรวจสอบ resultData.comparison
+        if (
+          resultData.comparison &&
+          Array.isArray(resultData.comparison) &&
+          resultData.comparison.length > 0 &&
+          resultData.comparison[0].match === true
+        ) {
+          const sortedByHostname = [...stpResults].sort((a, b) =>
+            a.hostname.localeCompare(b.hostname)
+          );
+          const sortedResults = sortedByHostname.sort((a, b) => {
+            if (a.stp_detail?.isRoot && !b.stp_detail?.isRoot) return -1;
+            if (!a.stp_detail?.isRoot && b.stp_detail?.isRoot) return 1;
+            return 0;
+          });
+          return (
+            <div className="popup-overlay">
+              <div className="popup-preview">
+                <h2 className="summary-title">Result</h2>
+                <div className="summary-content-cd">
+                  {sortedResults.map((sw, index) => (
+                    <div key={index} className="switch-card">
+                      <div
+                        className={`switch-header ${
+                          sw.stp_detail?.isRoot ? "root-bridge" : ""
+                        }`}
+                      >
+                        <div style={{ display: "flex" }}>
+                          <strong>{sw.hostname}</strong> – VLAN {sw.vlan_id}
+                          {sw.stp_detail?.isRoot && (
+                            <span className="root-label"> Root Bridge</span>
+                          )}
+                        </div>
+                        <div style={{ display: "flex" }}>
+                          Bridge Priority:
+                          <div style={{ marginLeft: "5px", color: "royalblue" }}>
+                            {sw.stp_detail?.bridge_priority_in_brackets}
+                          </div>
+                        </div>
+                        <div style={{ display: "flex" }}>
+                          MAC Address:
+                          <div style={{ marginLeft: "5px", color: "royalblue" }}>
+                            {sw.stp_detail?.bridge_mac}
+                          </div>
+                        </div>
+                      </div>
+                      {sw.stp_detail?.stp_interfaces && (
+                        <table className="switch-table">
+                          <thead>
+                            <tr>
+                              <th>Port</th>
+                              <th>STP Role</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {sw.stp_detail.stp_interfaces.map((port, idx) => (
+                              <tr key={idx}>
+                                <td>{port.interface}</td>
+                                <td>{port.interface_role}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <button className="button-confirm-prev" onClick={onClose}>
+                  Close
+                </button>
+              </div>
+            </div>
+          );
+        } else {
+          return (
+            <div className="popup-overlay">
+              <div className="popup-preview">
+                <h2 className="summary-title">Result</h2>
+                {"No comparison data."}
+                <button className="button-confirm-prev" onClick={onClose}>
+                  Close
+                </button>
+              </div>
+            </div>
+          );
+        }
+      } else {
+        // สำหรับ command ที่ไม่ใช่ bridge_priority
+        if (Array.isArray(resultData)) {
+          return (
+            <div className="popup-overlay">
+              <div className="popup-preview">
+                <h2 className="summary-title">Result</h2>
+                <pre>{JSON.stringify(resultData, null, 2)}</pre>
+                <button className="button-confirm-prev" onClick={onClose}>
+                  Close
+                </button>
+              </div>
+            </div>
+          );
+        }
+        // ถ้า resultData เป็น object
+        return (
+          <div className="popup-overlay">
+            <div className="popup-preview">
+              <h2 className="summary-title">Result</h2>
+              <pre>{JSON.stringify(resultData, null, 2)}</pre>
+              <button className="button-confirm-prev" onClick={onClose}>
+                Close
+              </button>
+            </div>
+          </div>
+        );
+      }
+    }
+  
+    // ถ้า resultData ยังไม่มี ให้แสดง summary ปกติ
+    const sortedByHostname = [...stpResults].sort((a, b) =>
+      a.hostname.localeCompare(b.hostname)
+    );
+    const sortedResults = sortedByHostname.sort((a, b) => {
+      if (a.stp_detail?.isRoot && !b.stp_detail?.isRoot) return -1;
+      if (!a.stp_detail?.isRoot && b.stp_detail?.isRoot) return 1;
+      return 0;
+    });
+    return (
+      <div className="popup-overlay">
+        <div className="popup-preview">
+          <h2 className="summary-title">Summary</h2>
+          <div className="summary-content-cd">
+            {sortedResults.length > 0 ? (
+              sortedResults.map((sw, index) => (
+                <div key={index} className="switch-card">
+                  <div
+                    className={`switch-header ${
+                      sw.stp_detail?.isRoot ? "root-bridge" : ""
+                    }`}
+                  >
+                    <div style={{ display: "flex" }}>
+                      <strong>{sw.hostname}</strong> – VLAN {sw.vlan_id}
+                      {sw.stp_detail?.isRoot && (
+                        <span className="root-label"> Root Bridge</span>
+                      )}
+                    </div>
+                    <div style={{ display: "flex" }}>
+                      Bridge Priority:
+                      <div style={{ marginLeft: "5px", color: "royalblue" }}>
+                        {sw.stp_detail?.bridge_priority_in_brackets}
+                      </div>
+                    </div>
+                    <div style={{ display: "flex" }}>
+                      MAC Address:
+                      <div style={{ marginLeft: "5px", color: "royalblue" }}>
+                        {sw.stp_detail?.bridge_mac}
+                      </div>
+                    </div>
+                  </div>
+                  {sw.stp_detail?.stp_interfaces && (
+                    <table className="switch-table">
+                      <thead>
+                        <tr>
+                          <th>Port</th>
+                          <th>STP Role</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {sw.stp_detail.stp_interfaces.map((port, idx) => (
+                          <tr key={idx}>
+                            <td>{port.interface}</td>
+                            <td>{port.interface_role}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              ))
+            ) : (
+              <div className="empty-summary">No summary data</div>
+            )}
+          </div>
+          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+            <button
+              className="button-confirm-prev"
+              style={{ fontSize: "16px", padding: "4px 15px" }}
+              onClick={handleConfirm}
+            >
+              Confirm
+            </button>
+            <button
+              className="button-confirm-prev"
+              style={{ fontSize: "16px", padding: "4px 15px" }}
+              onClick={onClose}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   // Fetch get_hosts on mount
   useEffect(() => {
     setLoading(true);
-    fetch('/api/get_hosts')
+    fetch("/api/get_hosts")
       .then((res) => {
-        if (!res.ok) throw new Error(`GET /api/get_hosts failed with status ${res.status}`);
+        if (!res.ok)
+          throw new Error(
+            `GET /api/get_hosts failed with status ${res.status}`
+          );
         return res.json();
       })
       .then((getHostsData) => {
         setHostsFromGetHosts(getHostsData);
-        setLinks([{ deviceType: '', selectedHost: '', selectedCommand: '' }]);
+        setLinks([{ deviceType: "", selectedHost: "", selectedCommand: "" }]);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -274,11 +439,14 @@ function ConfigDevice() {
     combineHostsData();
   }, [hostsFromGetHosts, detailsByType]);
 
-  const getRootInfo = (vlanId: number): { hostname: string; priority: string } | null => {
+  const getRootInfo = (
+    vlanId: number
+  ): { hostname: string; priority: string } | null => {
     for (let host of combinedHosts) {
       if (host.vlans) {
         const found = host.vlans.find(
-          (v) => v.vlan_id === vlanId && v.stp_detail && v.stp_detail.isRoot === true
+          (v) =>
+            v.vlan_id === vlanId && v.stp_detail && v.stp_detail.isRoot === true
         );
         if (found && found.stp_detail) {
           return {
@@ -291,8 +459,13 @@ function ConfigDevice() {
     return null;
   };
 
-  const getCurrentHostPriority = (selectedHost: string, vlanId: number): string | null => {
-    const hostData = combinedHosts.find((host) => host.hostname === selectedHost);
+  const getCurrentHostPriority = (
+    selectedHost: string,
+    vlanId: number
+  ): string | null => {
+    const hostData = combinedHosts.find(
+      (host) => host.hostname === selectedHost
+    );
     if (hostData && hostData.vlans) {
       const vlanObj = hostData.vlans.find((v) => v.vlan_id === vlanId);
       if (vlanObj && vlanObj.stp_detail) {
@@ -306,35 +479,45 @@ function ConfigDevice() {
     hostIndex: number,
     field:
       | keyof HostConfig
-      | { group: 'vlanData' | 'bridgePriority' | 'configIp' | 'loopbackData' | 'staticRouteData'; key: string },
+      | {
+          group:
+            | "vlanData"
+            | "bridgePriority"
+            | "configIp"
+            | "loopbackData"
+            | "staticRouteData";
+          key: string;
+        },
     value: string | number
   ) => {
     setLinks((prevLinks) => {
       const newLinks = [...prevLinks];
       const hostConfig = { ...newLinks[hostIndex] };
 
-      if (typeof field === 'string') {
+      if (typeof field === "string") {
         (hostConfig as any)[field] = value;
 
-        if (field === 'deviceType') {
-          hostConfig.selectedHost = '';
-          hostConfig.selectedCommand = '';
+        if (field === "deviceType") {
+          hostConfig.selectedHost = "";
+          hostConfig.selectedCommand = "";
           delete hostConfig.vlanData;
           delete hostConfig.bridgePriority;
           delete hostConfig.configIp;
           delete hostConfig.loopbackData;
           delete hostConfig.staticRouteData;
 
-          if (value === 'switch' || value === 'router') {
+          if (value === "switch" || value === "router") {
             if (!detailsByType[value]) {
-              fetch('/api/show_detail_configdevice', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+              fetch("/api/show_detail_configdevice", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ deviceType: value }),
               })
                 .then((res) => {
                   if (!res.ok)
-                    throw new Error(`POST /api/show_detail_configdevice failed with status ${res.status}`);
+                    throw new Error(
+                      `POST /api/show_detail_configdevice failed with status ${res.status}`
+                    );
                   return res.json();
                 })
                 .then((data) => {
@@ -348,37 +531,37 @@ function ConfigDevice() {
           }
         }
 
-        if (field === 'selectedCommand') {
-          if (value === 'vlan') {
+        if (field === "selectedCommand") {
+          if (value === "vlan") {
             hostConfig.vlanData = {
-              vlanId: '',
-              vlanName: '',
-              ipAddress: '',
+              vlanId: "",
+              vlanName: "",
+              ipAddress: "",
               cidr: 24,
-              interface: '',
-              mode: '',
+              interface: "",
+              mode: "",
             };
-          } else if (value === 'bridge_priority') {
+          } else if (value === "bridge_priority") {
             hostConfig.bridgePriority = {
               vlan: 0,
               priority: 0,
             };
-          } else if (value === 'config_ip_router') {
+          } else if (value === "config_ip_router") {
             hostConfig.configIp = {
-              interface: '',
-              ipAddress: '',
+              interface: "",
+              ipAddress: "",
               cidr: 24,
             };
-          } else if (value === 'loopback') {
+          } else if (value === "loopback") {
             hostConfig.loopbackData = {
               loopbackNumber: 0,
-              ipAddress: '',
+              ipAddress: "",
             };
-          } else if (value === 'static_route') {
+          } else if (value === "static_route") {
             hostConfig.staticRouteData = {
-              prefix: '',
+              prefix: "",
               cidr: 24,
-              nextHop: '',
+              nextHop: "",
             };
           } else {
             delete hostConfig.vlanData;
@@ -388,27 +571,27 @@ function ConfigDevice() {
           }
         }
       } else {
-        if (field.group === 'vlanData') {
+        if (field.group === "vlanData") {
           hostConfig.vlanData = {
             ...hostConfig.vlanData!,
             [field.key]: value,
           };
-        } else if (field.group === 'bridgePriority') {
+        } else if (field.group === "bridgePriority") {
           hostConfig.bridgePriority = {
             ...hostConfig.bridgePriority!,
             [field.key]: value,
           };
-        } else if (field.group === 'configIp') {
+        } else if (field.group === "configIp") {
           hostConfig.configIp = {
             ...hostConfig.configIp!,
             [field.key]: value,
           };
-        } else if (field.group === 'loopbackData') {
+        } else if (field.group === "loopbackData") {
           hostConfig.loopbackData = {
             ...hostConfig.loopbackData!,
             [field.key]: value,
           };
-        } else if (field.group === 'staticRouteData') {
+        } else if (field.group === "staticRouteData") {
           hostConfig.staticRouteData = {
             ...hostConfig.staticRouteData!,
             [field.key]: value,
@@ -427,31 +610,38 @@ function ConfigDevice() {
   };
 
   const handleAddHost = () => {
+    if (links.some((link) => link.selectedCommand === "bridge_priority")) {
+      setError("Cannot add new host when Bridge Priority is selected.");
+      return;
+    }
     setLinks((prevLinks) => [
       ...prevLinks,
       {
-        deviceType: '',
-        selectedHost: '',
-        selectedCommand: '',
+        deviceType: "",
+        selectedHost: "",
+        selectedCommand: "",
       },
     ]);
   };
+  
 
   const handleRemoveHost = (hostIndex: number) => {
     setLinks((prevLinks) => prevLinks.filter((_, i) => i !== hostIndex));
   };
 
   const handleSubmitAll = () => {
-    setError('');
+    setError("");
 
     for (let i = 0; i < links.length; i++) {
       const link = links[i];
       if (!link.deviceType || !link.selectedHost || !link.selectedCommand) {
-        setError(`Please select device type, host, and command for all entries.`);
+        setError(
+          `Please select device type, host, and command for all entries.`
+        );
         return;
       }
 
-      if (link.selectedCommand === 'vlan') {
+      if (link.selectedCommand === "vlan") {
         const vlan = link.vlanData;
         if (!vlan || !vlan.vlanId || !vlan.interface || !vlan.mode) {
           setError(`Please fill all required VLAN fields for entry ${i + 1}.`);
@@ -459,34 +649,54 @@ function ConfigDevice() {
         }
       }
 
-      if (link.selectedCommand === 'bridge_priority') {
+      if (link.selectedCommand === "bridge_priority") {
         const bridge = link.bridgePriority;
         if (!bridge || bridge.vlan === 0) {
-          setError(`Please fill all required Bridge Priority fields for entry ${i + 1}.`);
+          setError(
+            `Please fill all required Bridge Priority fields for entry ${
+              i + 1
+            }.`
+          );
           return;
         }
       }
 
-      if (link.selectedCommand === 'config_ip_router') {
+      if (link.selectedCommand === "config_ip_router") {
         const configIp = link.configIp;
-        if (!configIp || !configIp.interface || !configIp.ipAddress || !configIp.cidr) {
-          setError(`Please fill all required Config IP fields for entry ${i + 1}.`);
+        if (
+          !configIp ||
+          !configIp.interface ||
+          !configIp.ipAddress ||
+          !configIp.cidr
+        ) {
+          setError(
+            `Please fill all required Config IP fields for entry ${i + 1}.`
+          );
           return;
         }
       }
 
-      if (link.selectedCommand === 'loopback') {
+      if (link.selectedCommand === "loopback") {
         const loopback = link.loopbackData;
         if (!loopback || !loopback.loopbackNumber || !loopback.ipAddress) {
-          setError(`Please fill all required Loopback fields for entry ${i + 1}.`);
+          setError(
+            `Please fill all required Loopback fields for entry ${i + 1}.`
+          );
           return;
         }
       }
 
-      if (link.selectedCommand === 'static_route') {
+      if (link.selectedCommand === "static_route") {
         const static_route = link.staticRouteData;
-        if (!static_route || !static_route.prefix || !static_route.cidr || !static_route.nextHop) {
-          setError(`Please fill all required Static route fields for entry ${i + 1}.`);
+        if (
+          !static_route ||
+          !static_route.prefix ||
+          !static_route.cidr ||
+          !static_route.nextHop
+        ) {
+          setError(
+            `Please fill all required Static route fields for entry ${i + 1}.`
+          );
           return;
         }
       }
@@ -496,59 +706,64 @@ function ConfigDevice() {
       deviceType: link.deviceType,
       hostname: link.selectedHost,
       command: link.selectedCommand,
-      ...(link.selectedCommand === 'vlan' && link.vlanData
+      ...(link.selectedCommand === "vlan" && link.vlanData
         ? {
-          vlanData: {
-            vlanId: link.vlanData.vlanId,
-            vlanName: link.vlanData.vlanName,
-            ipAddress: link.vlanData.ipAddress,
-            cidr: link.vlanData.cidr,
-            interface: link.vlanData.interface,
-            mode: link.vlanData.mode,
-          },
-        }
+            vlanDataList: [
+              {
+                vlanId: link.vlanData.vlanId,
+                vlanName: link.vlanData.vlanName,
+                ipAddress: link.vlanData.ipAddress,
+                cidr: link.vlanData.cidr,
+                interfaces: [
+                  {
+                    interface: link.vlanData.interface,
+                    mode: link.vlanData.mode,
+                  },
+                ],
+              },
+            ],
+          }
         : {}),
-      ...(link.selectedCommand === 'bridge_priority' && link.bridgePriority
+      ...(link.selectedCommand === "bridge_priority" && link.bridgePriority
         ? {
-          bridgePriority: {
-            vlan: link.bridgePriority.vlan,
-            priority: link.bridgePriority.priority,
-          },
-          parsed_result: [...combinedHosts],
-        }
+            bridgePriority: {
+              vlan: link.bridgePriority.vlan,
+              priority: link.bridgePriority.priority,
+            },
+            parsed_result: [...combinedHosts],
+          }
         : {}),
-      ...(link.selectedCommand === 'config_ip_router' && link.configIp
+      ...(link.selectedCommand === "config_ip_router" && link.configIp
         ? {
-          configIp: {
-            interface: link.configIp.interface,
-            ipAddress: link.configIp.ipAddress,
-            cidr: link.configIp.cidr,
-          },
-        }
+            configIp: {
+              interface: link.configIp.interface,
+              ipAddress: link.configIp.ipAddress,
+              cidr: link.configIp.cidr,
+            },
+          }
         : {}),
-      ...(link.selectedCommand === 'loopback' && link.loopbackData
+      ...(link.selectedCommand === "loopback" && link.loopbackData
         ? {
-          loopbackData: {
-            loopbackNumber: link.loopbackData.loopbackNumber,
-            ipAddress: link.loopbackData.ipAddress,
-          },
-        }
+            loopbackData: {
+              loopbackNumber: link.loopbackData.loopbackNumber,
+              ipAddress: link.loopbackData.ipAddress,
+            },
+          }
         : {}),
-      ...(link.selectedCommand === 'static_route' && link.staticRouteData
+      ...(link.selectedCommand === "static_route" && link.staticRouteData
         ? {
-          staticRouteData: {
-            prefix: link.staticRouteData.prefix,
-            cidr: link.staticRouteData.cidr,
-            nextHop: link.staticRouteData.nextHop
-          },
-        }
+            staticRouteData: {
+              prefix: link.staticRouteData.prefix,
+              cidr: link.staticRouteData.cidr,
+              nextHop: link.staticRouteData.nextHop,
+            },
+          }
         : {}),
     }));
 
-
-    fetch('/api/create_playbook_configdevice', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    fetch("/api/create_playbook_configdevice", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(requestData),
     })
       .then((res) => res.json())
@@ -556,24 +771,186 @@ function ConfigDevice() {
         if (data.error) {
           setError(data.error);
         } else {
-          setStpResults(data.stp_result || []);  // Store STP results in state
+          setStpResults(data.stp_result || []); // Store STP results in state
           setBridgeOpen(true); // Open the summary popup
-          console.log('Playbook created:', data.playbook);
+          console.log("Playbook created:", data.playbook);
         }
       })
       .catch((err) => {
         setError(err.message);
-        console.error('Error submitting configuration:', err);
+        console.error("Error submitting configuration:", err);
+      });
+  };
+
+  const handleConfirm = () => {
+    setError("");
+
+    // ตรวจสอบความสมบูรณ์ของข้อมูลในแต่ละ entry ใน links
+    for (let i = 0; i < links.length; i++) {
+      const link = links[i];
+      if (!link.deviceType || !link.selectedHost || !link.selectedCommand) {
+        setError(
+          `Please select device type, host, and command for all entries.`
+        );
+        return;
+      }
+
+      if (link.selectedCommand === "vlan") {
+        const vlan = link.vlanData;
+        if (!vlan || !vlan.vlanId || !vlan.interface || !vlan.mode) {
+          setError(`Please fill all required VLAN fields for entry ${i + 1}.`);
+          return;
+        }
+      }
+
+      if (link.selectedCommand === "bridge_priority") {
+        const bridge = link.bridgePriority;
+        if (!bridge || bridge.vlan === 0) {
+          setError(
+            `Please fill all required Bridge Priority fields for entry ${
+              i + 1
+            }.`
+          );
+          return;
+        }
+      }
+
+      if (link.selectedCommand === "config_ip_router") {
+        const configIp = link.configIp;
+        if (
+          !configIp ||
+          !configIp.interface ||
+          !configIp.ipAddress ||
+          !configIp.cidr
+        ) {
+          setError(
+            `Please fill all required Config IP fields for entry ${i + 1}.`
+          );
+          return;
+        }
+      }
+
+      if (link.selectedCommand === "loopback") {
+        const loopback = link.loopbackData;
+        if (!loopback || !loopback.loopbackNumber || !loopback.ipAddress) {
+          setError(
+            `Please fill all required Loopback fields for entry ${i + 1}.`
+          );
+          return;
+        }
+      }
+
+      if (link.selectedCommand === "static_route") {
+        const staticRoute = link.staticRouteData;
+        if (
+          !staticRoute ||
+          !staticRoute.prefix ||
+          !staticRoute.cidr ||
+          !staticRoute.nextHop
+        ) {
+          setError(
+            `Please fill all required Static Route fields for entry ${i + 1}.`
+          );
+          return;
+        }
+      }
+    }
+
+    // เก็บ command จาก entry ตัวแรก
+    const commandType = links[0].selectedCommand;
+    setSelectedCommand(commandType);
+
+    // Mapping request data ตาม structure ที่ต้องการ
+    const requestData = links.map((link) => ({
+      deviceType: link.deviceType,
+      hostname: link.selectedHost,
+      command: link.selectedCommand,
+      ...(link.selectedCommand === "vlan" && link.vlanData
+        ? {
+            vlanDataList: [
+              {
+                vlanId: link.vlanData.vlanId,
+                vlanName: link.vlanData.vlanName,
+                ipAddress: link.vlanData.ipAddress,
+                cidr: link.vlanData.cidr,
+                interfaces: [
+                  {
+                    interface: link.vlanData.interface,
+                    mode: link.vlanData.mode,
+                  },
+                ],
+              },
+            ],
+          }
+        : {}),
+      ...(link.selectedCommand === "bridge_priority" && link.bridgePriority
+        ? {
+            bridgePriority: {
+              vlan: link.bridgePriority.vlan,
+              priority: link.bridgePriority.priority,
+            },
+            parsed_result: [...combinedHosts],
+          }
+        : {}),
+      ...(link.selectedCommand === "config_ip_router" && link.configIp
+        ? {
+            configIp: {
+              interface: link.configIp.interface,
+              ipAddress: link.configIp.ipAddress,
+              cidr: link.configIp.cidr,
+            },
+          }
+        : {}),
+      ...(link.selectedCommand === "loopback" && link.loopbackData
+        ? {
+            loopbackData: {
+              loopbackNumber: link.loopbackData.loopbackNumber,
+              ipAddress: link.loopbackData.ipAddress,
+            },
+          }
+        : {}),
+      ...(link.selectedCommand === "static_route" && link.staticRouteData
+        ? {
+            staticRouteData: {
+              prefix: link.staticRouteData.prefix,
+              cidr: link.staticRouteData.cidr,
+              nextHop: link.staticRouteData.nextHop,
+            },
+          }
+        : {}),
+    }));
+
+    console.log('Confirming configuration to backend:', requestData);
+
+    // เรียก API /api/run_playbook/configdevice ด้วย method POST
+    fetch("/api/run_playbook/configdevice", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(requestData),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.error) {
+          setError(data.error);
+        } else {
+          setResultData(data);
+          // เปิด popup เมื่อได้รับข้อมูล
+          setBridgeOpen(true);
+        }
+      })
+      .catch((err) => {
+        setError(err.message);
+        console.error("Error executing configuration:", err);
       });
   };
 
   const [isNavOpen, setIsNavOpen] = useState(() => {
-    const savedNavState = localStorage.getItem('isNavOpen');
-    return savedNavState === 'true';
+    const savedNavState = localStorage.getItem("isNavOpen");
+    return savedNavState === "true";
   });
 
   useEffect(() => {
-    localStorage.setItem('isNavOpen', isNavOpen.toString());
+    localStorage.setItem("isNavOpen", isNavOpen.toString());
   }, [isNavOpen]);
 
   const [isNavDropdownOpen, setIsNavDropdownOpen] = useState(false);
@@ -595,20 +972,27 @@ function ConfigDevice() {
   // }, []);
   const [stpResults, setStpResults] = useState<StpResult[]>([]);
 
-
   return (
     <div className="App">
       <div className={`nav-links-container ${isNavOpen ? "" : "closed"}`}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', paddingRight: '10px', paddingTop: '10px' }}>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-end",
+            paddingRight: "10px",
+            paddingTop: "10px",
+          }}
+        >
           <button
             style={{
-              marginBottom: '16px',
-              padding: '8px',
-              color: '#7b7b7b',
-              borderRadius: '8px',
+              marginBottom: "16px",
+              padding: "8px",
+              color: "#7b7b7b",
+              borderRadius: "8px",
               zIndex: 50,
-              border: 'none',
-              background: '#f5f7f9',
+              border: "none",
+              background: "#f5f7f9",
             }}
             onClick={() => setIsNavOpen(false)}
           >
@@ -617,26 +1001,52 @@ function ConfigDevice() {
           <img src="/easible-name.png" alt="" className="dashboard-icon" />
         </div>
         <ul className="nav-links">
-          <li className="center"><a href="/dashboard">Dashboard</a></li>
-          <li className="center"><a href="/hosts">Devices</a></li>
+          <li className="center">
+            <a href="/dashboard">Dashboard</a>
+          </li>
+          <li className="center">
+            <a href="/hosts">Devices</a>
+          </li>
           <li
             className="center"
             onClick={toggleNavDropdown}
-            style={{ cursor: 'pointer', color: 'black' }}
-            onMouseEnter={(e) => (e.currentTarget as HTMLElement).style.color = '#8c94dc'}
-            onMouseLeave={(e) => (e.currentTarget as HTMLElement).style.color = 'black'}
+            style={{ cursor: "pointer", color: "black" }}
+            onMouseEnter={(e) =>
+              ((e.currentTarget as HTMLElement).style.color = "#8c94dc")
+            }
+            onMouseLeave={(e) =>
+              ((e.currentTarget as HTMLElement).style.color = "black")
+            }
           >
-            <a>Configuration  </a>
-            <ChevronDown className={isNavDropdownOpen ? "chevron-nav rotated" : "chevron-nav"} />
+            <a>Configuration </a>
+            <ChevronDown
+              className={
+                isNavDropdownOpen ? "chevron-nav rotated" : "chevron-nav"
+              }
+            />
           </li>
           <ul className={`nav-dropdown ${isNavDropdownOpen ? "open" : ""}`}>
-            <li className="center sub-topic"><a href="/routerrouter">router-router</a></li>
-            <li className="center sub-topic"><a href="/routerswitch">router-switch</a></li>
-            <li className="center sub-topic"><a href="/switchswitch">switch-switch</a></li>
-            <li className="center sub-topic"><a href="/switchhost">switch-host</a></li>
-            <li className="center sub-topic"><a href="/configdevice" style={{ color: '#8c94dc' }}>config device</a></li>
+            <li className="center sub-topic">
+              <a href="/routerrouter">router-router</a>
+            </li>
+            <li className="center sub-topic">
+              <a href="/routerswitch">router-switch</a>
+            </li>
+            <li className="center sub-topic">
+              <a href="/switchswitch">switch-switch</a>
+            </li>
+            <li className="center sub-topic">
+              <a href="/switchhost">switch-host</a>
+            </li>
+            <li className="center sub-topic">
+              <a href="/configdevice" style={{ color: "#8c94dc" }}>
+                config device
+              </a>
+            </li>
           </ul>
-          <li className="center"><a href="/lab">Lab Check</a></li>
+          <li className="center">
+            <a href="/lab">Lab Check</a>
+          </li>
         </ul>
       </div>
 
@@ -646,13 +1056,13 @@ function ConfigDevice() {
           {!isNavOpen && (
             <button
               style={{
-                padding: '8px',
-                color: 'black',
-                borderRadius: '8px',
+                padding: "8px",
+                color: "black",
+                borderRadius: "8px",
                 zIndex: 50,
-                border: 'none',
-                background: 'white',
-                marginRight: '8px',
+                border: "none",
+                background: "white",
+                marginRight: "8px",
               }}
               onClick={() => setIsNavOpen(true)}
             >
@@ -670,8 +1080,15 @@ function ConfigDevice() {
                   <div className="link-index">Device Config {index + 1}</div>
                   <div className="remove-link-container">
                     {links.length > 1 && (
-                      <button onClick={() => handleRemoveHost(index)} className="button-sw-sw-remove">
-                        <img src="bin.png" alt="Remove link" style={{ width: '45px', height: '27px' }} />
+                      <button
+                        onClick={() => handleRemoveHost(index)}
+                        className="button-sw-sw-remove"
+                      >
+                        <img
+                          src="bin.png"
+                          alt="Remove link"
+                          style={{ width: "45px", height: "27px" }}
+                        />
                       </button>
                     )}
                   </div>
@@ -684,7 +1101,13 @@ function ConfigDevice() {
                         <select
                           className="host-selection__dropdown"
                           value={link.deviceType}
-                          onChange={(e) => handleHostChange(index, 'deviceType', e.target.value)}
+                          onChange={(e) =>
+                            handleHostChange(
+                              index,
+                              "deviceType",
+                              e.target.value
+                            )
+                          }
                         >
                           {deviceTypes.map((dt) => (
                             <option key={dt.value} value={dt.value}>
@@ -699,18 +1122,34 @@ function ConfigDevice() {
                         <select
                           className="host-selection__dropdown"
                           value={link.selectedHost}
-                          onChange={(e) => handleHostChange(index, 'selectedHost', e.target.value)}
-                          disabled={!link.deviceType || loading || combinedHosts.filter((host) => host.deviceType === link.deviceType).length <= 1}
+                          onChange={(e) =>
+                            handleHostChange(
+                              index,
+                              "selectedHost",
+                              e.target.value
+                            )
+                          }
+                          disabled={
+                            !link.deviceType ||
+                            loading ||
+                            combinedHosts.filter(
+                              (host) => host.deviceType === link.deviceType
+                            ).length <= 1
+                          }
                         >
                           <option value="">
                             {!link.deviceType
                               ? "-- Select a Device --"
-                              : combinedHosts.some((host) => host.deviceType === link.deviceType)
-                                ? "-- Select a Device --"
-                                : "Loading..."}
+                              : combinedHosts.some(
+                                  (host) => host.deviceType === link.deviceType
+                                )
+                              ? "-- Select a Device --"
+                              : "Loading..."}
                           </option>
                           {combinedHosts
-                            .filter((host) => host.deviceType === link.deviceType)
+                            .filter(
+                              (host) => host.deviceType === link.deviceType
+                            )
                             .map((host: DropdownOption) => (
                               <option key={host.hostname} value={host.hostname}>
                                 {host.hostname}
@@ -724,23 +1163,38 @@ function ConfigDevice() {
                         <select
                           className="host-selection__dropdown"
                           value={link.selectedCommand}
-                          onChange={(e) => handleHostChange(index, 'selectedCommand', e.target.value)}
+                          onChange={(e) =>
+                            handleHostChange(
+                              index,
+                              "selectedCommand",
+                              e.target.value
+                            )
+                          }
                           disabled={!link.selectedHost}
                         >
                           <option value="">-- Select a Command --</option>
                           {link.deviceType &&
-                            commandsByDeviceType[link.deviceType].map((command) => (
-                              <option key={command.value} value={command.value}>
-                                {command.label}
-                              </option>
-                            ))}
+                            commandsByDeviceType[link.deviceType]
+                              .filter((cmd) => {
+                                // หากมีมากกว่า 1 hostแล้ว ไม่ให้เลือก bridge_priority ทั้งหมด
+                                if (links.length > 1) {
+                                  return cmd.value !== "bridge_priority";
+                                }
+                                return true;
+                              })
+                              .map((command) => (
+                                <option key={command.value} value={command.value}>
+                                  {command.label}
+                                </option>
+                              )
+                            )}
                         </select>
                       </div>
                     </div>
                   </div>
                   <div className="config-command-section">
-                    {link.selectedCommand === 'vlan' && link.vlanData && (
-                      <div className="config-command-board" style={{ width: "40%", minWidth: "40%" }}>
+                    {link.selectedCommand === "vlan" && link.vlanData && (
+                      <div className="config-command-board">
                         <div className="vlan-config-topic">
                           <h5>VLAN Configuration</h5>
                         </div>
@@ -753,7 +1207,11 @@ function ConfigDevice() {
                                   type="text"
                                   value={link.vlanData.vlanId}
                                   onChange={(e) =>
-                                    handleHostChange(index, { group: 'vlanData', key: 'vlanId' }, e.target.value)
+                                    handleHostChange(
+                                      index,
+                                      { group: "vlanData", key: "vlanId" },
+                                      e.target.value
+                                    )
                                   }
                                   placeholder="Enter VLAN ID"
                                 />
@@ -764,7 +1222,11 @@ function ConfigDevice() {
                                   type="text"
                                   value={link.vlanData.vlanName}
                                   onChange={(e) =>
-                                    handleHostChange(index, { group: 'vlanData', key: 'vlanName' }, e.target.value)
+                                    handleHostChange(
+                                      index,
+                                      { group: "vlanData", key: "vlanName" },
+                                      e.target.value
+                                    )
                                   }
                                   placeholder="Enter VLAN Name"
                                 />
@@ -777,7 +1239,11 @@ function ConfigDevice() {
                                   type="text"
                                   value={link.vlanData.ipAddress}
                                   onChange={(e) =>
-                                    handleHostChange(index, { group: 'vlanData', key: 'ipAddress' }, e.target.value)
+                                    handleHostChange(
+                                      index,
+                                      { group: "vlanData", key: "ipAddress" },
+                                      e.target.value
+                                    )
                                   }
                                   placeholder="Enter IP Address"
                                 />
@@ -790,7 +1256,11 @@ function ConfigDevice() {
                                   max={32}
                                   value={link.vlanData.cidr}
                                   onChange={(e) =>
-                                    handleHostChange(index, { group: 'vlanData', key: 'cidr' }, parseInt(e.target.value, 10))
+                                    handleHostChange(
+                                      index,
+                                      { group: "vlanData", key: "cidr" },
+                                      parseInt(e.target.value, 10)
+                                    )
                                   }
                                   placeholder="Enter CIDR (e.g., 24)"
                                 />
@@ -805,16 +1275,25 @@ function ConfigDevice() {
                                 className="host-selection__dropdown"
                                 value={link.vlanData.interface}
                                 onChange={(e) =>
-                                  handleHostChange(index, { group: 'vlanData', key: 'interface' }, e.target.value)
+                                  handleHostChange(
+                                    index,
+                                    { group: "vlanData", key: "interface" },
+                                    e.target.value
+                                  )
                                 }
                               >
                                 <option value="">-- Select Interface --</option>
                                 {link.selectedHost &&
-                                  getInterfacesForHost(link.selectedHost).map((intf) => (
-                                    <option key={intf.interface} value={intf.interface}>
-                                      {intf.interface} ({intf.status})
-                                    </option>
-                                  ))}
+                                  getInterfacesForHost(link.selectedHost).map(
+                                    (intf) => (
+                                      <option
+                                        key={intf.interface}
+                                        value={intf.interface}
+                                      >
+                                        {intf.interface} ({intf.status})
+                                      </option>
+                                    )
+                                  )}
                               </select>
                             </div>
                             <div className="host-selection__dropdown-group">
@@ -823,7 +1302,11 @@ function ConfigDevice() {
                                 className="host-selection__dropdown"
                                 value={link.vlanData.mode}
                                 onChange={(e) =>
-                                  handleHostChange(index, { group: 'vlanData', key: 'mode' }, e.target.value)
+                                  handleHostChange(
+                                    index,
+                                    { group: "vlanData", key: "mode" },
+                                    e.target.value
+                                  )
                                 }
                               >
                                 <option value="">-- Select Mode --</option>
@@ -835,183 +1318,255 @@ function ConfigDevice() {
                         </div>
                       </div>
                     )}
-                    {link.selectedCommand === 'bridge_priority' && link.bridgePriority && (
-                      <div className="config-command-board">
-                        <h5>Bridge Priority Configuration</h5>
-                        <div className="host-selection__dropdown-group">
-                          <label>Select VLAN:</label>
-                          <select
-                            className="host-selection__dropdown"
-                            value={link.bridgePriority.vlan}
-                            onChange={(e) =>
-                              handleHostChange(index, { group: 'bridgePriority', key: 'vlan' }, parseInt(e.target.value, 10))
-                            }
-                          >
-                            <option value="">-- Select VLAN --</option>
-                            {link.selectedHost &&
-                              vlans[link.selectedHost] &&
-                              vlans[link.selectedHost].map((vlanObj) => (
-                                <option key={vlanObj.vlan_id} value={vlanObj.vlan_id}>
-                                  {`VLAN ${vlanObj.vlan_id}`}
-                                </option>
-                              ))}
-                          </select>
-                        </div>
-                        <div className="host-selection__dropdown-group">
-                          <label>Bridge Priority:</label>
-                          <select
-                            className="host-selection__dropdown"
-                            value={link.bridgePriority.priority}
-                            onChange={(e) =>
-                              handleHostChange(index, { group: 'bridgePriority', key: 'priority' }, parseInt(e.target.value, 10))
-                            }
-                          >
-                            <option value="">-- Select Priority --</option>
-                            {Array.from({ length: 16 }, (_, i) => i * 4096).map((priority) => (
-                              <option key={priority} value={priority}>
-                                {priority}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                        {link.bridgePriority.vlan ? (
-                          (() => {
-                            const rootInfo = getRootInfo(link.bridgePriority.vlan);
-                            const hostPriority = getCurrentHostPriority(link.selectedHost, link.bridgePriority.vlan);
-                            return (
-                              <>
-                                {rootInfo && (
-                                  <div style={{ marginTop: '8px', fontWeight: 'bold' }}>
-                                    Current root: {rootInfo.hostname} | Root Priority: {rootInfo.priority}
-                                  </div>
-                                )}
-                                {hostPriority && (
-                                  <div style={{ marginTop: '8px' }}>
-                                    Your device's priority: {hostPriority}
-                                  </div>
-                                )}
-                              </>
-                            );
-                          })()
-                        ) : null}
-                      </div>
-                    )}
-                    {link.selectedCommand === 'config_ip_router' && link.configIp && (
-                      <div className="config-command-board">
-                        <h4>Config IP Router</h4>
-                        <div className="host-selection__dropdown-group">
-                          <label>Select Interface:</label>
-                          <select
-                            className="host-selection__dropdown"
-                            value={link.configIp.interface}
-                            onChange={(e) =>
-                              handleHostChange(index, { group: 'configIp', key: 'interface' }, e.target.value)
-                            }
-                          >
-                            <option value="">-- Select Interface --</option>
-                            {link.selectedHost &&
-                              getInterfacesForHost(link.selectedHost).map((intf) => (
-                                <option key={intf.interface} value={intf.interface}>
-                                  {intf.interface} ({intf.status})
-                                </option>
-                              ))}
-                          </select>
-                        </div>
-                        <div className="config-device-input-text">
-                          <label>IP Address:</label>
-                          <input
-                            type="text"
-                            value={link.configIp.ipAddress}
-                            onChange={(e) =>
-                              handleHostChange(index, { group: 'configIp', key: 'ipAddress' }, e.target.value)
-                            }
-                            placeholder="Enter IP Address"
-                          />
-                        </div>
-                        <div className="config-device-input-text">
-                          <label>Subnet:</label>
-                          <input
-                            type="number"
-                            min={1}
-                            max={32}
-                            value={link.configIp.cidr}
-                            onChange={(e) =>
-                              handleHostChange(index, { group: 'configIp', key: 'cidr' }, parseInt(e.target.value, 10))
-                            }
-                            placeholder="Enter CIDR (e.g., 24)"
-                          />
-                        </div>
-                      </div>
-                    )}
-                    {link.selectedCommand === 'loopback' && link.loopbackData && (
-                      <div className="config-command-board">
-                        <h5>Loopback Configuration</h5>
-                        <div className="loopback-config-content">
-                          <div className="config-device-input-text">
-                            <label>Loopback Number:</label>
-                            <input
-                              type="text"
-                              value={link.loopbackData.loopbackNumber}
+                    {link.selectedCommand === "bridge_priority" &&
+                      link.bridgePriority && (
+                        <div className="config-command-board">
+                          <h5>Bridge Priority Configuration</h5>
+                          <div className="host-selection__dropdown-group">
+                            <label>Select VLAN:</label>
+                            <select
+                              className="host-selection__dropdown"
+                              value={link.bridgePriority.vlan}
                               onChange={(e) =>
-                                handleHostChange(index, { group: 'loopbackData', key: 'loopbackNumber' }, e.target.value)
+                                handleHostChange(
+                                  index,
+                                  { group: "bridgePriority", key: "vlan" },
+                                  parseInt(e.target.value, 10)
+                                )
                               }
-                              placeholder="Enter Loopback Number"
-                            />
+                            >
+                              <option value="">-- Select VLAN --</option>
+                              {link.selectedHost &&
+                                vlans[link.selectedHost] &&
+                                vlans[link.selectedHost].map((vlanObj) => (
+                                  <option
+                                    key={vlanObj.vlan_id}
+                                    value={vlanObj.vlan_id}
+                                  >
+                                    {`VLAN ${vlanObj.vlan_id}`}
+                                  </option>
+                                ))}
+                            </select>
+                          </div>
+                          <div className="host-selection__dropdown-group">
+                            <label>Bridge Priority:</label>
+                            <select
+                              className="host-selection__dropdown"
+                              value={link.bridgePriority.priority}
+                              onChange={(e) =>
+                                handleHostChange(
+                                  index,
+                                  { group: "bridgePriority", key: "priority" },
+                                  parseInt(e.target.value, 10)
+                                )
+                              }
+                            >
+                              <option value="">-- Select Priority --</option>
+                              {Array.from(
+                                { length: 16 },
+                                (_, i) => i * 4096
+                              ).map((priority) => (
+                                <option key={priority} value={priority}>
+                                  {priority}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          {link.bridgePriority.vlan
+                            ? (() => {
+                                const rootInfo = getRootInfo(
+                                  link.bridgePriority.vlan
+                                );
+                                const hostPriority = getCurrentHostPriority(
+                                  link.selectedHost,
+                                  link.bridgePriority.vlan
+                                );
+                                return (
+                                  <>
+                                    {rootInfo && (
+                                      <div
+                                        style={{
+                                          marginTop: "8px",
+                                          fontWeight: "bold",
+                                        }}
+                                      >
+                                        Current root: {rootInfo.hostname} | Root
+                                        Priority: {rootInfo.priority}
+                                      </div>
+                                    )}
+                                    {hostPriority && (
+                                      <div style={{ marginTop: "8px" }}>
+                                        Your device's priority: {hostPriority}
+                                      </div>
+                                    )}
+                                  </>
+                                );
+                              })()
+                            : null}
+                        </div>
+                      )}
+                    {link.selectedCommand === "config_ip_router" &&
+                      link.configIp && (
+                        <div className="config-command-board">
+                          <h4>Config IP Router</h4>
+                          <div className="host-selection__dropdown-group">
+                            <label>Select Interface:</label>
+                            <select
+                              className="host-selection__dropdown"
+                              value={link.configIp.interface}
+                              onChange={(e) =>
+                                handleHostChange(
+                                  index,
+                                  { group: "configIp", key: "interface" },
+                                  e.target.value
+                                )
+                              }
+                            >
+                              <option value="">-- Select Interface --</option>
+                              {link.selectedHost &&
+                                getInterfacesForHost(link.selectedHost).map(
+                                  (intf) => (
+                                    <option
+                                      key={intf.interface}
+                                      value={intf.interface}
+                                    >
+                                      {intf.interface} ({intf.status})
+                                    </option>
+                                  )
+                                )}
+                            </select>
                           </div>
                           <div className="config-device-input-text">
                             <label>IP Address:</label>
                             <input
                               type="text"
-                              value={link.loopbackData.ipAddress}
+                              value={link.configIp.ipAddress}
                               onChange={(e) =>
-                                handleHostChange(index, { group: 'loopbackData', key: 'ipAddress' }, e.target.value)
+                                handleHostChange(
+                                  index,
+                                  { group: "configIp", key: "ipAddress" },
+                                  e.target.value
+                                )
                               }
                               placeholder="Enter IP Address"
                             />
                           </div>
-                        </div>
-                      </div>
-                    )}
-                    {link.selectedCommand === 'static_route' && link.staticRouteData && (
-                      <div className="config-command-board">
-                        <h5>Static Route Configuration</h5>
-                        <div className="loopback-config-content">
                           <div className="config-device-input-text">
-                            <label>Prefix:</label>
+                            <label>Subnet:</label>
                             <input
-                              type="text"
-                              value={link.staticRouteData.prefix}
+                              type="number"
+                              min={1}
+                              max={32}
+                              value={link.configIp.cidr}
                               onChange={(e) =>
-                                handleHostChange(index, { group: 'staticRouteData', key: 'prefix' }, e.target.value)
+                                handleHostChange(
+                                  index,
+                                  { group: "configIp", key: "cidr" },
+                                  parseInt(e.target.value, 10)
+                                )
                               }
-                              placeholder="Enter Prefix"
-                            />
-                          </div>
-                          <div className="config-device-input-text">
-                            <label>Subnet mask(CIDR):</label>
-                            <input
-                              type="text"
-                              value={link.staticRouteData.cidr}
-                              onChange={(e) =>
-                                handleHostChange(index, { group: 'staticRouteData', key: 'cidr' }, e.target.value)
-                              }
-                              placeholder="Enter Subnet mask"
-                            />
-                          </div>
-                          <div className="config-device-input-text">
-                            <label>Next Hop:</label>
-                            <input
-                              type="text"
-                              value={link.staticRouteData.nextHop}
-                              onChange={(e) =>
-                                handleHostChange(index, { group: 'staticRouteData', key: 'nextHop' }, e.target.value)
-                              }
-                              placeholder="Enter Next Hop"
+                              placeholder="Enter CIDR (e.g., 24)"
                             />
                           </div>
                         </div>
-                      </div>
-                    )}
+                      )}
+                    {link.selectedCommand === "loopback" &&
+                      link.loopbackData && (
+                        <div className="config-command-board">
+                          <h5>Loopback Configuration</h5>
+                          <div className="loopback-config-content">
+                            <div className="config-device-input-text">
+                              <label>Loopback Number:</label>
+                              <input
+                                type="text"
+                                value={link.loopbackData.loopbackNumber}
+                                onChange={(e) =>
+                                  handleHostChange(
+                                    index,
+                                    {
+                                      group: "loopbackData",
+                                      key: "loopbackNumber",
+                                    },
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="Enter Loopback Number"
+                              />
+                            </div>
+                            <div className="config-device-input-text">
+                              <label>IP Address:</label>
+                              <input
+                                type="text"
+                                value={link.loopbackData.ipAddress}
+                                onChange={(e) =>
+                                  handleHostChange(
+                                    index,
+                                    { group: "loopbackData", key: "ipAddress" },
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="Enter IP Address"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    {link.selectedCommand === "static_route" &&
+                      link.staticRouteData && (
+                        <div className="config-command-board">
+                          <h5>Static Route Configuration</h5>
+                          <div className="loopback-config-content">
+                            <div className="config-device-input-text">
+                              <label>Prefix:</label>
+                              <input
+                                type="text"
+                                value={link.staticRouteData.prefix}
+                                onChange={(e) =>
+                                  handleHostChange(
+                                    index,
+                                    { group: "staticRouteData", key: "prefix" },
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="Enter Prefix"
+                              />
+                            </div>
+                            <div className="config-device-input-text">
+                              <label>Subnet mask(CIDR):</label>
+                              <input
+                                type="text"
+                                value={link.staticRouteData.cidr}
+                                onChange={(e) =>
+                                  handleHostChange(
+                                    index,
+                                    { group: "staticRouteData", key: "cidr" },
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="Enter Subnet mask"
+                              />
+                            </div>
+                            <div className="config-device-input-text">
+                              <label>Next Hop:</label>
+                              <input
+                                type="text"
+                                value={link.staticRouteData.nextHop}
+                                onChange={(e) =>
+                                  handleHostChange(
+                                    index,
+                                    {
+                                      group: "staticRouteData",
+                                      key: "nextHop",
+                                    },
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="Enter Next Hop"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
                   </div>
                 </div>
               </div>
@@ -1019,7 +1574,10 @@ function ConfigDevice() {
           </div>
           <div className="line-container">
             <div className="line"></div>
-            <button onClick={handleAddHost} className={`button-sw-sw-add ${loading ? 'loading' : ''}`}>
+            <button
+              onClick={handleAddHost}
+              className={`button-sw-sw-add ${loading ? "loading" : ""}`}
+            >
               {loading ? (
                 <>
                   <Spinner color="white" size="small" />
@@ -1036,7 +1594,17 @@ function ConfigDevice() {
           <button className="button-sw-sw-submit" onClick={handleSubmitAll}>
             Verify
           </button>
-          {isBridgeOpen && <SummaryPopup stpResults={stpResults} onClose={() => setBridgeOpen(false)} />}
+          {isBridgeOpen && (
+            <SummaryPopup
+              stpResults={stpResults}
+              resultData={resultData}
+              selectedCommand={selectedCommand}
+              onClose={() => {
+                setBridgeOpen(false);
+                setResultData(null);
+              }}
+            />
+          )}
         </div>
         {error && (
           <div className="popup-overlay">
@@ -1055,7 +1623,6 @@ function ConfigDevice() {
             </div>
           </div>
         )}
-
       </div>
     </div>
   );

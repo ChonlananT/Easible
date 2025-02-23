@@ -10,7 +10,6 @@
 }
 
 .config-command-board {
-  width: 45%;
   min-width: 50vh;
   display: flex;
   /* Enable flexbox layout */
