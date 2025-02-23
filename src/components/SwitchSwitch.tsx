@@ -5,6 +5,7 @@ import Spinner from './bootstrapSpinner.tsx';
 import { ArrowLeftFromLine, ChevronDown, CircleMinus, Menu } from 'lucide-react';
 import Navbar from "./Navbar.tsx";
 import "./Lab.css"
+import SwitchNetworkTopology from './NetworkTopology(SW).tsx';
 
 type DropdownOption = {
   hostname: string;
@@ -694,6 +695,7 @@ function SwitchSwitch() {
                     <h1 style={{ fontSize: '32px' }}>Summary</h1>
                     <div className="topology-prev">
                       <h5 style={{ margin: '10px 20px' }}>Network Topology</h5>
+                      <SwitchNetworkTopology links={links} interfaceData={interfaceData} />
                     </div>
                     <div className="popup-table-section">
                       {links.map((link, index) => {
