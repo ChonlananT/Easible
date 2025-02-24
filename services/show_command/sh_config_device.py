@@ -111,6 +111,7 @@ def sh_config_device(data):
             # คำสั่งสำหรับ loopback
             if command == "loopback" and device.get("loopbackData"):
                 lb = device.get("loopbackData")
+                activate_protocol = lb.get("activateProtocol", "none").lower()
                 if lb.get("loopbackNumber") and lb.get("ipAddress"):
                     safe_loop = safe_var(lb.get("loopbackNumber"))
                     tasks_lines.append(f"    - name: Show loopback interface {lb.get('loopbackNumber')}")
@@ -123,6 +124,32 @@ def sh_config_device(data):
                     tasks_lines.append("      debug:")
                     tasks_lines.append(f"        msg: \"{{{{ loopback_output_{safe_loop}.stdout_lines }}}}\"")
                     tasks_lines.append(f"      when: inventory_hostname == '{hostname}'")
+                
+                    if activate_protocol == "ripv2": 
+                        safe_loop = safe_var(lb.get("loopbackNumber"))
+                        tasks_lines.append(f"    - name: Show loopback running RIPv2 {lb.get('loopbackNumber')}")
+                        tasks_lines.append("      ios_command:")
+                        tasks_lines.append("        commands:")
+                        tasks_lines.append(f"          - sh run | sec rip")
+                        tasks_lines.append(f"      register: loopback_rip_output_{safe_loop}")
+                        tasks_lines.append(f"      when: inventory_hostname == '{hostname}'")
+                        tasks_lines.append(f"    - name: Display loopback running RIPv2 output for {lb.get('loopbackNumber')}")
+                        tasks_lines.append("      debug:")
+                        tasks_lines.append(f"        msg: \"{{{{ loopback_rip_output_{safe_loop}.stdout_lines }}}}\"")
+                        tasks_lines.append(f"      when: inventory_hostname == '{hostname}'")
+
+                    if activate_protocol == "ospf": 
+                        safe_loop = safe_var(lb.get("loopbackNumber"))
+                        tasks_lines.append(f"    - name: Show loopback running OSPF {lb.get('loopbackNumber')}")
+                        tasks_lines.append("      ios_command:")
+                        tasks_lines.append("        commands:")
+                        tasks_lines.append(f"          - sh run | sec ospf")
+                        tasks_lines.append(f"      register: loopback_ospf_output_{safe_loop}")
+                        tasks_lines.append(f"      when: inventory_hostname == '{hostname}'")
+                        tasks_lines.append(f"    - name: Display loopback running OSPF output for {lb.get('loopbackNumber')}")
+                        tasks_lines.append("      debug:")
+                        tasks_lines.append(f"        msg: \"{{{{ loopback_ospf_output_{safe_loop}.stdout_lines }}}}\"")
+                        tasks_lines.append(f"      when: inventory_hostname == '{hostname}'")
             
             # คำสั่งสำหรับ static_route
             if command == "static_route" and device.get("staticRouteData"):

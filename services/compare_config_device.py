@@ -1,3 +1,5 @@
+import ipaddress
+
 def netmask_to_cidr(mask):
     if isinstance(mask, int):
         return mask
@@ -11,7 +13,16 @@ def netmask_to_cidr(mask):
         return mask
 
 def compare_field(field_name, frontend_val, backend_val, diff):
-    # หาก frontend ไม่มีข้อมูล ให้ข้ามการเปรียบเทียบและถือว่า match
+    # For fields like 'cidr', normalize both values to integers for comparison.
+    if field_name == "cidr":
+        try:
+            frontend_val = int(frontend_val)
+        except Exception:
+            pass
+        try:
+            backend_val = int(backend_val)
+        except Exception:
+            pass
     if not frontend_val:
         return True
     if frontend_val != backend_val:
@@ -20,7 +31,7 @@ def compare_field(field_name, frontend_val, backend_val, diff):
     return True
 
 def compare_config_device(request_data, parsed_result):
-    # Grouping backend parsed result ตาม host และ command
+    # Group the backend parsed result by host and command.
     grouped = {}
     for entry in parsed_result:
         host = entry.get("host")
@@ -37,12 +48,18 @@ def compare_config_device(request_data, parsed_result):
             grouped[host]["bridge_priority"] = entry.get("spanning_tree", {})
         elif task.startswith("Display interface config output for"):
             grouped[host]["config_ip_router"] = entry.get("interface_config", {})
+        # Merge loopback data from different tasks
         elif task.startswith("Display loopback interface output for"):
-            grouped[host]["loopback"] = entry.get("loopback", {})
+            grouped[host].setdefault("loopback", {}).update(entry.get("loopback", {}))
+        elif task.startswith("Display loopback running OSPF output for"):
+            grouped[host].setdefault("loopback", {}).update(entry.get("loopback", {}))
+        elif task.startswith("Display loopback running RIPv2 output for"):
+            grouped[host].setdefault("loopback", {}).update(entry.get("loopback", {}))
         elif task.startswith("Display static route output for prefix"):
             grouped[host]["static_route"] = entry.get("static_routes", [])
-
+    
     comparisons = []
+    
     for req in request_data:
         host = req.get("hostname")
         command = req.get("command")
@@ -64,7 +81,7 @@ def compare_config_device(request_data, parsed_result):
             else:
                 if not compare_field("vlanName", frontend_vlan.get("vlanName"), vlan_found.get("vlanName"), diff):
                     match = False
-
+    
             frontend_vlan_details = {
                 "vlanId": frontend_vlan.get("vlanId"),
                 "ipaddress": frontend_vlan.get("ipAddress"),
@@ -143,22 +160,55 @@ def compare_config_device(request_data, parsed_result):
         elif command == "loopback":
             frontend_lb = req.get("loopbackData", {})
             backend_lb = grouped.get(host, {}).get("loopback", {})
+            if not backend_lb.get("activateProtocol"):
+                backend_lb["activateProtocol"] = "none"
             expected_intf = f"Loopback{frontend_lb.get('loopbackNumber')}"
             if not compare_field("interface", expected_intf, backend_lb.get("interface"), diff):
                 match = False
             for field in ["ipAddress"]:
                 if not compare_field(field, frontend_lb.get(field), backend_lb.get("ipaddress"), diff):
                     match = False
+            for field in ["activateProtocol"]:
+                if not compare_field(field, frontend_lb.get(field), backend_lb.get("activateProtocol"), diff):
+                    match = False
             backend_entry = backend_lb
     
         elif command == "static_route":
             frontend_sr = req.get("staticRouteData", {})
             backend_routes = grouped.get(host, {}).get("static_route", [])
+    
+            # Calculate the network from the frontend prefix and cidr.
+            try:
+                frontend_network = ipaddress.ip_network(
+                    f"{frontend_sr.get('prefix')}/{frontend_sr.get('cidr')}",
+                    strict=False
+                )
+            except Exception:
+                frontend_network = None
+    
             route_found = None
+            # Use the calculated network for prefix comparison.
             for route in backend_routes:
-                if str(route.get("prefix")) == str(frontend_sr.get("prefix")):
+                try:
+                    backend_network = ipaddress.ip_network(
+                        f"{route.get('prefix')}/{route.get('cidr')}",
+                        strict=False
+                    )
+                except Exception:
+                    backend_network = None
+                if frontend_network and backend_network and frontend_network == backend_network:
                     route_found = route
+                    # Update the route's prefix to the calculated network address.
+                    try:
+                        computed_network = ipaddress.ip_network(
+                            f"{route.get('prefix')}/{route.get('cidr')}",
+                            strict=False
+                        )
+                        route_found["prefix"] = str(computed_network.network_address)
+                    except Exception:
+                        pass
                     break
+            
             if not route_found:
                 diff["static_route"] = {"frontend": frontend_sr, "backend": backend_routes}
                 match = False

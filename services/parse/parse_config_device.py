@@ -134,7 +134,43 @@ def parse_config_device(log_text):
             parsed_data['loopback'] = {
                 'interface': interface,
                 'ipaddress': ipaddress,
-                'cidr': cidr
+                'cidr': cidr,
+            }
+
+        # CATEGORY 6.1: Loopback ripv2 output
+        elif task_line.startswith("Display loopback running RIPv2 output for"):
+            interface = None
+            ipaddress = None
+            cidr = None
+            activateProtocol = None
+            for line in msg_lines:
+                m_ap = re.search(r'router (\S+)', line)
+                if m_ap:
+                    activateProtocol = clean_value(m_ap.group(1))
+                m_ip = re.search(r'network (\S+)', line)
+                if m_ip:
+                    ipaddress = clean_value(m_ip.group(1))
+            parsed_data['loopback'] = {
+                'ipaddress': ipaddress,
+                'activateProtocol': activateProtocol+"v2"
+            }
+
+        # CATEGORY 6.2: Loopback ospf output
+        elif task_line.startswith("Display loopback running OSPF output for"):
+            interface = None
+            ipaddress = None
+            cidr = None
+            activateProtocol = None
+            for line in msg_lines:
+                m_ap = re.search(r'router (\S+)', line)
+                if m_ap:
+                    activateProtocol = clean_value(m_ap.group(1))
+                m_ip = re.search(r'network (\S+)\s+(\S+)', line)
+                if m_ip:
+                    ipaddress = clean_value(m_ip.group(1))
+            parsed_data['loopback'] = {
+                'ipaddress': ipaddress,
+                'activateProtocol': activateProtocol
             }
         
         # CATEGORY 7: Static route details
