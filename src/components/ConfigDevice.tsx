@@ -4,6 +4,7 @@ import "./RouterRouter.css";
 import "./ConfigDevice.css";
 import "./SwitchSwitch.css";
 import "./Lab.css";
+import ResultDisplay from "./ResultDisplay.tsx";
 import Spinner from "./bootstrapSpinner.tsx";
 import { ArrowLeftFromLine, ChevronDown, Menu } from "lucide-react";
 import Navbar from "./Navbar.tsx";
@@ -196,7 +197,7 @@ function ConfigDevice() {
     static_route: "Static Route",
     bridge_priority: "Bridge Priority"
   };
-  
+
 
   const renderDetails = (input: HostConfig) => {
     switch (input.selectedCommand) {
@@ -266,9 +267,9 @@ function ConfigDevice() {
       case "loopback":
         if (input.loopbackData) {
           const displayIp =
-        input.loopbackData.activateProtocol === "ripv2"
-          ? calculateClassfulNetwork(input.loopbackData.ipAddress)
-          : input.loopbackData.ipAddress;
+            input.loopbackData.activateProtocol === "ripv2"
+              ? calculateClassfulNetwork(input.loopbackData.ipAddress)
+              : input.loopbackData.ipAddress;
           return (
             <div
               style={{
@@ -285,7 +286,7 @@ function ConfigDevice() {
                 <strong>Loopback Number:</strong> {input.loopbackData.loopbackNumber}
               </div>
               <div>
-                <strong>IP Address:</strong> {input.loopbackData.ipAddress}
+                <strong>IP Address:</strong> {displayIp}
               </div>
               <div>
                 <strong>Protocol Activation:</strong> {input.loopbackData.activateProtocol}
@@ -434,11 +435,14 @@ function ConfigDevice() {
                   <p>Loading...</p>
                 </div>
               ) : (
-                <pre>{JSON.stringify(resultData, null, 2)}</pre>
+                <ResultDisplay selectedCommand={selectedCommand} resultData={resultData} />
               )}
-              <button className="button-cancel-prev" onClick={onClose}>
-                Close
-              </button>
+              <div style={{ display:"flex", justifyContent:"end"}}>
+                <button className="button-cancel-prev" onClick={onClose}>
+                  Close
+                </button>
+              </div>
+
             </div>
           </div>
         );
@@ -918,8 +922,8 @@ function ConfigDevice() {
           loopbackData: {
             loopbackNumber: link.loopbackData.loopbackNumber,
             ipAddress: link.loopbackData.activateProtocol === "ripv2"
-            ? calculateClassfulNetwork(link.loopbackData.ipAddress)
-            : link.loopbackData.ipAddress,
+              ? calculateClassfulNetwork(link.loopbackData.ipAddress)
+              : link.loopbackData.ipAddress,
             activateProtocol: link.loopbackData.activateProtocol
           },
         }
@@ -1079,8 +1083,8 @@ function ConfigDevice() {
           loopbackData: {
             loopbackNumber: link.loopbackData.loopbackNumber,
             ipAddress: link.loopbackData.activateProtocol === "ripv2"
-            ? calculateClassfulNetwork(link.loopbackData.ipAddress)
-            : link.loopbackData.ipAddress,
+              ? calculateClassfulNetwork(link.loopbackData.ipAddress)
+              : link.loopbackData.ipAddress,
             activateProtocol: link.loopbackData.activateProtocol
           },
         }
@@ -1579,7 +1583,7 @@ function ConfigDevice() {
                             <label>Loopback Number:</label>
                             <input
                               type="text"
-                              value={link.loopbackData.loopbackNumber}
+                              value={link.loopbackData.loopbackNumber === 0 ? "" : link.loopbackData.loopbackNumber}
                               onChange={(e) =>
                                 handleHostChange(
                                   index,
@@ -1590,6 +1594,7 @@ function ConfigDevice() {
                               placeholder="Enter Loopback Number"
                             />
                           </div>
+
                           <div className="config-device-input-text">
                             <label>IP Address:</label>
                             <input
