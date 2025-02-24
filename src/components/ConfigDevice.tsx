@@ -130,6 +130,7 @@ type SummaryPopupProps = {
   stpResults: StpResult[];
   resultData?: any;
   selectedCommand: string;
+  userInputs: HostConfig[]; // Pass your links state here.
   onClose: () => void;
 };
 
@@ -170,15 +171,112 @@ function ConfigDevice() {
     { label: "Router", value: "router" },
   ];
 
+  const renderDetails = (input: HostConfig) => {
+    switch (input.selectedCommand) {
+      case "vlan":
+        if (input.vlanData) {
+          return (
+            <div style={{ margin: 0, paddingLeft: "10px", lineHeight: "1.5", display: "flex", flexDirection: "column", justifyContent: "flex-start", alignItems: "flex-start" }}>
+              <div>
+                <strong>VLAN ID:</strong> {input.vlanData.vlanId}
+              </div>
+              <div>
+                <strong>VLAN Name:</strong> {input.vlanData.vlanName || "-"}
+              </div>
+              <div>
+                <strong>Interface:</strong> {input.vlanData.interface}
+              </div>
+              <div>
+                <strong>Mode:</strong> {input.vlanData.mode}
+              </div>
+              <div>
+                <strong>IP Address:</strong> {input.vlanData.ipAddress || "-"}
+              </div>
+              <div>
+                <strong>CIDR:</strong> {input.vlanData.cidr}
+              </div>
+            </div>
+          );
+        }
+        break;
+      case "bridge_priority":
+        if (input.bridgePriority) {
+          return (
+            <ul style={{ margin: 0, paddingLeft: "20px", lineHeight: "1.5" }}>
+              <li>
+                <strong>VLAN:</strong> {input.bridgePriority.vlan}
+              </li>
+              <li>
+                <strong>Priority:</strong> {input.bridgePriority.priority}
+              </li>
+            </ul>
+          );
+        }
+        break;
+      case "config_ip_router":
+        if (input.configIp) {
+          return (
+            <ul style={{ margin: 0, paddingLeft: "20px", lineHeight: "1.5" }}>
+              <li>
+                <strong>Interface:</strong> {input.configIp.interface}
+              </li>
+              <li>
+                <strong>IP Address:</strong> {input.configIp.ipAddress}
+              </li>
+              <li>
+                <strong>CIDR:</strong> {input.configIp.cidr}
+              </li>
+            </ul>
+          );
+        }
+        break;
+      case "loopback":
+        if (input.loopbackData) {
+          return (
+            <ul style={{ margin: 0, paddingLeft: "20px", lineHeight: "1.5" }}>
+              <li>
+                <strong>Loopback Number:</strong> {input.loopbackData.loopbackNumber}
+              </li>
+              <li>
+                <strong>IP Address:</strong> {input.loopbackData.ipAddress}
+              </li>
+            </ul>
+          );
+        }
+        break;
+      case "static_route":
+        if (input.staticRouteData) {
+          return (
+            <ul style={{ margin: 0, paddingLeft: "20px", lineHeight: "1.5" }}>
+              <li>
+                <strong>Prefix:</strong> {input.staticRouteData.prefix}
+              </li>
+              <li>
+                <strong>CIDR:</strong> {input.staticRouteData.cidr}
+              </li>
+              <li>
+                <strong>Next Hop:</strong> {input.staticRouteData.nextHop}
+              </li>
+            </ul>
+          );
+        }
+        break;
+      default:
+        return <span>-</span>;
+    }
+    return <span>-</span>;
+  };
+
   const SummaryPopup: React.FC<SummaryPopupProps> = ({
     stpResults,
     resultData,
     selectedCommand,
+    userInputs,
     onClose,
   }) => {
+    // If resultData exists, show the result view as before.
     if (resultData) {
       if (selectedCommand === "bridge_priority") {
-        // ถ้าเป็น bridge_priority ให้ render stpResults โดยตรวจสอบ resultData.comparison
         if (
           resultData.comparison &&
           Array.isArray(resultData.comparison) &&
@@ -201,9 +299,8 @@ function ConfigDevice() {
                   {sortedResults.map((sw, index) => (
                     <div key={index} className="switch-card">
                       <div
-                        className={`switch-header ${
-                          sw.stp_detail?.isRoot ? "root-bridge" : ""
-                        }`}
+                        className={`switch-header ${sw.stp_detail?.isRoot ? "root-bridge" : ""
+                          }`}
                       >
                         <div style={{ display: "flex" }}>
                           <strong>{sw.hostname}</strong> – VLAN {sw.vlan_id}
@@ -245,7 +342,7 @@ function ConfigDevice() {
                     </div>
                   ))}
                 </div>
-                <button className="button-confirm-prev" onClick={onClose}>
+                <button className="button-cancel-prev" onClick={onClose}>
                   Close
                 </button>
               </div>
@@ -257,7 +354,7 @@ function ConfigDevice() {
               <div className="popup-preview">
                 <h2 className="summary-title">Result</h2>
                 {"No comparison data."}
-                <button className="button-confirm-prev" onClick={onClose}>
+                <button className="button-cancel-prev" onClick={onClose}>
                   Close
                 </button>
               </div>
@@ -265,27 +362,13 @@ function ConfigDevice() {
           );
         }
       } else {
-        // สำหรับ command ที่ไม่ใช่ bridge_priority
-        if (Array.isArray(resultData)) {
-          return (
-            <div className="popup-overlay">
-              <div className="popup-preview">
-                <h2 className="summary-title">Result</h2>
-                <pre>{JSON.stringify(resultData, null, 2)}</pre>
-                <button className="button-confirm-prev" onClick={onClose}>
-                  Close
-                </button>
-              </div>
-            </div>
-          );
-        }
-        // ถ้า resultData เป็น object
+        // For non-bridge_priority commands, show the resultData as JSON.
         return (
           <div className="popup-overlay">
             <div className="popup-preview">
               <h2 className="summary-title">Result</h2>
               <pre>{JSON.stringify(resultData, null, 2)}</pre>
-              <button className="button-confirm-prev" onClick={onClose}>
+              <button className="button-cancel-prev" onClick={onClose}>
                 Close
               </button>
             </div>
@@ -293,28 +376,52 @@ function ConfigDevice() {
         );
       }
     }
-  
-    // ถ้า resultData ยังไม่มี ให้แสดง summary ปกติ
-    const sortedByHostname = [...stpResults].sort((a, b) =>
-      a.hostname.localeCompare(b.hostname)
-    );
-    const sortedResults = sortedByHostname.sort((a, b) => {
-      if (a.stp_detail?.isRoot && !b.stp_detail?.isRoot) return -1;
-      if (!a.stp_detail?.isRoot && b.stp_detail?.isRoot) return 1;
-      return 0;
-    });
+
+    // If no resultData exists, show a summary table of the user inputs.
     return (
       <div className="popup-overlay">
         <div className="popup-preview">
           <h2 className="summary-title">Summary</h2>
-          <div className="summary-content-cd">
-            {sortedResults.length > 0 ? (
-              sortedResults.map((sw, index) => (
+          <div style={{ overflowY: "auto", maxHeight: "75vh", marginBottom:"20px" }}>
+            <div
+              className="popup-table-wrapper"
+              style={{ marginBottom: "20px" }}
+            >
+              <table
+                className="summary-table"
+                style={{ width: "100%", border: "none" }}
+                border={1}
+              >
+                <thead>
+                  <tr>
+                    <th>Device Type</th>
+                    <th>Selected Host</th>
+                    <th>Command</th>
+                    <th>Details</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {userInputs.map((input, idx) => (
+                    <tr key={idx}>
+                      <td>{input.deviceType}</td>
+                      <td>{input.selectedHost}</td>
+                      <td>{input.selectedCommand}</td>
+                      <td>{renderDetails(input)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          {/* Optionally, you can include your STP summary below if desired */}
+          {stpResults.length > 0 && (
+            <>
+              <h3>STP Summary</h3>
+              {stpResults.map((sw, index) => (
                 <div key={index} className="switch-card">
                   <div
-                    className={`switch-header ${
-                      sw.stp_detail?.isRoot ? "root-bridge" : ""
-                    }`}
+                    className={`switch-header ${sw.stp_detail?.isRoot ? "root-bridge" : ""
+                      }`}
                   >
                     <div style={{ display: "flex" }}>
                       <strong>{sw.hostname}</strong> – VLAN {sw.vlan_id}
@@ -354,25 +461,23 @@ function ConfigDevice() {
                     </table>
                   )}
                 </div>
-              ))
-            ) : (
-              <div className="empty-summary">No summary data</div>
-            )}
-          </div>
-          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+              ))}
+            </>
+          )}
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+            <button
+              className="button-cancel-prev"
+              style={{ fontSize: "16px", padding: "4px 15px" }}
+              onClick={onClose}
+            >
+              Close
+            </button>
             <button
               className="button-confirm-prev"
               style={{ fontSize: "16px", padding: "4px 15px" }}
               onClick={handleConfirm}
             >
               Confirm
-            </button>
-            <button
-              className="button-confirm-prev"
-              style={{ fontSize: "16px", padding: "4px 15px" }}
-              onClick={onClose}
-            >
-              Close
             </button>
           </div>
         </div>
@@ -480,14 +585,14 @@ function ConfigDevice() {
     field:
       | keyof HostConfig
       | {
-          group:
-            | "vlanData"
-            | "bridgePriority"
-            | "configIp"
-            | "loopbackData"
-            | "staticRouteData";
-          key: string;
-        },
+        group:
+        | "vlanData"
+        | "bridgePriority"
+        | "configIp"
+        | "loopbackData"
+        | "staticRouteData";
+        key: string;
+      },
     value: string | number
   ) => {
     setLinks((prevLinks) => {
@@ -623,7 +728,7 @@ function ConfigDevice() {
       },
     ]);
   };
-  
+
 
   const handleRemoveHost = (hostIndex: number) => {
     setLinks((prevLinks) => prevLinks.filter((_, i) => i !== hostIndex));
@@ -653,8 +758,7 @@ function ConfigDevice() {
         const bridge = link.bridgePriority;
         if (!bridge || bridge.vlan === 0) {
           setError(
-            `Please fill all required Bridge Priority fields for entry ${
-              i + 1
+            `Please fill all required Bridge Priority fields for entry ${i + 1
             }.`
           );
           return;
@@ -708,56 +812,56 @@ function ConfigDevice() {
       command: link.selectedCommand,
       ...(link.selectedCommand === "vlan" && link.vlanData
         ? {
-            vlanDataList: [
-              {
-                vlanId: link.vlanData.vlanId,
-                vlanName: link.vlanData.vlanName,
-                ipAddress: link.vlanData.ipAddress,
-                cidr: link.vlanData.cidr,
-                interfaces: [
-                  {
-                    interface: link.vlanData.interface,
-                    mode: link.vlanData.mode,
-                  },
-                ],
-              },
-            ],
-          }
+          vlanDataList: [
+            {
+              vlanId: link.vlanData.vlanId,
+              vlanName: link.vlanData.vlanName,
+              ipAddress: link.vlanData.ipAddress,
+              cidr: link.vlanData.cidr,
+              interfaces: [
+                {
+                  interface: link.vlanData.interface,
+                  mode: link.vlanData.mode,
+                },
+              ],
+            },
+          ],
+        }
         : {}),
       ...(link.selectedCommand === "bridge_priority" && link.bridgePriority
         ? {
-            bridgePriority: {
-              vlan: link.bridgePriority.vlan,
-              priority: link.bridgePriority.priority,
-            },
-            parsed_result: [...combinedHosts],
-          }
+          bridgePriority: {
+            vlan: link.bridgePriority.vlan,
+            priority: link.bridgePriority.priority,
+          },
+          parsed_result: [...combinedHosts],
+        }
         : {}),
       ...(link.selectedCommand === "config_ip_router" && link.configIp
         ? {
-            configIp: {
-              interface: link.configIp.interface,
-              ipAddress: link.configIp.ipAddress,
-              cidr: link.configIp.cidr,
-            },
-          }
+          configIp: {
+            interface: link.configIp.interface,
+            ipAddress: link.configIp.ipAddress,
+            cidr: link.configIp.cidr,
+          },
+        }
         : {}),
       ...(link.selectedCommand === "loopback" && link.loopbackData
         ? {
-            loopbackData: {
-              loopbackNumber: link.loopbackData.loopbackNumber,
-              ipAddress: link.loopbackData.ipAddress,
-            },
-          }
+          loopbackData: {
+            loopbackNumber: link.loopbackData.loopbackNumber,
+            ipAddress: link.loopbackData.ipAddress,
+          },
+        }
         : {}),
       ...(link.selectedCommand === "static_route" && link.staticRouteData
         ? {
-            staticRouteData: {
-              prefix: link.staticRouteData.prefix,
-              cidr: link.staticRouteData.cidr,
-              nextHop: link.staticRouteData.nextHop,
-            },
-          }
+          staticRouteData: {
+            prefix: link.staticRouteData.prefix,
+            cidr: link.staticRouteData.cidr,
+            nextHop: link.staticRouteData.nextHop,
+          },
+        }
         : {}),
     }));
 
@@ -807,8 +911,7 @@ function ConfigDevice() {
         const bridge = link.bridgePriority;
         if (!bridge || bridge.vlan === 0) {
           setError(
-            `Please fill all required Bridge Priority fields for entry ${
-              i + 1
+            `Please fill all required Bridge Priority fields for entry ${i + 1
             }.`
           );
           return;
@@ -867,56 +970,56 @@ function ConfigDevice() {
       command: link.selectedCommand,
       ...(link.selectedCommand === "vlan" && link.vlanData
         ? {
-            vlanDataList: [
-              {
-                vlanId: link.vlanData.vlanId,
-                vlanName: link.vlanData.vlanName,
-                ipAddress: link.vlanData.ipAddress,
-                cidr: link.vlanData.cidr,
-                interfaces: [
-                  {
-                    interface: link.vlanData.interface,
-                    mode: link.vlanData.mode,
-                  },
-                ],
-              },
-            ],
-          }
+          vlanDataList: [
+            {
+              vlanId: link.vlanData.vlanId,
+              vlanName: link.vlanData.vlanName,
+              ipAddress: link.vlanData.ipAddress,
+              cidr: link.vlanData.cidr,
+              interfaces: [
+                {
+                  interface: link.vlanData.interface,
+                  mode: link.vlanData.mode,
+                },
+              ],
+            },
+          ],
+        }
         : {}),
       ...(link.selectedCommand === "bridge_priority" && link.bridgePriority
         ? {
-            bridgePriority: {
-              vlan: link.bridgePriority.vlan,
-              priority: link.bridgePriority.priority,
-            },
-            parsed_result: [...combinedHosts],
-          }
+          bridgePriority: {
+            vlan: link.bridgePriority.vlan,
+            priority: link.bridgePriority.priority,
+          },
+          parsed_result: [...combinedHosts],
+        }
         : {}),
       ...(link.selectedCommand === "config_ip_router" && link.configIp
         ? {
-            configIp: {
-              interface: link.configIp.interface,
-              ipAddress: link.configIp.ipAddress,
-              cidr: link.configIp.cidr,
-            },
-          }
+          configIp: {
+            interface: link.configIp.interface,
+            ipAddress: link.configIp.ipAddress,
+            cidr: link.configIp.cidr,
+          },
+        }
         : {}),
       ...(link.selectedCommand === "loopback" && link.loopbackData
         ? {
-            loopbackData: {
-              loopbackNumber: link.loopbackData.loopbackNumber,
-              ipAddress: link.loopbackData.ipAddress,
-            },
-          }
+          loopbackData: {
+            loopbackNumber: link.loopbackData.loopbackNumber,
+            ipAddress: link.loopbackData.ipAddress,
+          },
+        }
         : {}),
       ...(link.selectedCommand === "static_route" && link.staticRouteData
         ? {
-            staticRouteData: {
-              prefix: link.staticRouteData.prefix,
-              cidr: link.staticRouteData.cidr,
-              nextHop: link.staticRouteData.nextHop,
-            },
-          }
+          staticRouteData: {
+            prefix: link.staticRouteData.prefix,
+            cidr: link.staticRouteData.cidr,
+            nextHop: link.staticRouteData.nextHop,
+          },
+        }
         : {}),
     }));
 
@@ -1065,10 +1168,10 @@ function ConfigDevice() {
                             {!link.deviceType
                               ? "-- Select a Device --"
                               : combinedHosts.some(
-                                  (host) => host.deviceType === link.deviceType
-                                )
-                              ? "-- Select a Device --"
-                              : "Loading..."}
+                                (host) => host.deviceType === link.deviceType
+                              )
+                                ? "-- Select a Device --"
+                                : "Loading..."}
                           </option>
                           {combinedHosts
                             .filter(
@@ -1111,7 +1214,7 @@ function ConfigDevice() {
                                   {command.label}
                                 </option>
                               )
-                            )}
+                              )}
                         </select>
                       </div>
                     </div>
@@ -1298,34 +1401,34 @@ function ConfigDevice() {
                           </div>
                           {link.bridgePriority.vlan
                             ? (() => {
-                                const rootInfo = getRootInfo(
-                                  link.bridgePriority.vlan
-                                );
-                                const hostPriority = getCurrentHostPriority(
-                                  link.selectedHost,
-                                  link.bridgePriority.vlan
-                                );
-                                return (
-                                  <>
-                                    {rootInfo && (
-                                      <div
-                                        style={{
-                                          marginTop: "8px",
-                                          fontWeight: "bold",
-                                        }}
-                                      >
-                                        Current root: {rootInfo.hostname} | Root
-                                        Priority: {rootInfo.priority}
-                                      </div>
-                                    )}
-                                    {hostPriority && (
-                                      <div style={{ marginTop: "8px" }}>
-                                        Your device's priority: {hostPriority}
-                                      </div>
-                                    )}
-                                  </>
-                                );
-                              })()
+                              const rootInfo = getRootInfo(
+                                link.bridgePriority.vlan
+                              );
+                              const hostPriority = getCurrentHostPriority(
+                                link.selectedHost,
+                                link.bridgePriority.vlan
+                              );
+                              return (
+                                <>
+                                  {rootInfo && (
+                                    <div
+                                      style={{
+                                        marginTop: "8px",
+                                        fontWeight: "bold",
+                                      }}
+                                    >
+                                      Current root: {rootInfo.hostname} | Root
+                                      Priority: {rootInfo.priority}
+                                    </div>
+                                  )}
+                                  {hostPriority && (
+                                    <div style={{ marginTop: "8px" }}>
+                                      Your device's priority: {hostPriority}
+                                    </div>
+                                  )}
+                                </>
+                              );
+                            })()
                             : null}
                         </div>
                       )}
@@ -1523,6 +1626,7 @@ function ConfigDevice() {
               stpResults={stpResults}
               resultData={resultData}
               selectedCommand={selectedCommand}
+              userInputs={links} // Pass the userInputs prop
               onClose={() => {
                 setBridgeOpen(false);
                 setResultData(null);
