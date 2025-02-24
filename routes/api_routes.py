@@ -529,7 +529,7 @@ def create_playbook_routerrouter():
                     playbook_content += f"""
     - name: "[Link#{idx}] Configure OSPF on {hostname1}"
       ios_config:
-        lines:
+        parents:
           - router ospf 1
         lines:
           - network {ip1} 0.0.0.0 area 0
@@ -538,7 +538,7 @@ def create_playbook_routerrouter():
                     playbook_content += f"""
     - name: "[Link#{idx}] Configure OSPF on {hostname2}"
       ios_config:
-        lines:
+        parents:
           - router ospf 1
         lines:
           - network {ip2} 0.0.0.0 area 0
