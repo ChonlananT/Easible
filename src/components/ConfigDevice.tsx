@@ -244,6 +244,9 @@ function ConfigDevice() {
               <li>
                 <strong>IP Address:</strong> {input.loopbackData.ipAddress}
               </li>
+              <li>
+                <strong>Protocal Activation:</strong> {input.loopbackData.activateProtocol}
+              </li>
             </ul>
           );
         }
@@ -794,7 +797,7 @@ function ConfigDevice() {
 
       if (link.selectedCommand === "loopback") {
         const loopback = link.loopbackData;
-        if (!loopback || !loopback.loopbackNumber || !loopback.ipAddress) {
+        if (!loopback || !loopback.loopbackNumber || !loopback.ipAddress || !loopback.activateProtocol) {
           setError(
             `Please fill all required Loopback fields for entry ${i + 1}.`
           );
@@ -863,6 +866,7 @@ function ConfigDevice() {
           loopbackData: {
             loopbackNumber: link.loopbackData.loopbackNumber,
             ipAddress: link.loopbackData.ipAddress,
+            activateProtocol: link.loopbackData.activateProtocol
           },
         }
         : {}),
@@ -948,7 +952,7 @@ function ConfigDevice() {
 
       if (link.selectedCommand === "loopback") {
         const loopback = link.loopbackData;
-        if (!loopback || !loopback.loopbackNumber || !loopback.ipAddress) {
+        if (!loopback || !loopback.loopbackNumber || !loopback.ipAddress || !loopback.activateProtocol) {
           setError(
             `Please fill all required Loopback fields for entry ${i + 1}.`
           );
@@ -1022,6 +1026,7 @@ function ConfigDevice() {
           loopbackData: {
             loopbackNumber: link.loopbackData.loopbackNumber,
             ipAddress: link.loopbackData.ipAddress,
+            activateProtocol: link.loopbackData.activateProtocol
           },
         }
         : {}),
