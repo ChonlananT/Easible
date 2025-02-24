@@ -1,6 +1,7 @@
 import re
 import json
 import ipaddress
+import time
 from flask import Blueprint, request, jsonify
 from services.ssh_service import create_ssh_connection
 from services.parse import parse_ansible_output, parse_result, parse_interface, parse_configd, parse_dashboard, parse_sh_int_trunk, parse_routes, parse_switch_host, parse_router_switch, parse_config_device
@@ -509,8 +510,9 @@ def create_playbook_routerrouter():
     - name: "[Link#{idx}] Configure RIP on {hostname1}"
       ios_config:
         match: none
+        parents:
+            - router rip
         lines:
-          - router rip
           - version 2
           - network {netaddr1}
       when: inventory_hostname == "{hostname1}"
@@ -519,8 +521,9 @@ def create_playbook_routerrouter():
     - name: "[Link#{idx}] Configure RIP on {hostname2}"
       ios_config:
         match: none
+        parents:
+            - router rip
         lines:
-          - router rip
           - version 2
           - network {netaddr2}
       when: inventory_hostname == "{hostname2}"
@@ -1299,6 +1302,8 @@ def run_playbook_routerrouter():
         stdin, stdout, stderr = ssh.exec_command(f"ansible-playbook -i {inventory_path} {playbook_path}")
         output = stdout.read().decode('utf-8')
         errors = stderr.read().decode('utf-8')
+
+        time.sleep(5) # add delay to wait for the playbook to complete
 
         playbook_content = sh_ip_route()  # สมมติว่าฟังก์ชันนี้ return playbook content ที่ต้องการ
         verify_playbook_path = f"/home/{username}/playbook/verify_playbook.yml"
