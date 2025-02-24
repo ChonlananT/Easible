@@ -514,6 +514,7 @@ def create_playbook_routerrouter():
             - router rip
         lines:
           - version 2
+          - no auto-summary
           - network {netaddr1}
       when: inventory_hostname == "{hostname1}"
 """
@@ -525,6 +526,7 @@ def create_playbook_routerrouter():
             - router rip
         lines:
           - version 2
+          - no auto-summary
           - network {netaddr2}
       when: inventory_hostname == "{hostname2}"
 """
@@ -792,18 +794,21 @@ def create_playbook_configdevice():
                         playbook_content += f"""
   - name: "[Command#{idx}] Enable RIPv2 on Loopback {loopback_num} on {host}"
     ios_config:
+      parents:
+          - router rip
       lines:
-        - router rip
         - version 2
-        - network {ip_address} 0.0.0.0
+        - no auto-summary
+        - network {ip_address}
     when: inventory_hostname == "{host}"
 """
                     elif activate_protocol == "ospf":
                         playbook_content += f"""
   - name: "[Command#{idx}] Enable OSPF on Loopback {loopback_num} on {host}"
     ios_config:
-      lines:
+      parents:
         - router ospf 1
+      lines:
         - network {ip_address} 0.0.0.0 area 0
     when: inventory_hostname == "{host}"
 """
