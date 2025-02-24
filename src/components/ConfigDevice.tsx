@@ -137,6 +137,20 @@ type SummaryPopupProps = {
   onClose: () => void;
 };
 
+// Helper function: คำนวณ classful network address
+function calculateClassfulNetwork(ipAddress: string): string {
+  const parts = ipAddress.split(".");
+  if (parts.length !== 4) return ipAddress; // ถ้าไม่ครบ 4 octet ให้คืนค่าเดิม
+  const firstOctet = parseInt(parts[0], 10);
+  if (firstOctet < 128) { // Class A
+    return `${parts[0]}.0.0.0`;
+  } else if (firstOctet < 192) { // Class B
+    return `${parts[0]}.${parts[1]}.0.0`;
+  } else { // Class C
+    return `${parts[0]}.${parts[1]}.${parts[2]}.0`;
+  }
+}
+
 function ConfigDevice() {
   const [hostsFromGetHosts, setHostsFromGetHosts] = useState<GetHostsData[]>(
     []
@@ -236,13 +250,17 @@ function ConfigDevice() {
         break;
       case "loopback":
         if (input.loopbackData) {
+          const displayIp =
+        input.loopbackData.activateProtocol === "ripv2"
+          ? calculateClassfulNetwork(input.loopbackData.ipAddress)
+          : input.loopbackData.ipAddress;
           return (
             <ul style={{ margin: 0, paddingLeft: "20px", lineHeight: "1.5" }}>
               <li>
                 <strong>Loopback Number:</strong> {input.loopbackData.loopbackNumber}
               </li>
               <li>
-                <strong>IP Address:</strong> {input.loopbackData.ipAddress}
+                <strong>IP Address:</strong> {displayIp}
               </li>
               <li>
                 <strong>Protocal Activation:</strong> {input.loopbackData.activateProtocol}
@@ -865,7 +883,9 @@ function ConfigDevice() {
         ? {
           loopbackData: {
             loopbackNumber: link.loopbackData.loopbackNumber,
-            ipAddress: link.loopbackData.ipAddress,
+            ipAddress: link.loopbackData.activateProtocol === "ripv2"
+            ? calculateClassfulNetwork(link.loopbackData.ipAddress)
+            : link.loopbackData.ipAddress,
             activateProtocol: link.loopbackData.activateProtocol
           },
         }
@@ -1025,7 +1045,9 @@ function ConfigDevice() {
         ? {
           loopbackData: {
             loopbackNumber: link.loopbackData.loopbackNumber,
-            ipAddress: link.loopbackData.ipAddress,
+            ipAddress: link.loopbackData.activateProtocol === "ripv2"
+            ? calculateClassfulNetwork(link.loopbackData.ipAddress)
+            : link.loopbackData.ipAddress,
             activateProtocol: link.loopbackData.activateProtocol
           },
         }
