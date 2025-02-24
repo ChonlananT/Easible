@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Menu } from "lucide-react";
 import "./Bar.css";
 import "./Dashboard.css";
+import "./Lab.css";
 import Navbar from "./Navbar.tsx";
 
 /**
@@ -40,12 +41,10 @@ function DonutChart({
           <div
             className="donut-hole"
             style={{
-              width: `${
-                isDeviceChart ? donutHoleSize : donutHoleSize * 0.95
-              }px`,
-              height: `${
-                isDeviceChart ? donutHoleSize : donutHoleSize * 0.95
-              }px`,
+              width: `${isDeviceChart ? donutHoleSize : donutHoleSize * 0.95
+                }px`,
+              height: `${isDeviceChart ? donutHoleSize : donutHoleSize * 0.95
+                }px`,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -191,107 +190,108 @@ function Dashboard() {
           )}
           Dashboard
         </div>
-        <div className="content-body">
-          {/* Header row สำหรับ Donut Chart */}
-          <div className="donut-chart-row">
-            {/* Devices Donut (Bigger, Text Inside Hole) */}
-            <div style={{ padding: "0px", width: "60%" }}>
-              <div className="donut-chart-wrapper">
-                <DonutChart
-                  imageSrc=""
-                  label="Devices"
-                  onlineCount={devicesOnline}
-                  offlineCount={devicesOffline}
-                  size={300} // Bigger for emphasis
-                  isDeviceChart={true} // 🔥 Enables text inside the hole
-                />
-              </div>
-            </div>
 
-            {/* Routers and Switches Donuts (Smaller, Normal Design) */}
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                width: "40%",
-                gap: "10px",
-              }}
-            >
-              <div className="donut-chart-wrapper">
-                <DonutChart
-                  label="Routers"
-                  onlineCount={routersOnline}
-                  offlineCount={routersOffline}
-                  imageSrc="/router_icon.png"
-                  size={120}
-                />
-              </div>
-              <div className="donut-chart-wrapper">
-                <DonutChart
-                  label="Switches"
-                  onlineCount={switchesOnline}
-                  offlineCount={switchesOffline}
-                  imageSrc="/switch_icon.png"
-                  size={120}
-                />
-              </div>
-            </div>
+        {loading ? (
+          <div className="loading-container">
+            <div className="spinner-lab" />
+            <p>Loading...</p>
           </div>
-
-          {loading && (
-            <div
-              style={{
-                fontSize: "20px",
-                marginTop: "20px",
-                textAlign: "center",
-              }}
-            >
-              Loading...
-            </div>
-          )}
-          {error && (
-            <div
-              className="error-text"
-              style={{ textAlign: "center", marginTop: "20px" }}
-            >
-              Error: {error}
-            </div>
-          )}
-          {!loading && !error && (
-            <div className="device-details-row">
-              {/* Detailed Routers List */}
-              <div className="device-detail">
-                <h2>Router</h2>
-                {routers.length > 0 ? (
-                  routers.map((device) => (
-                    <div key={device.hostname}>
-                      {device.hostname} {renderStatusLabel(device.status)}
-                    </div>
-                  ))
-                ) : (
-                  <div>No router devices found.</div>
-                )}
+        ) : (
+          <div className="content-body" style={{ position: "relative" }}>
+            {/* The main content */}
+            <div className="donut-chart-row">
+              {/* Devices Donut (Bigger, Text Inside Hole) */}
+              <div style={{ padding: "0px", width: "60%" }}>
+                <div className="donut-chart-wrapper">
+                  <DonutChart
+                    imageSrc=""
+                    label="Devices"
+                    onlineCount={devicesOnline}
+                    offlineCount={devicesOffline}
+                    size={300} // Bigger for emphasis
+                    isDeviceChart={true} // 🔥 Enables text inside the hole
+                  />
+                </div>
               </div>
 
-              {/* Detailed Switches List */}
-              <div className="device-detail">
-                <h2>Switch</h2>
-                {switches.length > 0 ? (
-                  switches.map((device) => (
-                    <div key={device.hostname}>
-                      {device.hostname} {renderStatusLabel(device.status)}
-                    </div>
-                  ))
-                ) : (
-                  <div>No switch devices found.</div>
-                )}
+              {/* Routers and Switches Donuts (Smaller, Normal Design) */}
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  width: "40%",
+                  gap: "10px",
+                }}
+              >
+                <div className="donut-chart-wrapper">
+                  <DonutChart
+                    label="Routers"
+                    onlineCount={routersOnline}
+                    offlineCount={routersOffline}
+                    imageSrc="/router_icon.png"
+                    size={120}
+                  />
+                </div>
+                <div className="donut-chart-wrapper">
+                  <DonutChart
+                    label="Switches"
+                    onlineCount={switchesOnline}
+                    offlineCount={switchesOffline}
+                    imageSrc="/switch_icon.png"
+                    size={120}
+                  />
+                </div>
               </div>
             </div>
-          )}
-        </div>
+
+            {error && (
+              <div
+                className="error-text"
+                style={{ textAlign: "center", marginTop: "20px" }}
+              >
+                Error: {error}
+              </div>
+            )}
+
+            {!error && (
+              <div className="device-details-row">
+                {/* Detailed Routers List */}
+                <div className="device-detail">
+                  <h2>Router</h2>
+                  {routers.length > 0 ? (
+                    routers.map((device) => (
+                      <div key={device.hostname}>
+                        {device.hostname} {renderStatusLabel(device.status)}
+                      </div>
+                    ))
+                  ) : (
+                    <div>No router devices found.</div>
+                  )}
+                </div>
+
+                {/* Detailed Switches List */}
+                <div className="device-detail">
+                  <h2>Switch</h2>
+                  {switches.length > 0 ? (
+                    switches.map((device) => (
+                      <div key={device.hostname}>
+                        {device.hostname} {renderStatusLabel(device.status)}
+                      </div>
+                    ))
+                  ) : (
+                    <div>No switch devices found.</div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+
       </div>
     </div>
   );
+
 }
 
 export default Dashboard;
