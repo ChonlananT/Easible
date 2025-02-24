@@ -175,12 +175,31 @@ function ConfigDevice() {
     { label: "Router", value: "router" },
   ];
 
+  const commandMapping = {
+    vlan: "Vlan",
+    config_ip_router: "Config IP Router",
+    loopback: "Loopback",
+    static_route: "Static Route",
+    bridge_priority: "Bridge Priority"
+  };
+  
+
   const renderDetails = (input: HostConfig) => {
     switch (input.selectedCommand) {
       case "vlan":
         if (input.vlanData) {
           return (
-            <div style={{ margin: 0, paddingLeft: "10px", lineHeight: "1.5", display: "flex", flexDirection: "column", justifyContent: "flex-start", alignItems: "flex-start" }}>
+            <div
+              style={{
+                margin: 0,
+                paddingLeft: "10px",
+                lineHeight: "1.5",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "flex-start",
+                alignItems: "flex-start"
+              }}
+            >
               <div>
                 <strong>VLAN ID:</strong> {input.vlanData.vlanId}
               </div>
@@ -203,74 +222,91 @@ function ConfigDevice() {
           );
         }
         break;
-      case "bridge_priority":
-        if (input.bridgePriority) {
-          return (
-            <ul style={{ margin: 0, paddingLeft: "20px", lineHeight: "1.5" }}>
-              <li>
-                <strong>VLAN:</strong> {input.bridgePriority.vlan}
-              </li>
-              <li>
-                <strong>Priority:</strong> {input.bridgePriority.priority}
-              </li>
-            </ul>
-          );
-        }
-        break;
       case "config_ip_router":
         if (input.configIp) {
           return (
-            <ul style={{ margin: 0, paddingLeft: "20px", lineHeight: "1.5" }}>
-              <li>
+            <div
+              style={{
+                margin: 0,
+                paddingLeft: "10px",
+                lineHeight: "1.5",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "flex-start",
+                alignItems: "flex-start"
+              }}
+            >
+              <div>
                 <strong>Interface:</strong> {input.configIp.interface}
-              </li>
-              <li>
+              </div>
+              <div>
                 <strong>IP Address:</strong> {input.configIp.ipAddress}
-              </li>
-              <li>
+              </div>
+              <div>
                 <strong>CIDR:</strong> {input.configIp.cidr}
-              </li>
-            </ul>
+              </div>
+            </div>
           );
         }
         break;
       case "loopback":
         if (input.loopbackData) {
           return (
-            <ul style={{ margin: 0, paddingLeft: "20px", lineHeight: "1.5" }}>
-              <li>
+            <div
+              style={{
+                margin: 0,
+                paddingLeft: "10px",
+                lineHeight: "1.5",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "flex-start",
+                alignItems: "flex-start"
+              }}
+            >
+              <div>
                 <strong>Loopback Number:</strong> {input.loopbackData.loopbackNumber}
-              </li>
-              <li>
+              </div>
+              <div>
                 <strong>IP Address:</strong> {input.loopbackData.ipAddress}
-              </li>
-              <li>
-                <strong>Protocal Activation:</strong> {input.loopbackData.activateProtocol}
-              </li>
-            </ul>
+              </div>
+              <div>
+                <strong>Protocol Activation:</strong> {input.loopbackData.activateProtocol}
+              </div>
+            </div>
           );
         }
         break;
       case "static_route":
         if (input.staticRouteData) {
           return (
-            <ul style={{ margin: 0, paddingLeft: "20px", lineHeight: "1.5" }}>
-              <li>
+            <div
+              style={{
+                margin: 0,
+                paddingLeft: "10px",
+                lineHeight: "1.5",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "flex-start",
+                alignItems: "flex-start"
+              }}
+            >
+              <div>
                 <strong>Prefix:</strong> {input.staticRouteData.prefix}
-              </li>
-              <li>
+              </div>
+              <div>
                 <strong>CIDR:</strong> {input.staticRouteData.cidr}
-              </li>
-              <li>
+              </div>
+              <div>
                 <strong>Next Hop:</strong> {input.staticRouteData.nextHop}
-              </li>
-            </ul>
+              </div>
+            </div>
           );
         }
         break;
       default:
         return <span>-</span>;
     }
+
     return <span>-</span>;
   };
 
@@ -395,42 +431,10 @@ function ConfigDevice() {
     return (
       <div className="popup-overlay">
         <div className="popup-preview">
-          <h2 className="summary-title">Summary</h2>
-          <div style={{ overflowY: "auto", maxHeight: "75vh", marginBottom: "20px" }}>
-            <div
-              className="popup-table-wrapper"
-              style={{ marginBottom: "20px" }}
-            >
-              <table
-                className="summary-table"
-                style={{ width: "100%", border: "none" }}
-                border={1}
-              >
-                <thead>
-                  <tr>
-                    <th>Device Type</th>
-                    <th>Selected Host</th>
-                    <th>Command</th>
-                    <th>Details</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {userInputs.map((input, idx) => (
-                    <tr key={idx}>
-                      <td>{input.deviceType}</td>
-                      <td>{input.selectedHost}</td>
-                      <td>{input.selectedCommand}</td>
-                      <td>{renderDetails(input)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-          {/* Optionally, you can include your STP summary below if desired */}
-          {stpResults.length > 0 && (
+          {/* If spanning tree data exists, show that */}
+          {stpResults.length > 0 ? (
             <>
-              <h3>STP Summary</h3>
+              <h2 className="summary-title">Spanning Tree Summary</h2>
               {stpResults.map((sw, index) => (
                 <div key={index} className="switch-card">
                   <div
@@ -477,6 +481,35 @@ function ConfigDevice() {
                 </div>
               ))}
             </>
+          ) : (
+            // Otherwise, show the configuration summary table.
+            <>
+              <h2 className="summary-title">Summary</h2>
+              <div style={{ overflowY: "auto", maxHeight: "75vh", marginBottom: "20px" }}>
+                <div className="popup-table-wrapper" style={{ marginBottom: "20px" }}>
+                  <table className="summary-table" style={{ width: "100%", border: "none" }} border={1}>
+                    <thead>
+                      <tr>
+                        <th>Device Type</th>
+                        <th>Selected Host</th>
+                        <th>Command</th>
+                        <th>Details</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {userInputs.map((input, idx) => (
+                        <tr key={idx}>
+                          <td>{input.deviceType}</td>
+                          <td>{input.selectedHost}</td>
+                          <td>{commandMapping[input.selectedCommand] || input.selectedCommand}</td>
+                          <td>{renderDetails(input)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </>
           )}
           <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
             <button
@@ -496,6 +529,7 @@ function ConfigDevice() {
           </div>
         </div>
       </div>
+
     );
   };
 
@@ -904,7 +938,6 @@ function ConfigDevice() {
 
   const handleConfirm = () => {
     setError("");
-    setBridgeOpen(false);
     setIsLoading(true);
     // ตรวจสอบความสมบูรณ์ของข้อมูลในแต่ละ entry ใน links
     for (let i = 0; i < links.length; i++) {
@@ -1550,9 +1583,10 @@ function ConfigDevice() {
                               placeholder="Enter IP Address"
                             />
                           </div>
-                          <div className="config-device-input-text">
+                          <div className="host-selection__dropdown-group">
                             <label>Protocol Activation:</label>
                             <select
+                              className="host-selection__dropdown"
                               value={link.loopbackData.activateProtocol}
                               onChange={(e) =>
                                 handleHostChange(
