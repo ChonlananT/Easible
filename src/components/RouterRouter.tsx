@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import "./Bar.css";
-import "./RouterRouter.css"; // สมมติ reuse style เดิม หรือเปลี่ยนชื่อไฟล์ใหม่
-import "./SwitchSwitch.css"; // สมมติ reuse style เดิม หรือเปลี่ยนชื่อไฟล์ใหม่
+import "./RouterRouter.css";
+import "./SwitchSwitch.css";
+import "./Lab.css";
 import NetworkTopology from "./NetworkTopology(Router).tsx";
 import Navbar from "./Navbar.tsx";
 import Spinner from "./bootstrapSpinner.tsx";
@@ -57,11 +58,14 @@ function RouterRouter() {
   // New states for popup and dynamic routing tables
   const [showPopup, setShowPopup] = useState(false);
   const [popupData, setPopupData] = useState<LinkConfig[]>([]);
-  const [routingTables, setRoutingTables] = useState<any>({}); // NEW: dynamic routing tables
+  const [routingTables, setRoutingTables] = useState<any>({});
   const [showComparisonPopup, setShowComparisonPopup] = useState(false);
   const [comparisonResult, setComparisonResult] = useState<any>(null);
   const [parsedRoutes, setParsedRoutes] = useState<any>(null);
   const [isClosing, setIsClosing] = useState(false);
+
+  // New state for loading in comparison popup
+  const [isLoading, setIsLoading] = useState(false);
 
   // protocol ที่มีให้เลือก
   const protocols = [
@@ -70,11 +74,9 @@ function RouterRouter() {
     { label: "OSPF", value: "ospf" },
   ];
 
-  // (Removed the hardcoded r1TableData)
-
   const [isNavOpen, setIsNavOpen] = useState(() => {
     const savedNavState = localStorage.getItem("isNavOpen");
-    return savedNavState === "true"; // Convert to boolean
+    return savedNavState === "true";
   });
 
   useEffect(() => {
@@ -167,22 +169,18 @@ function RouterRouter() {
       const link = { ...newLinks[index] };
 
       if (typeof field === "string") {
-        // กรณี field เป็น string ปกติ (เช่น 'hostname1')
         (link as any)[field] = value;
 
-        // ถ้า protocol เปลี่ยนเป็น 'static' ให้ initialize staticRoute1 และ staticRoute2
         if (field === "protocol" && value === "static") {
           link.staticRoute1 = { prefix: "", subnet: 24, nextHop: "" };
           link.staticRoute2 = { prefix: "", subnet: 24, nextHop: "" };
         }
 
-        // ถ้า protocol ไม่ใช่ 'static' ให้ลบ staticRoute1 และ staticRoute2
         if (field === "protocol" && value !== "static") {
           delete link.staticRoute1;
           delete link.staticRoute2;
         }
       } else {
-        // กรณี field เป็น group (เช่น group = 'staticRoute1', key = 'prefix')
         if (field.group === "staticRoute1") {
           link.staticRoute1 = {
             ...link.staticRoute1,
@@ -207,17 +205,19 @@ function RouterRouter() {
   };
 
   const handleConfirm = () => {
-    // 1) We need the routing_tables that came from /api/create_playbook_rttort
     if (!routingTables || Object.keys(routingTables).length === 0) {
       setError("No routing tables found to verify.");
       return;
     }
-  
-    // 2) Prepare payload
+
     const payload = {
-      routing_tables: routingTables
+      routing_tables: routingTables,
     };
-  
+
+    // Set loading state for the comparison popup
+    setIsLoading(true);
+    setShowComparisonPopup(true);
+
     fetch("/api/run_playbook/rttort", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -229,29 +229,25 @@ function RouterRouter() {
           setError(data.error);
           return;
         }
-        // data may have { parsed_routes, comparison, ... }
         console.log("Verification data:", data);
-  
-        // 3) Close the first popup
         handleClosePopup();
-  
-        // 4) Show the second popup with the comparison
-        setComparisonResult(data.comparison); // or data.whateverYouReturn
+        setComparisonResult(data.comparison);
         setParsedRoutes(data.parsed_routes);
-        
-        setShowComparisonPopup(true);
+
       })
       .catch((err) => {
         setError(err.message);
         console.error("Error verifying:", err);
+      })
+      .finally(() => {
+        // End loading state once the fetch completes
+        setIsLoading(false);
       });
   };
-  
 
   // ฟังก์ชัน Submit ทั้งหมด
   const handleSubmitAll = () => {
     setError("");
-    // ตรวจว่าเลือก host, interface, ipAddress, subnet ครบหรือไม่
     for (let link of links) {
       if (
         !link.hostname1 ||
@@ -282,7 +278,6 @@ function RouterRouter() {
         }
       }
     }
-    // สร้าง payload ส่งไป backend
     const requestData = links.map((link) => ({
       hostname1: link.hostname1,
       hostname2: link.hostname2,
@@ -301,7 +296,7 @@ function RouterRouter() {
 
     setPopupData(requestData);
     setShowPopup(true);
-    
+
     fetch("/api/create_playbook_rttort", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -312,12 +307,12 @@ function RouterRouter() {
         if (data.error) {
           setError(data.error);
         } else {
-          // alert('Configuration submitted successfully!');
           console.log("Playbook created:", data.playbook);
-          // Set the routing tables from backend response
-          
           setRoutingTables(data.routing_tables);
-          console.log("routing_tables:", JSON.stringify(data.routing_tables, null, 2));
+          console.log(
+            "routing_tables:",
+            JSON.stringify(data.routing_tables, null, 2)
+          );
         }
       })
       .catch((err) => {
@@ -327,13 +322,11 @@ function RouterRouter() {
   };
 
   const handleClosePopup = () => {
-    // Trigger closing animation
     setIsClosing(true);
-    // After the animation duration, remove the popup from the DOM
     setTimeout(() => {
       setShowPopup(false);
-      setIsClosing(false); // Reset closing state for future use
-    }, 500); // 500ms should match the duration in the CSS animation
+      setIsClosing(false);
+    }, 500);
   };
 
   const [isNavDropdownOpen, setIsNavDropdownOpen] = useState(false);
@@ -398,16 +391,23 @@ function RouterRouter() {
                               <select
                                 className="host-selection__dropdown"
                                 value={link.hostname1}
-                                onChange={(e) => handleChange(index, "hostname1", e.target.value)}
+                                onChange={(e) =>
+                                  handleChange(index, "hostname1", e.target.value)
+                                }
                               >
                                 <option value="">
                                   -- Select Router (Host1) --
                                 </option>
                                 {!loading &&
                                   hosts
-                                    .filter((host) => host.hostname !== link.hostname2)
+                                    .filter(
+                                      (host) => host.hostname !== link.hostname2
+                                    )
                                     .map((host) => (
-                                      <option key={host.hostname} value={host.hostname}>
+                                      <option
+                                        key={host.hostname}
+                                        value={host.hostname}
+                                      >
                                         {host.hostname}
                                       </option>
                                     ))}
@@ -419,11 +419,16 @@ function RouterRouter() {
                             <select
                               className="host-selection__dropdown"
                               value={link.interface1}
-                              onChange={(e) => handleChange(index, "interface1", e.target.value)}
+                              onChange={(e) =>
+                                handleChange(index, "interface1", e.target.value)
+                              }
                             >
                               <option value="">-- Select Interface --</option>
                               {getInterfacesForHost(link.hostname1).map((intf) => (
-                                <option key={intf.interface} value={intf.interface}>
+                                <option
+                                  key={intf.interface}
+                                  value={intf.interface}
+                                >
                                   {intf.interface} ({intf.status})
                                 </option>
                               ))}
@@ -436,7 +441,9 @@ function RouterRouter() {
                                 type="text"
                                 className="host-selection__dropdown"
                                 value={link.ip1}
-                                onChange={(e) => handleChange(index, "ip1", e.target.value)}
+                                onChange={(e) =>
+                                  handleChange(index, "ip1", e.target.value)
+                                }
                                 placeholder="Enter IP for Router1"
                               />
                             </div>
@@ -448,7 +455,9 @@ function RouterRouter() {
                                 max={32}
                                 className="host-selection__dropdown"
                                 value={link.subnet}
-                                onChange={(e) => handleChange(index, "subnet", e.target.value)}
+                                onChange={(e) =>
+                                  handleChange(index, "subnet", e.target.value)
+                                }
                                 placeholder="24"
                               />
                             </div>
@@ -468,7 +477,9 @@ function RouterRouter() {
                         <select
                           className="host-selection__dropdown"
                           value={link.protocol}
-                          onChange={(e) => handleChange(index, "protocol", e.target.value)}
+                          onChange={(e) =>
+                            handleChange(index, "protocol", e.target.value)
+                          }
                         >
                           {protocols.map((prot) => (
                             <option key={prot.value} value={prot.value}>
@@ -485,15 +496,22 @@ function RouterRouter() {
                             <select
                               className="host-selection__dropdown"
                               value={link.hostname2}
-                              onChange={(e) => handleChange(index, "hostname2", e.target.value)}
+                              onChange={(e) =>
+                                handleChange(index, "hostname2", e.target.value)
+                              }
                             >
                               <option value="">
                                 -- Select Router (Host2) --
                               </option>
                               {hosts
-                                .filter((host) => host.hostname !== link.hostname1)
+                                .filter(
+                                  (host) => host.hostname !== link.hostname1
+                                )
                                 .map((host) => (
-                                  <option key={host.hostname} value={host.hostname}>
+                                  <option
+                                    key={host.hostname}
+                                    value={host.hostname}
+                                  >
                                     {host.hostname}
                                   </option>
                                 ))}
@@ -504,11 +522,16 @@ function RouterRouter() {
                             <select
                               className="host-selection__dropdown"
                               value={link.interface2}
-                              onChange={(e) => handleChange(index, "interface2", e.target.value)}
+                              onChange={(e) =>
+                                handleChange(index, "interface2", e.target.value)
+                              }
                             >
                               <option value="">-- Select Interface --</option>
                               {getInterfacesForHost(link.hostname2).map((intf) => (
-                                <option key={intf.interface} value={intf.interface}>
+                                <option
+                                  key={intf.interface}
+                                  value={intf.interface}
+                                >
                                   {intf.interface} ({intf.status})
                                 </option>
                               ))}
@@ -521,7 +544,9 @@ function RouterRouter() {
                                 type="text"
                                 className="host-selection__dropdown"
                                 value={link.ip2}
-                                onChange={(e) => handleChange(index, "ip2", e.target.value)}
+                                onChange={(e) =>
+                                  handleChange(index, "ip2", e.target.value)
+                                }
                                 placeholder="Enter IP for Router2"
                               />
                             </div>
@@ -533,7 +558,9 @@ function RouterRouter() {
                                 max={32}
                                 className="host-selection__dropdown"
                                 value={link.subnet}
-                                onChange={(e) => handleChange(index, "subnet", e.target.value)}
+                                onChange={(e) =>
+                                  handleChange(index, "subnet", e.target.value)
+                                }
                                 placeholder="24"
                                 disabled={true}
                               />
@@ -543,117 +570,114 @@ function RouterRouter() {
                       </div>
                     </div>
 
-
                     {link.protocol === "static" && (
-                      <>
-                        <div className="protocal-section">
-                          <div className="protocol-card">
-                            <div className="static-route-section">
-                              <h5>Static Route for Host 1</h5>
-                              <div className="host-selection__dropdown-group">
-                                <label>Prefix:</label>
-                                <input
-                                  type="text"
-                                  className="host-selection__dropdown"
-                                  value={link.staticRoute1?.prefix || ""}
-                                  onChange={(e) =>
-                                    handleChange(
-                                      index,
-                                      { group: "staticRoute1", key: "prefix" },
-                                      e.target.value
-                                    )
-                                  }
-                                  placeholder="Enter Prefix (e.g., 10.0.0.0)"
-                                />
-                              </div>
-                              <div className="host-selection__dropdown-group">
-                                <label>Subnet:</label>
-                                <input
-                                  type="text"
-                                  className="host-selection__dropdown"
-                                  value={link.staticRoute1?.subnet || ""}
-                                  onChange={(e) =>
-                                    handleChange(
-                                      index,
-                                      { group: "staticRoute1", key: "subnet" },
-                                      e.target.value
-                                    )
-                                  }
-                                  placeholder="Enter Subnet Mask (e.g., 255.255.255.0)"
-                                />
-                              </div>
-                              <div className="host-selection__dropdown-group">
-                                <label>Next Hop:</label>
-                                <input
-                                  type="text"
-                                  className="host-selection__dropdown"
-                                  value={link.staticRoute1?.nextHop || ""}
-                                  onChange={(e) =>
-                                    handleChange(
-                                      index,
-                                      { group: "staticRoute1", key: "nextHop" },
-                                      e.target.value
-                                    )
-                                  }
-                                  placeholder="Enter Next Hop IP Address"
-                                />
-                              </div>
+                      <div className="protocal-section">
+                        <div className="protocol-card">
+                          <div className="static-route-section">
+                            <h5>Static Route for Host 1</h5>
+                            <div className="host-selection__dropdown-group">
+                              <label>Prefix:</label>
+                              <input
+                                type="text"
+                                className="host-selection__dropdown"
+                                value={link.staticRoute1?.prefix || ""}
+                                onChange={(e) =>
+                                  handleChange(
+                                    index,
+                                    { group: "staticRoute1", key: "prefix" },
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="Enter Prefix (e.g., 10.0.0.0)"
+                              />
                             </div>
-                            <div className="line-vertical-rt-rt"></div>
-                            <div className="static-route-section">
-                              <h5>Static Route for Host 2</h5>
-                              <div className="host-selection__dropdown-group">
-                                <label>Prefix:</label>
-                                <input
-                                  type="text"
-                                  className="host-selection__dropdown"
-                                  value={link.staticRoute2?.prefix || ""}
-                                  onChange={(e) =>
-                                    handleChange(
-                                      index,
-                                      { group: "staticRoute2", key: "prefix" },
-                                      e.target.value
-                                    )
-                                  }
-                                  placeholder="Enter Prefix (e.g., 10.0.0.0)"
-                                />
-                              </div>
-                              <div className="host-selection__dropdown-group">
-                                <label>Subnet:</label>
-                                <input
-                                  type="text"
-                                  className="host-selection__dropdown"
-                                  value={link.staticRoute2?.subnet || ""}
-                                  onChange={(e) =>
-                                    handleChange(
-                                      index,
-                                      { group: "staticRoute2", key: "subnet" },
-                                      e.target.value
-                                    )
-                                  }
-                                  placeholder="Enter Subnet Mask (e.g., 255.255.255.0)"
-                                />
-                              </div>
-                              <div className="host-selection__dropdown-group">
-                                <label>Next Hop:</label>
-                                <input
-                                  type="text"
-                                  className="host-selection__dropdown"
-                                  value={link.staticRoute2?.nextHop || ""}
-                                  onChange={(e) =>
-                                    handleChange(
-                                      index,
-                                      { group: "staticRoute2", key: "nextHop" },
-                                      e.target.value
-                                    )
-                                  }
-                                  placeholder="Enter Next Hop IP Address"
-                                />
-                              </div>
+                            <div className="host-selection__dropdown-group">
+                              <label>Subnet:</label>
+                              <input
+                                type="text"
+                                className="host-selection__dropdown"
+                                value={link.staticRoute1?.subnet || ""}
+                                onChange={(e) =>
+                                  handleChange(
+                                    index,
+                                    { group: "staticRoute1", key: "subnet" },
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="Enter Subnet Mask (e.g., 255.255.255.0)"
+                              />
+                            </div>
+                            <div className="host-selection__dropdown-group">
+                              <label>Next Hop:</label>
+                              <input
+                                type="text"
+                                className="host-selection__dropdown"
+                                value={link.staticRoute1?.nextHop || ""}
+                                onChange={(e) =>
+                                  handleChange(
+                                    index,
+                                    { group: "staticRoute1", key: "nextHop" },
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="Enter Next Hop IP Address"
+                              />
+                            </div>
+                          </div>
+                          <div className="line-vertical-rt-rt"></div>
+                          <div className="static-route-section">
+                            <h5>Static Route for Host 2</h5>
+                            <div className="host-selection__dropdown-group">
+                              <label>Prefix:</label>
+                              <input
+                                type="text"
+                                className="host-selection__dropdown"
+                                value={link.staticRoute2?.prefix || ""}
+                                onChange={(e) =>
+                                  handleChange(
+                                    index,
+                                    { group: "staticRoute2", key: "prefix" },
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="Enter Prefix (e.g., 10.0.0.0)"
+                              />
+                            </div>
+                            <div className="host-selection__dropdown-group">
+                              <label>Subnet:</label>
+                              <input
+                                type="text"
+                                className="host-selection__dropdown"
+                                value={link.staticRoute2?.subnet || ""}
+                                onChange={(e) =>
+                                  handleChange(
+                                    index,
+                                    { group: "staticRoute2", key: "subnet" },
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="Enter Subnet Mask (e.g., 255.255.255.0)"
+                              />
+                            </div>
+                            <div className="host-selection__dropdown-group">
+                              <label>Next Hop:</label>
+                              <input
+                                type="text"
+                                className="host-selection__dropdown"
+                                value={link.staticRoute2?.nextHop || ""}
+                                onChange={(e) =>
+                                  handleChange(
+                                    index,
+                                    { group: "staticRoute2", key: "nextHop" },
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="Enter Next Hop IP Address"
+                              />
                             </div>
                           </div>
                         </div>
-                      </>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -694,7 +718,6 @@ function RouterRouter() {
                   <NetworkTopology links={links} />
                 </div>
                 <div className="popup-table-section">
-                  {/* Dynamically render a table for each routing table from the backend */}
                   {Object.entries(routingTables).map(
                     ([hostname, routes]: [string, any]) => (
                       <div className="popup-table" key={hostname}>
@@ -736,14 +759,14 @@ function RouterRouter() {
                 <div className="button-prev-section">
                   <button
                     className="button-cancel-prev"
-                    style={{fontSize:"16px"}}
+                    style={{ fontSize: "16px" }}
                     onClick={handleClosePopup}
                   >
                     Cancel
                   </button>
-                  <button 
-                    className="button-confirm-prev" 
-                    style={{fontSize:"16px"}} 
+                  <button
+                    className="button-confirm-prev"
+                    style={{ fontSize: "16px" }}
                     onClick={handleConfirm}
                   >
                     Confirm
@@ -753,107 +776,185 @@ function RouterRouter() {
             </div>
           )}
         </div>
-        
-        {/* SHOW COMPARISON POPUP*/}
-        {showComparisonPopup && comparisonResult && parsedRoutes && (
+
+        {/* SHOW COMPARISON POPUP */}
+        {showComparisonPopup && (
           <div className="popup-overlay">
-            <div className="popup-preview">
-              <h1 style={{ fontSize: "32px" }}>Comparison Result</h1>
-
-              {/* Wrap all the data in a scrollable container using our CSS class */}
-              <div className="scrollable-comparison-content">
-                {/* 1) Show the EXPECTED routes (frontend data) */}
-                <h2>Expected Routes (Frontend Data)</h2>
-                {Object.entries(routingTables).map(([hostname, routes]: [string, any]) => (
-                  <div key={hostname} className="popup-table">
-                    <h3>{hostname}</h3>
-                    <table border={1} style={{ width: "100%", borderCollapse: "collapse" }}>
-                      <thead>
-                        <tr>
-                          <th>Protocol</th>
-                          <th>Subnet</th>
-                          <th>Next Hop</th>
-                          <th>Outgoing Intf</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {routes.map((route: any, i: number) => (
-                          <tr key={i}>
-                            <td>{route.protocol}</td>
-                            <td>{route.subnet}</td>
-                            <td>{route.nexthop}</td>
-                            <td>{route.outgoing_interface}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+            <div className="popup-preview" style={{ height: "90%" }}>
+              {isLoading ? (
+                <div style={{ height: "100%" }}>
+                  <h1 style={{ fontSize: "38px" }}>Result</h1>
+                  <div className="loading-container">
+                    <div className="spinner-lab" />
+                    <p>Loading...</p>
                   </div>
-                ))}
+                </div>
+              ) : (
+                <div style={{ height: "100%" }}>
+                  <h1 style={{ fontSize: "38px" }}>Result</h1>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      padding: "0px 10px",
+                      height: "72vh",
+                    }}
+                  >
+                    {/* APPLIED ON DEVICE SECTION */}
+                    <div
+                      style={{
+                        width: "48%",
+                        backgroundColor: "#e6f7ff", // Light bluish background
+                        padding: "10px",
+                        border: "1px solid #b3daff",
+                        borderRadius: "5px",
+                      }}
+                    >
+                      <h4 style={{ marginTop: 0 }}>Applied on device:</h4>
+                      <div
+                        className="popup-table-section-result"
+                        style={{ maxHeight: "69vh", overflowY: "auto" }}
+                      >
+                        {Object.entries(comparisonResult).map(
+                          ([hostname, compData]: [string, any]) => (
+                            <div
+                              key={hostname}
+                              className="popup-table"
+                              style={{
+                                marginBottom: "20px",
+                                backgroundColor: "#ffffff",
+                                borderRadius: "4px",
+                                padding: "10px",
+                              }}
+                            >
+                              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                <h5>{hostname}</h5>
+                                <p style={{ color: compData.all_matched ? "green" : "red", marginBottom: 0 }}>
+                                  {compData.all_matched ? "Matched" : "Unmatched"}
+                                </p>
+                              </div>
+                              {compData.matched_entries &&
+                                compData.matched_entries.length > 0 ? (
+                                <div className="popup-table-wrapper" style={{ overflowX: "auto" }}>
+                                  <table
+                                    border={1}
+                                    style={{
+                                      width: "100%",
+                                      borderCollapse: "collapse",
+                                      backgroundColor: "#fff",
+                                    }}
+                                  >
+                                    <thead>
+                                      <tr style={{ backgroundColor: "#f0f8ff" }}>
+                                        <th>Protocol</th>
+                                        <th>Subnet</th>
+                                        <th>Next Hop</th>
+                                        <th>Outgoing Interface</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {compData.matched_entries.map((entry: any, index: number) => (
+                                        <tr key={index}>
+                                          <td>{entry.protocol}</td>
+                                          <td>{entry.subnet}</td>
+                                          <td>{entry.nexthop}</td>
+                                          <td>{entry.outgoing_interface}</td>
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              ) : (
+                                <p>No matched entries.</p>
+                              )}
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </div>
 
-                {/* 2) Show the ACTUAL parsed routes (from the backend) */}
-                <h2>Actual Routes (Backend Parsed)</h2>
-                {Object.entries(parsedRoutes).map(([hostname, routes]: [string, any]) => (
-                  <div key={hostname} className="popup-table">
-                    <h3>{hostname}</h3>
-                    <table border={1} style={{ width: "100%", borderCollapse: "collapse" }}>
-                      <thead>
-                        <tr>
-                          <th>Protocol</th>
-                          <th>Subnet</th>
-                          <th>Next Hop</th>
-                          <th>Outgoing Intf</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {routes.map((route: any, i: number) => (
-                          <tr key={i}>
-                            <td>{route.protocol}</td>
-                            <td>{route.subnet}</td>
-                            <td>{route.nexthop}</td>
-                            <td>{route.outgoing_interface}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                    {/* CONFIGURATION SENT SECTION */}
+                    <div
+                      style={{
+                        width: "48%",
+                        backgroundColor: "#fff9e6", // Light yellowish background
+                        padding: "10px",
+                        border: "1px solid #ffe6b3",
+                        borderRadius: "5px",
+                      }}
+                    >
+                      <h4 style={{ marginTop: 0 }}>Configuration sent:</h4>
+                      <div
+                        className="popup-table-section-result"
+                        style={{ maxHeight: "69vh", overflowY: "auto" }}
+                      >
+                        {Object.entries(routingTables).map(
+                          ([hostname, routes]: [string, any]) => (
+                            <div
+                              key={hostname}
+                              className="popup-table"
+                              style={{
+                                marginBottom: "20px",
+                                backgroundColor: "#ffffff",
+                                borderRadius: "4px",
+                                padding: "10px",
+                              }}
+                            >
+                              <h5>{hostname}</h5>
+                              <div
+                                className="popup-table-wrapper"
+                                style={{ overflowX: "auto" }}
+                              >
+                                <table
+                                  border={1}
+                                  style={{
+                                    width: "100%",
+                                    borderCollapse: "collapse",
+                                    backgroundColor: "#fff",
+                                  }}
+                                >
+                                  <thead>
+                                    <tr style={{ backgroundColor: "#fff2e6" }}>
+                                      <th>Protocol</th>
+                                      <th>Subnet</th>
+                                      <th>Next Hop</th>
+                                      <th>Outgoing Interface</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {routes.map((route: any, i: number) => (
+                                      <tr key={i}>
+                                        <td>{route.protocol}</td>
+                                        <td>{route.subnet}</td>
+                                        <td>{route.nexthop}</td>
+                                        <td>{route.outgoing_interface}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </div>
                   </div>
-                ))}
 
-                {/* 3) Show the COMPARISON summary */}
-                <h2>Comparison Summary</h2>
-                {Object.entries(comparisonResult).map(([hostname, compData]: [string, any]) => (
-                  <div key={hostname} className="popup-table">
-                    <h3>{hostname}</h3>
-                    <p>All Matched? {compData.all_matched ? "Yes" : "No"}</p>
-                    <h4>Matched Entries:</h4>
-                    <ul>
-                      {compData.matched_entries.map((entry: any, index: number) => (
-                        <li key={index}>{JSON.stringify(entry, null, 2)}</li>
-                      ))}
-                    </ul>
-                    <h4>Unmatched Entries:</h4>
-                    <ul>
-                      {compData.unmatched_entries.map((entry: any, index: number) => (
-                        <li key={index}>{JSON.stringify(entry, null, 2)}</li>
-                      ))}
-                    </ul>
+                  <div className="button-prev-section">
+                    <button
+                      className="button-cancel-prev"
+                      style={{ fontSize: "15px" }}
+                      onClick={() => setShowComparisonPopup(false)}
+                    >
+                      Close
+                    </button>
                   </div>
-                ))}
-              </div>
+                </div>
 
-              <div className="button-prev-section">
-                <button 
-                  className="button-cancel-prev"
-                  style={{ fontSize: "16px" }}
-                  onClick={() => setShowComparisonPopup(false)}
-                >
-                  Close
-                </button>
-              </div>
+              )}
             </div>
           </div>
-          )}
-
-
+        )}
 
 
         {error && (

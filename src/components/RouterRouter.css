@@ -91,7 +91,7 @@
 
 /* CSS FOR COMPARISON POPUP */
 .scrollable-comparison-content {
-    max-height: 70vh; /* Adjust this value as needed */
+    max-height: 76vh; /* Adjust this value as needed */
     overflow-y: auto;
     padding-right: 8px; /* Optional: add some padding so the scrollbar doesn’t overlap your content */
   }
