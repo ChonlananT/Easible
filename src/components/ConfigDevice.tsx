@@ -3,6 +3,7 @@ import "./Bar.css";
 import "./RouterRouter.css";
 import "./ConfigDevice.css";
 import "./SwitchSwitch.css";
+import "./Lab.css";
 import Spinner from "./bootstrapSpinner.tsx";
 import { ArrowLeftFromLine, ChevronDown, Menu } from "lucide-react";
 import Navbar from "./Navbar.tsx";
@@ -106,6 +107,7 @@ type ConfigIpData = {
 type LoopbackData = {
   loopbackNumber: number;
   ipAddress: string;
+  activateProtocol: string;
 };
 
 type StaticRouteData = {
@@ -130,7 +132,8 @@ type SummaryPopupProps = {
   stpResults: StpResult[];
   resultData?: any;
   selectedCommand: string;
-  userInputs: HostConfig[]; // Pass your links state here.
+  userInputs: HostConfig[];
+  result_loading: boolean; // new prop for loading state
   onClose: () => void;
 };
 
@@ -148,6 +151,7 @@ function ConfigDevice() {
   const [loading, setLoading] = useState<boolean>(true);
   const [resultData, setResultData] = useState<any>(null);
   const [selectedCommand, setSelectedCommand] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
 
   // Commands available by device type
@@ -275,7 +279,7 @@ function ConfigDevice() {
     onClose,
   }) => {
     // If resultData exists, show the result view as before.
-    if (resultData) {
+    if (resultData || isLoading) {
       if (selectedCommand === "bridge_priority") {
         if (
           resultData.comparison &&
@@ -367,7 +371,14 @@ function ConfigDevice() {
           <div className="popup-overlay">
             <div className="popup-preview">
               <h2 className="summary-title">Result</h2>
-              <pre>{JSON.stringify(resultData, null, 2)}</pre>
+              {isLoading ? (
+                <div className="loading-container">
+                  <div className="spinner-lab" />
+                  <p>Loading...</p>
+                </div>
+              ) : (
+                <pre>{JSON.stringify(resultData, null, 2)}</pre>
+              )}
               <button className="button-cancel-prev" onClick={onClose}>
                 Close
               </button>
@@ -382,7 +393,7 @@ function ConfigDevice() {
       <div className="popup-overlay">
         <div className="popup-preview">
           <h2 className="summary-title">Summary</h2>
-          <div style={{ overflowY: "auto", maxHeight: "75vh", marginBottom:"20px" }}>
+          <div style={{ overflowY: "auto", maxHeight: "75vh", marginBottom: "20px" }}>
             <div
               className="popup-table-wrapper"
               style={{ marginBottom: "20px" }}
@@ -661,6 +672,7 @@ function ConfigDevice() {
             hostConfig.loopbackData = {
               loopbackNumber: 0,
               ipAddress: "",
+              activateProtocol: ""
             };
           } else if (value === "static_route") {
             hostConfig.staticRouteData = {
@@ -888,7 +900,8 @@ function ConfigDevice() {
 
   const handleConfirm = () => {
     setError("");
-
+    setBridgeOpen(false);
+    setIsLoading(true);
     // ตรวจสอบความสมบูรณ์ของข้อมูลในแต่ละ entry ใน links
     for (let i = 0; i < links.length; i++) {
       const link = links[i];
@@ -1044,7 +1057,8 @@ function ConfigDevice() {
       .catch((err) => {
         setError(err.message);
         console.error("Error executing configuration:", err);
-      });
+      })
+      .finally(() => setIsLoading(false));
   };
 
   const [isNavOpen, setIsNavOpen] = useState(() => {
@@ -1497,47 +1511,61 @@ function ConfigDevice() {
                           </div>
                         </div>
                       )}
-                    {link.selectedCommand === "loopback" &&
-                      link.loopbackData && (
-                        <div className="config-command-board">
-                          <h5>Loopback Configuration</h5>
-                          <div className="loopback-config-content">
-                            <div className="config-device-input-text">
-                              <label>Loopback Number:</label>
-                              <input
-                                type="text"
-                                value={link.loopbackData.loopbackNumber}
-                                onChange={(e) =>
-                                  handleHostChange(
-                                    index,
-                                    {
-                                      group: "loopbackData",
-                                      key: "loopbackNumber",
-                                    },
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="Enter Loopback Number"
-                              />
-                            </div>
-                            <div className="config-device-input-text">
-                              <label>IP Address:</label>
-                              <input
-                                type="text"
-                                value={link.loopbackData.ipAddress}
-                                onChange={(e) =>
-                                  handleHostChange(
-                                    index,
-                                    { group: "loopbackData", key: "ipAddress" },
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="Enter IP Address"
-                              />
-                            </div>
+                    {link.selectedCommand === "loopback" && link.loopbackData && (
+                      <div className="config-command-board">
+                        <h5>Loopback Configuration</h5>
+                        <div className="loopback-config-content">
+                          <div className="config-device-input-text">
+                            <label>Loopback Number:</label>
+                            <input
+                              type="text"
+                              value={link.loopbackData.loopbackNumber}
+                              onChange={(e) =>
+                                handleHostChange(
+                                  index,
+                                  { group: "loopbackData", key: "loopbackNumber" },
+                                  e.target.value
+                                )
+                              }
+                              placeholder="Enter Loopback Number"
+                            />
+                          </div>
+                          <div className="config-device-input-text">
+                            <label>IP Address:</label>
+                            <input
+                              type="text"
+                              value={link.loopbackData.ipAddress}
+                              onChange={(e) =>
+                                handleHostChange(
+                                  index,
+                                  { group: "loopbackData", key: "ipAddress" },
+                                  e.target.value
+                                )
+                              }
+                              placeholder="Enter IP Address"
+                            />
+                          </div>
+                          <div className="config-device-input-text">
+                            <label>Protocol Activation:</label>
+                            <select
+                              value={link.loopbackData.activateProtocol}
+                              onChange={(e) =>
+                                handleHostChange(
+                                  index,
+                                  { group: "loopbackData", key: "activateProtocol" },
+                                  e.target.value
+                                )
+                              }
+                            >
+                              <option value="none">None</option>
+                              <option value="ripv2">RIPv2</option>
+                              <option value="ospf">OSPF</option>
+                            </select>
                           </div>
                         </div>
-                      )}
+                      </div>
+                    )}
+
                     {link.selectedCommand === "static_route" &&
                       link.staticRouteData && (
                         <div className="config-command-board">
@@ -1626,7 +1654,8 @@ function ConfigDevice() {
               stpResults={stpResults}
               resultData={resultData}
               selectedCommand={selectedCommand}
-              userInputs={links} // Pass the userInputs prop
+              userInputs={links}
+              result_loading={isLoading}  // pass isLoading as loading prop
               onClose={() => {
                 setBridgeOpen(false);
                 setResultData(null);
