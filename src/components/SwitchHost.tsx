@@ -407,7 +407,6 @@ function SwitchHost() {
                                 value={link.selectedHost}
                               >
                                 <option value="">-- Select a Host --</option>
-                                <option value="test">test</option>
                                 {!loading &&
                                   hosts.map((host) => (
                                     <option key={host.hostname} value={host.hostname}>
@@ -533,10 +532,10 @@ function SwitchHost() {
         {/* Summary Popup */}
         {!error && isPopupOpen && (
           <div className="popup-overlay">
-            <div className="popup-content-host" style={{ width: "50%",  maxHeight:"90%"}}>
+            <div className="popup-content-host" style={{ width: "50%", maxHeight: "90%" }}>
               <h2>Summary</h2>
               {summaryLinks.length > 0 ? (
-                <div style={{ maxHeight:"80%", overflowY: "auto", padding:"0px 20px" }}>
+                <div style={{ maxHeight: "80%", overflowY: "auto", padding: "0px 20px" }}>
                   {summaryLinks.map((link, lIdx) => (
                     <>
                       <h4>{link.selectedHost || "Not Selected"}</h4>
@@ -597,8 +596,8 @@ function SwitchHost() {
                   </div>
                 </div>
               ) : resultData ? (
-                <div className="result-content">
-                  <div style={{ display: "flex", justifyContent: "space-between", padding: "0px 10px" }}>
+                <div className="result-content" style={{ height: "85%" }} >
+                  <div style={{ display: "flex", justifyContent: "space-between", padding: "0px 10px", height: "97%" }}>
                     {/* Applied on device Section */}
                     <div
                       style={{
@@ -613,51 +612,67 @@ function SwitchHost() {
                       <h4 style={{ marginTop: 0 }}>Applied on device:</h4>
                       <div
                         className="popup-table-section-result"
-                        style={{ maxHeight: "69vh" }}
+                        style={{ maxHeight: "65vh" }}
                       >
-                        {resultData.comparison.map((sw: any, idx: number) => (
-                          <div
-                            key={idx}
-                            className="popup-table"
-                            style={{
-                              marginBottom: "20px",
-                              backgroundColor: "#ffffff",
-                              borderRadius: "4px",
-                              padding: "10px",
-                            }}
-                          >
-                            <h5>{sw.hostname}</h5>
-                            <div className="popup-table-wrapper" style={{ overflowX: "auto" }}>
-                              <table
-                                border={1}
-                                style={{
-                                  width: "100%",
-                                  borderCollapse: "collapse",
-                                  backgroundColor: "#fff",
-                                }}
-                              >
-                                <thead>
-                                  <tr style={{ backgroundColor: "#f0f8ff" }}>
-                                    <th>Interface</th>
-                                    <th>IP Address</th>
-                                    <th>VLAN ID</th>
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {sw.interfaces.map((iface: any, i: number) => (
-                                    <tr key={i}>
-                                      <td>{iface.parsed.interface}</td>
-                                      <td>
-                                        {iface.parsed.ip_address}/{iface.parsed.subnet_mask}
-                                      </td>
-                                      <td>{iface.parsed.vlan}</td>
+                        {resultData.comparison.map((sw: any, idx: number) => {
+                          // Compute overall match status based on each interface's matched property
+                          const deviceMatched = sw.interfaces.every((iface: any) => iface.matched);
+                          return (
+                            <div
+                              key={idx}
+                              className="popup-table"
+                              style={{
+                                marginBottom: "20px",
+                                backgroundColor: "#ffffff",
+                                borderRadius: "4px",
+                                padding: "10px",
+                              }}
+                            >
+                              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                <h5>
+                                  {sw.hostname}
+                                </h5>
+                                <span
+                                  style={{
+                                    color: deviceMatched ? "green" : "red",
+                                    marginLeft: "10px",
+                                  }}
+                                >
+                                  {deviceMatched ? "Matched" : "Unmatched"}
+                                </span>
+                              </div>
+                              <div className="popup-table-wrapper" style={{ overflowX: "auto" }}>
+                                <table
+                                  border={1}
+                                  style={{
+                                    width: "100%",
+                                    borderCollapse: "collapse",
+                                    backgroundColor: "#fff",
+                                  }}
+                                >
+                                  <thead>
+                                    <tr style={{ backgroundColor: "#f0f8ff" }}>
+                                      <th>Interface</th>
+                                      <th>IP Address</th>
+                                      <th>VLAN ID</th>
                                     </tr>
-                                  ))}
-                                </tbody>
-                              </table>
+                                  </thead>
+                                  <tbody>
+                                    {sw.interfaces.map((iface: any, i: number) => (
+                                      <tr key={i}>
+                                        <td>{iface.parsed.interface}</td>
+                                        <td>
+                                          {iface.parsed.ip_address}/{iface.parsed.subnet_mask}
+                                        </td>
+                                        <td>{iface.parsed.vlan}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
 
                     </div>
@@ -674,7 +689,7 @@ function SwitchHost() {
                       <h4 style={{ marginTop: 0 }}>Configuration sent:</h4>
                       <div
                         className="popup-table-section-result"
-                        style={{ maxHeight: "69vh", overflowX: "auto" }}
+                        style={{ maxHeight: "65vh", overflowX: "auto" }}
                       >
                         {resultData.comparison.map((sw: any, idx: number) => (
                           <div key={idx} style={{ marginBottom: "20px" }}>
@@ -729,7 +744,7 @@ function SwitchHost() {
                 <p>No result data available.</p>
               )}
               {!isResultLoading && (
-                <div className="submit-sw-sw-container" style={{ marginTop: "15px" }}>
+                <div className="submit-sw-sw-container">
                   <button className="button-swh-close" onClick={() => setIsResultPopupOpen(false)}>
                     Close
                   </button>

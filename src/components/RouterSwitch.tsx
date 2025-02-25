@@ -299,6 +299,17 @@ function SwitchRouter() {
       });
   };
 
+  const isAllMatched = (comparison) => {
+    // Check that every VLAN in router is matched.
+    const routerMatches = Object.values(comparison.router).every(
+      (vlanData: any) => vlanData.match === true
+    );
+    // Check that the switch configuration is matched.
+    const switchMatches = comparison.switch.match === true;
+    return routerMatches && switchMatches;
+  };
+
+
 
   return (
     <div className="App">
@@ -359,7 +370,6 @@ function SwitchRouter() {
                                 value={link.selectedSwitchHost}
                               >
                                 <option value="">-- Select a Switch Host --</option>
-                                <option value="test">test</option>
                                 {!loading &&
                                   hosts
                                     .filter(
@@ -420,7 +430,6 @@ function SwitchRouter() {
                                 value={link.selectedRouterHost}
                               >
                                 <option value="">-- Select a Router Host --</option>
-                                <option value="test">test</option>
                                 {!loading &&
                                   hosts
                                     .filter(
@@ -436,25 +445,23 @@ function SwitchRouter() {
                             </div>
                           </div>
 
-                          <div className="host-selection__dropdown-group">
-                            <label>Select Interface:</label>
-                            <div className="host-selection__dropdown-container">
-                              <select
-                                className="host-selection__dropdown"
-                                value={link.selectedRouterInterface}
-                                onChange={(e) =>
-                                  handleLinkChange(index, 'selectedRouterInterface', e.target.value)
-                                }
-                              >
-                                <option value="">-- Select Interface --</option>
-                                {getInterfacesForHost(link.selectedRouterHost).map((intf) => (
-                                  <option key={intf.interface} value={intf.interface}>
-                                    {intf.interface} ({intf.status})
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                          </div>
+                          <select
+                            className="host-selection__dropdown"
+                            value={link.selectedRouterInterface}
+                            onChange={(e) =>
+                              handleLinkChange(index, 'selectedRouterInterface', e.target.value)
+                            }
+                          >
+                            <option value="">-- Select Interface --</option>
+                            {getInterfacesForHost(link.selectedRouterHost)
+                              .filter((intf) => intf.interface.includes('Gigabit'))
+                              .map((intf) => (
+                                <option key={intf.interface} value={intf.interface}>
+                                  {intf.interface} ({intf.status})
+                                </option>
+                              ))}
+                          </select>
+
                         </div>
                       </div>
                     </div>
@@ -635,6 +642,7 @@ function SwitchRouter() {
                       ? resultData.comparison
                       : [resultData.comparison];
                     return (
+
                       <div
                         style={{
                           display: "flex",
@@ -642,6 +650,7 @@ function SwitchRouter() {
                           padding: "0px 10px",
                         }}
                       >
+                        {/* Applied on device Section */}
                         {/* Applied on device Section */}
                         <div
                           style={{
@@ -658,9 +667,8 @@ function SwitchRouter() {
                             style={{ maxHeight: "69vh", overflowX: "auto" }}
                           >
                             {comparisons.map((comp: any, index: number) => {
-                              // Using the same host names as in your snippet.
-                              const host1Name = "Switch";
-                              const host2Name = "Router";
+                              const allMatched = isAllMatched(comp);
+                              const hostName = `Switch-Router Link ${index + 1}`;
                               return (
                                 <div
                                   key={index}
@@ -672,7 +680,17 @@ function SwitchRouter() {
                                     padding: "10px",
                                   }}
                                 >
-                                  <h5>{`${host1Name}-${host2Name} Link ${index + 1}`}</h5>
+                                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                    <h5>{hostName}</h5>
+                                    <p
+                                      style={{
+                                        color: allMatched ? "green" : "red",
+                                        marginBottom: 0,
+                                      }}
+                                    >
+                                      {allMatched ? "Matched" : "Unmatched"}
+                                    </p>
+                                  </div>
                                   <div className="popup-table-wrapper" style={{ overflowX: "auto" }}>
                                     <table
                                       style={{
@@ -724,6 +742,7 @@ function SwitchRouter() {
                             })}
                           </div>
                         </div>
+
 
                         {/* Configuration sent Section */}
                         <div
@@ -823,12 +842,6 @@ function SwitchRouter() {
             </div>
           </div>
         )}
-
-
-
-
-
-
 
         {error && (
           <div className="popup-overlay">

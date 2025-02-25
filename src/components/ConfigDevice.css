@@ -204,8 +204,9 @@
 }
 
 .root-bridge {
-  background: #0044cc;
-  color: white;
+  background: #aad3f0;
+  color: rgb(0, 0, 0);
+  border-radius:8px 0 0 8px;
 }
 
 .switch-table {
