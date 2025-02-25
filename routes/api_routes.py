@@ -362,10 +362,13 @@ def create_playbook():
 """
             if switchport_mode == "access":
                 playbook_content += f"""        - no switchport trunk allowed vlan
+        - no switchport mode trunk
         - switchport mode access
 """
             else:  # trunk mode
                 playbook_content += f"""        - switchport mode trunk
+        - no switchport mode access
+        - no switchport access vlan
 """
                 if vlans:
                     allowed_vlans = ",".join(vlans)
@@ -389,10 +392,13 @@ def create_playbook():
 """
             if switchport_mode == "access":
                 playbook_content += f"""        - no switchport trunk allowed vlan
+        - no switchport mode trunk
         - switchport mode access
 """
             else:
                 playbook_content += f"""        - switchport mode trunk
+        -no switch mode access
+        -no switchport access vlan
 """
                 if vlans:
                     allowed_vlans = ",".join(vlans)
@@ -621,20 +627,20 @@ def create_playbook_configdevice():
             host = cmd.get("hostname")  # host where command is to be applied
 
             if not cmd_type or not device_type or not host:
-                return jsonify({"error": f"Command #{idx}: Missing command, deviceType, or hostname field."}), 400
+                return jsonify({"error": f"Missing command, deviceType, or hostname field."}), 400
 
             if device_type not in ["switch", "router"]:
-                return jsonify({"error": f"Command #{idx}: Unsupported deviceType '{device_type}'."}), 400
+                return jsonify({"error": f"Unsupported deviceType '{device_type}'."}), 400
 
             # -------------------- VLAN Command --------------------
             if cmd_type == "vlan":
                 if device_type != "switch":
-                    return jsonify({"error": f"Command #{idx}: VLAN command is only applicable to switches."}), 400
+                    return jsonify({"error": f"VLAN command is only applicable to switches."}), 400
 
                 # Expect multiple VLAN configurations in "vlanDataList"
                 vlan_data_list = cmd.get("vlanDataList", [])
                 if not vlan_data_list or not isinstance(vlan_data_list, list):
-                    return jsonify({"error": f"Command #{idx}: VLAN command requires a 'vlanDataList' field."}), 400
+                    return jsonify({"error": f"VLAN command requires a 'vlanDataList' field."}), 400
 
                 for v_idx, vlan_data in enumerate(vlan_data_list, start=1):
                     vlan_id = vlan_data.get("vlanId")
@@ -645,12 +651,7 @@ def create_playbook_configdevice():
                     
                     # Validate that VLAN ID and at least one interface configuration exist
                     if not vlan_id or not vlan_interfaces or not isinstance(vlan_interfaces, list):
-                        return jsonify({"error": f"Command #{idx}, VLAN config #{v_idx}: VLAN ID and at least one interface configuration are required."}), 400
-
-                    # Validate each interface configuration
-                    for iface_idx, iface in enumerate(vlan_interfaces, start=1):
-                        if not iface.get("interface") or not iface.get("mode"):
-                            return jsonify({"error": f"Command #{idx}, VLAN config #{v_idx}, interface config #{iface_idx}: Both Interface and Mode are required."}), 400
+                        return jsonify({"error": f"VLAN ID and at least one interface configuration are required."}), 400
 
                     # If IP address is provided, then CIDR must be provided
                     subnet_mask = ""
@@ -687,6 +688,8 @@ def create_playbook_configdevice():
     ios_config:
       parents: interface {interface_value}
       lines:
+        - no switch mode trunk
+        - no switchport trunk allowed vlan
         - switchport mode access
         - switchport access vlan {vlan_id}
     when: inventory_hostname == "{host}"
@@ -698,6 +701,7 @@ def create_playbook_configdevice():
     ios_config:
       parents: interface {interface_value}
       lines:
+        - no switchport mode access
         - switchport trunk allowed vlan add {vlan_id}
     when: inventory_hostname == "{host}"
 """
@@ -707,6 +711,8 @@ def create_playbook_configdevice():
     ios_config:
       parents: interface {interface_value}
       lines:
+        - no switchport mode access
+        - no switchport access vlan
         - switchport mode trunk
         - switchport trunk allowed vlan {vlan_id}
     when: inventory_hostname == "{host}"
@@ -716,14 +722,14 @@ def create_playbook_configdevice():
             # ---------------- Bridge Priority Command ----------------
             elif cmd_type == "bridge_priority":
                 if device_type != "switch":
-                    return jsonify({"error": f"Command #{idx}: Bridge Priority command is only applicable to switches."}), 400
+                    return jsonify({"error": f"Bridge Priority command is only applicable to switches."}), 400
                 
                 bridge_priority = cmd.get("bridgePriority", {})
                 vlan = bridge_priority.get("vlan")
                 priority = bridge_priority.get("priority")
 
                 if vlan is None or priority is None:
-                    return jsonify({"error": f"Command #{idx}: VLAN and Priority are required."}), 400
+                    return jsonify({"error": f"VLAN and Priority are required."}), 400
                 parsed_result = cmd.get("parsed_result")
                 if not parsed_result:
                     return jsonify({"error": "Missing parsed configuration data."}), 400
@@ -745,7 +751,7 @@ def create_playbook_configdevice():
                 ip_address = config_ip.get("ipAddress")
                 cidr = config_ip.get("cidr")
                 if not interface or not ip_address or cidr is None:
-                    return jsonify({"error": f"Command #{idx}: Interface, IP Address, and CIDR are required."}), 400
+                    return jsonify({"error": f"Interface, IP Address, and CIDR are required."}), 400
                 try:
                     network_id = calculate_network_id(ip_address, cidr)
                     subnet_mask = str(ipaddress.IPv4Network(f"{ip_address}/{cidr}", strict=False).netmask)
@@ -763,20 +769,20 @@ def create_playbook_configdevice():
             # ---------------- Loopback Command ----------------
             elif cmd_type == "loopback":
                 if device_type != "router":
-                    return jsonify({"error": f"Command #{idx}: Loopback command is only applicable to routers."}), 400
+                    return jsonify({"error": f"Loopback command is only applicable to routers."}), 400
 
                 loopback_data = cmd.get("loopbackData", {})
                 loopback_num = loopback_data.get("loopbackNumber")
                 ip_address = loopback_data.get("ipAddress")
                 if not loopback_num or not ip_address:
-                    return jsonify({"error": f"Command #{idx}: Loopback Number and IP Address are required."}), 400
+                    return jsonify({"error": f"Loopback Number and IP Address are required."}), 400
 
                 # ค่า default subnet mask สำหรับ loopback
                 subnet_mask = "255.255.255.255"
                 try:
                     ip_obj = ipaddress.IPv4Address(ip_address)
                 except ipaddress.AddressValueError:
-                    return jsonify({"error": f"Command #{idx}: Invalid IP address '{ip_address}'."}), 400
+                    return jsonify({"error": f"Invalid IP address '{ip_address}'."}), 400
 
                 playbook_content += f"""
   - name: "[Command#{idx}] Configure Loopback {loopback_num} on {host}"
@@ -813,18 +819,18 @@ def create_playbook_configdevice():
     when: inventory_hostname == "{host}"
 """
                     else:
-                        return jsonify({"error": f"Command #{idx}: Unsupported activateProtocol value '{activate_protocol}'."}), 400
+                        return jsonify({"error": f"Unsupported activateProtocol value '{activate_protocol}'."}), 400
 
             # ---------------- Static Route Command ----------------
             elif cmd_type == "static_route":
                 if device_type != "router":
-                    return jsonify({"error": f"Command #{idx}: Static Route command is only applicable to routers."}), 400
+                    return jsonify({"error": f"Static Route command is only applicable to routers."}), 400
                 static_route = cmd.get("staticRouteData", {})
                 prefix = static_route.get("prefix")
                 cidr = static_route.get("cidr")
                 nextHop = static_route.get("nextHop")
                 if not prefix or cidr is None or not nextHop:
-                    return jsonify({"error": f"Command #{idx}: Prefix, CIDR, and Next Hop are required for Static Route."}), 400
+                    return jsonify({"error": f"Prefix, CIDR, and Next Hop are required for Static Route."}), 400
                 try:
                     network_static = calculate_network_id(prefix, cidr)
                     subnet_static = str(ipaddress.IPv4Network(f"{prefix}/{cidr}", strict=False).netmask)
@@ -839,7 +845,7 @@ def create_playbook_configdevice():
     when: inventory_hostname == "{host}"
 """
             else:
-                return jsonify({"error": f"Command #{idx}: Unsupported command type '{cmd_type}'."}), 400
+                return jsonify({"error": f"Unsupported command type '{cmd_type}'."}), 400
 
         # 3) Write the combined playbook to a file on the server and optionally execute it
         print("🟢 [Backend] Sending STP Results:", json.dumps(response_data["stp_result"], indent=2))
@@ -980,6 +986,7 @@ def create_playbook_switchhost():
     ios_config:
       parents: interface {interface}
       lines:
+        - no swwitchport mode trunk
         - no switchport trunk allowed vlan
         - switchport mode access
         - switchport access vlan {vlan_id}
@@ -1089,6 +1096,7 @@ def create_playbook_switchrouter():
                 else:
                     # Not configured as trunk yet => configure trunk mode and allowed VLAN
                     switch_lines = [
+                        "no switchport mode access"
                         "no switchport access vlan",
                         "switchport mode trunk",
                         f"switchport trunk allowed vlan {vlan_id}"
