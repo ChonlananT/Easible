@@ -223,19 +223,14 @@ function ConfigDevice() {
                 <strong>VLAN Name:</strong> {input.vlanData.vlanName || "-"}
               </div>
               <div>
-                <strong>Interface:</strong> {input.vlanData.interface}
+                <strong>Interface:</strong> {input.vlanData.interface || "-"}
               </div>
               <div>
-                <strong>Mode:</strong> {input.vlanData.mode}
+                <strong>Mode:</strong> {input.vlanData.mode || "-"}
               </div>
               <div>
-                <strong>IP Address:</strong> {ipAddressValue}
+                <strong>IP Address:</strong> {ipAddressValue || "-"}/{input.vlanData.cidr}
               </div>
-              {ipAddressValue !== "-" && (
-                <div>
-                  <strong>CIDR:</strong> {input.vlanData.cidr}
-                </div>
-              )}
             </div>
           );
         }
@@ -256,16 +251,11 @@ function ConfigDevice() {
               }}
             >
               <div>
-                <strong>Interface:</strong> {input.configIp.interface}
+                <strong>Interface:</strong> {input.configIp.interface || "-"}
               </div>
               <div>
-                <strong>IP Address:</strong> {ipAddressValue}
+                <strong>IP Address:</strong> {ipAddressValue || "-"}/{input.configIp.cidr}
               </div>
-              {ipAddressValue !== "-" && (
-                <div>
-                  <strong>CIDR:</strong> {input.configIp.cidr}
-                </div>
-              )}
             </div>
           );
         }
@@ -289,13 +279,13 @@ function ConfigDevice() {
               }}
             >
               <div>
-                <strong>Loopback ID:</strong> {input.loopbackData.loopbackNumber}
+                <strong>Loopback ID:</strong> {input.loopbackData.loopbackNumber || "-"}
               </div>
               <div>
-                <strong>IP Address:</strong> {displayIp}
+                <strong>IP Address:</strong> {displayIp || "-"}
               </div>
               <div>
-                <strong>Protocol Activation:</strong> {input.loopbackData.activateProtocol}
+                <strong>Protocol Activation:</strong> {input.loopbackData.activateProtocol || "-"}
               </div>
             </div>
           );
@@ -465,8 +455,6 @@ function ConfigDevice() {
                   </button>
                 </div>
               )}
-
-
             </div>
           </div>
         );
@@ -1412,7 +1400,7 @@ function ConfigDevice() {
                               </div>
                             </div>
                           </div>
-                          <div className="line-vertical-confdev"></div>
+                          <div className="line-vertical-confdev" style={{ height: '300px' }}></div>
                           <div className="vlan-config-device">
                             <div className="host-selection__dropdown-group">
                               <label>Select Interface (optional):</label>
@@ -1633,14 +1621,15 @@ function ConfigDevice() {
                               value={link.loopbackData.loopbackNumber === 0 ? "" : link.loopbackData.loopbackNumber}
                               onChange={(e) => {
                                 const value = parseInt(e.target.value, 10);
-                                  
-                                    // Ensure value is within 1-1005 or reset it
-                                    if (isNaN(value) || (value >= 0 && value <= 2147483647)) {
-                                handleHostChange(
-                                  index,
-                                  { group: "loopbackData", key: "loopbackNumber" },
-                                  e.target.value
-                                )}
+
+                                // Ensure value is within 1-1005 or reset it
+                                if (isNaN(value) || (value >= 0 && value <= 2147483647)) {
+                                  handleHostChange(
+                                    index,
+                                    { group: "loopbackData", key: "loopbackNumber" },
+                                    e.target.value
+                                  )
+                                }
                               }}
                               placeholder="Enter Loopback ID"
                             />
