@@ -347,7 +347,7 @@ function ConfigDevice() {
     if (resultData || isLoading) {
       if (selectedCommand === "bridge_priority") {
         if (
-          resultData.comparison &&
+          resultData?.comparison &&
           Array.isArray(resultData.comparison) &&
           resultData.comparison.length > 0 &&
           resultData.comparison[0].match === true
