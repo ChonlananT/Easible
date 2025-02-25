@@ -540,6 +540,8 @@ function SwitchSwitch() {
                               const host1Name = links[index]?.selectedHost1 || hostKeys[0];
                               const host2Name = links[index]?.selectedHost2 || hostKeys[1];
                               const allVlans = new Set([...sw1Data.parsed_vlans, ...sw2Data.parsed_vlans]);
+                              // Compute match status: true if both devices are matched.
+                              const isMatched = sw1Data.match === true && sw2Data.match === true;
 
                               return (
                                 <div
@@ -552,7 +554,14 @@ function SwitchSwitch() {
                                     padding: "10px",
                                   }}
                                 >
-                                  <h5>{`${host1Name}-${host2Name} Link ${index + 1}`}</h5>
+                                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                    <h5>
+                                      {`${host1Name}-${host2Name} Link ${index + 1}`}{" "}
+                                    </h5>
+                                    <span style={{ color: isMatched ? "green" : "red", marginLeft: "10px" }}>
+                                      {isMatched ? "Matched" : "Unmatched"}
+                                    </span>
+                                  </div>
                                   <div className="popup-table-wrapper" style={{ overflowX: "auto" }}>
                                     <table
                                       border={1}
@@ -567,19 +576,16 @@ function SwitchSwitch() {
                                           <th>VLAN</th>
                                           <th>Outgoing Interface {host1Name}</th>
                                           <th>Outgoing Interface {host2Name}</th>
-                                          {/* <th>Match</th> */}
                                         </tr>
                                       </thead>
                                       <tbody>
-                                        {[...allVlans].map((vlan) => {
-                                          return (
-                                            <tr key={vlan}>
-                                              <td>{vlan}</td>
-                                              <td>{sw1Data.interface}</td>
-                                              <td>{sw2Data.interface}</td>
-                                            </tr>
-                                          );
-                                        })}
+                                        {[...allVlans].map((vlan) => (
+                                          <tr key={vlan}>
+                                            <td>{vlan}</td>
+                                            <td>{sw1Data.interface}</td>
+                                            <td>{sw2Data.interface}</td>
+                                          </tr>
+                                        ))}
                                       </tbody>
                                     </table>
                                   </div>
@@ -587,6 +593,7 @@ function SwitchSwitch() {
                               );
                             })}
                           </div>
+
                         </div>
                       )}
 
