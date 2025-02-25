@@ -1316,7 +1316,7 @@ def run_playbook_routerrouter():
         output = stdout.read().decode('utf-8')
         errors = stderr.read().decode('utf-8')
 
-        time.sleep(5) # add delay to wait for the playbook to complete
+        time.sleep(3) # add delay to wait for the playbook to complete
 
         playbook_content = sh_ip_route()  # สมมติว่าฟังก์ชันนี้ return playbook content ที่ต้องการ
         verify_playbook_path = f"/home/{username}/playbook/verify_playbook.yml"
