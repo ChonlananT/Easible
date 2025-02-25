@@ -346,6 +346,20 @@ function ConfigDevice() {
     // If resultData exists, show the result view as before.
     if (resultData || isLoading) {
       if (selectedCommand === "bridge_priority") {
+        if (isLoading) {
+          return (
+            <div className="popup-overlay">
+              <div className="popup-preview">
+                <h2 className="summary-title">Result</h2>
+                <div className="loading-container">
+                  <div className="spinner-lab" />
+                  <p>Loading...</p>
+                </div>
+                <button className="button-cancel-prev" onClick={onClose}>Close</button>
+              </div>
+            </div>
+          );
+        }
         if (
           resultData?.comparison &&
           Array.isArray(resultData.comparison) &&
@@ -358,7 +372,7 @@ function ConfigDevice() {
           const sortedResults = sortedByHostname.sort((a, b) => {
             if (a.stp_detail?.isRoot && !b.stp_detail?.isRoot) return -1;
             if (!a.stp_detail?.isRoot && b.stp_detail?.isRoot) return 1;
-            return 0;
+            return a.hostname.localeCompare(b.hostname);
           });
           return (
             <div className="popup-overlay">
@@ -458,7 +472,15 @@ function ConfigDevice() {
         );
       }
     }
-
+    const sortedStpResults = [...stpResults].sort((a, b) => {
+      // If a is root and b is not, a comes first.
+      if (a.stp_detail?.isRoot && !b.stp_detail?.isRoot) return -1;
+      // If b is root and a is not, b comes first.
+      if (!a.stp_detail?.isRoot && b.stp_detail?.isRoot) return 1;
+      // Otherwise, sort by hostname.
+      return a.hostname.localeCompare(b.hostname);
+    });
+    
     // If no resultData exists, show a summary table of the user inputs.
     return (
       <div className="popup-overlay">
@@ -468,7 +490,7 @@ function ConfigDevice() {
             <>
               <h2 className="summary-title">Spanning Tree Summary</h2>
               <div style={{ height:"88%", padding:"20px 10px"}}>
-                {stpResults.map((sw, index) => (
+                {sortedStpResults.map((sw, index) => (
                   <div key={index} className="switch-card">
                     <div
                       className={`switch-header ${sw.stp_detail?.isRoot ? "root-bridge" : ""
@@ -1458,7 +1480,9 @@ function ConfigDevice() {
                               <option value="">-- Select VLAN --</option>
                               {link.selectedHost &&
                                 vlans[link.selectedHost] &&
-                                vlans[link.selectedHost].map((vlanObj) => (
+                                vlans[link.selectedHost]
+                                  .filter((vlanObj) => vlanObj.stp_detail)
+                                  .map((vlanObj) => (
                                   <option
                                     key={vlanObj.vlan_id}
                                     value={vlanObj.vlan_id}
