@@ -215,6 +215,7 @@ function RouterRouter() {
     };
 
     // Set loading state for the comparison popup
+    setShowPopup(false);
     setIsLoading(true);
     setShowComparisonPopup(true);
 
@@ -813,7 +814,7 @@ function RouterRouter() {
                       <h4 style={{ marginTop: 0 }}>Applied on device:</h4>
                       <div
                         className="popup-table-section-result"
-                        style={{ maxHeight: "69vh", overflowY: "auto" }}
+                        style={{ maxHeight: "65vh", overflowY: "auto" }}
                       >
                         {Object.entries(comparisonResult).map(
                           ([hostname, compData]: [string, any]) => (
@@ -886,7 +887,7 @@ function RouterRouter() {
                       <h4 style={{ marginTop: 0 }}>Configuration sent:</h4>
                       <div
                         className="popup-table-section-result"
-                        style={{ maxHeight: "69vh", overflowY: "auto" }}
+                        style={{ maxHeight: "65vh", overflowY: "auto" }}
                       >
                         {Object.entries(routingTables).map(
                           ([hostname, routes]: [string, any]) => (
