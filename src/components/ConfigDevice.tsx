@@ -1375,7 +1375,7 @@ function ConfigDevice() {
                               </div>
                             </div>
                             <div className="ip-subnet-group-confdev">
-                              <div className="ip-text" style={{width:"60%"}}>
+                              <div className="ip-text" style={{ width: "60%" }}>
                                 <label>IP address for SVI (optional):</label>
                                 <input
                                   type="text"
@@ -1393,7 +1393,7 @@ function ConfigDevice() {
                               <div style={{ display: 'flex', alignItems: 'center' }}>
                                 <span style={{ fontSize: '25px', marginTop: '30px' }}>/</span>
                               </div>
-                              <div className="config-device-input-text" style={{width:"50%"}}>
+                              <div className="config-device-input-text" style={{ width: "50%" }}>
                                 <label>Subnet (optional):</label>
                                 <input
                                   type="number"
@@ -1583,37 +1583,42 @@ function ConfigDevice() {
                                 )}
                             </select>
                           </div>
-                          <div className="config-device-input-text">
-                            <label>IP Address:</label>
-                            <input
-                              type="text"
-                              value={link.configIp.ipAddress}
-                              onChange={(e) =>
-                                handleHostChange(
-                                  index,
-                                  { group: "configIp", key: "ipAddress" },
-                                  e.target.value
-                                )
-                              }
-                              placeholder="Enter IP Address"
-                            />
-                          </div>
-                          <div className="config-device-input-text">
-                            <label>Subnet:</label>
-                            <input
-                              type="number"
-                              min={1}
-                              max={32}
-                              value={link.configIp.cidr}
-                              onChange={(e) =>
-                                handleHostChange(
-                                  index,
-                                  { group: "configIp", key: "cidr" },
-                                  parseInt(e.target.value, 10)
-                                )
-                              }
-                              placeholder="e.g., 24"
-                            />
+                          <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between' }}>
+                            <div className="config-device-input-text" style={{ width: '80%' }}>
+                              <label>IP Address:</label>
+                              <input
+                                type="text"
+                                value={link.configIp.ipAddress}
+                                onChange={(e) =>
+                                  handleHostChange(
+                                    index,
+                                    { group: "configIp", key: "ipAddress" },
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="Enter IP Address"
+                              />
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                              <span style={{ fontSize: '25px', marginTop: '30px' }}>/</span>
+                            </div>
+                            <div className="config-device-input-text" style={{ width: '30%' }}>
+                              <label>Subnet:</label>
+                              <input
+                                type="number"
+                                min={1}
+                                max={32}
+                                value={link.configIp.cidr}
+                                onChange={(e) =>
+                                  handleHostChange(
+                                    index,
+                                    { group: "configIp", key: "cidr" },
+                                    parseInt(e.target.value, 10)
+                                  )
+                                }
+                                placeholder="e.g., 24"
+                              />
+                            </div>
                           </div>
                         </div>
                       )}
