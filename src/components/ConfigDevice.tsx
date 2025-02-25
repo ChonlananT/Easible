@@ -289,7 +289,7 @@ function ConfigDevice() {
               }}
             >
               <div>
-                <strong>Loopback Number:</strong> {input.loopbackData.loopbackNumber}
+                <strong>Loopback ID:</strong> {input.loopbackData.loopbackNumber}
               </div>
               <div>
                 <strong>IP Address:</strong> {displayIp}
@@ -1619,18 +1619,22 @@ function ConfigDevice() {
                         <h5>Loopback Configuration</h5>
                         <div className="loopback-config-content">
                           <div className="config-device-input-text">
-                            <label>Loopback Number:</label>
+                            <label>Loopback ID:</label>
                             <input
-                              type="text"
+                              type="number"
                               value={link.loopbackData.loopbackNumber === 0 ? "" : link.loopbackData.loopbackNumber}
-                              onChange={(e) =>
+                              onChange={(e) => {
+                                const value = parseInt(e.target.value, 10);
+                                  
+                                    // Ensure value is within 1-1005 or reset it
+                                    if (isNaN(value) || (value >= 0 && value <= 2147483647)) {
                                 handleHostChange(
                                   index,
                                   { group: "loopbackData", key: "loopbackNumber" },
                                   e.target.value
-                                )
-                              }
-                              placeholder="Enter Loopback Number"
+                                )}
+                              }}
+                              placeholder="Enter Loopback ID"
                             />
                           </div>
 
@@ -1639,13 +1643,13 @@ function ConfigDevice() {
                             <input
                               type="text"
                               value={link.loopbackData.ipAddress}
-                              onChange={(e) =>
+                              onChange={(e) => {
                                 handleHostChange(
                                   index,
                                   { group: "loopbackData", key: "ipAddress" },
                                   e.target.value
                                 )
-                              }
+                              }}
                               placeholder="Enter IP Address"
                             />
                           </div>
@@ -1662,6 +1666,7 @@ function ConfigDevice() {
                                 )
                               }
                             >
+                              <option value="">-- Select Protocol --</option>
                               <option value="none">None</option>
                               <option value="ripv2">RIPv2</option>
                               <option value="ospf">OSPF</option>
