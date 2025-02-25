@@ -86,10 +86,10 @@ type DropdownOption = {
 };
 
 type VlanData = {
-  vlanId: string;
+  vlanId: number;
   vlanName?: string;
   ipAddress?: string;
-  cidr?: number;
+  cidr?: string;
   interface: string;
   mode: string;
 };
@@ -724,20 +724,20 @@ function ConfigDevice() {
               vlanId: "",
               vlanName: "",
               ipAddress: "",
-              cidr: 24,
+              cidr: "",
               interface: "",
               mode: "",
             };
           } else if (value === "bridge_priority") {
             hostConfig.bridgePriority = {
               vlan: 0,
-              priority: 0,
+              priority: 32768,
             };
           } else if (value === "config_ip_router") {
             hostConfig.configIp = {
               interface: "",
               ipAddress: "",
-              cidr: 24,
+              cidr: 30,
             };
           } else if (value === "loopback") {
             hostConfig.loopbackData = {
@@ -831,8 +831,8 @@ function ConfigDevice() {
 
       if (link.selectedCommand === "vlan") {
         const vlan = link.vlanData;
-        if (!vlan || !vlan.vlanId || !vlan.interface || !vlan.mode) {
-          setError(`Please fill all required VLAN fields for entry ${i + 1}.`);
+        if (!vlan || !vlan.vlanId ) {
+          setError(`Please fill VLAN ID `);
           return;
         }
       }
@@ -987,7 +987,7 @@ function ConfigDevice() {
 
       if (link.selectedCommand === "vlan") {
         const vlan = link.vlanData;
-        if (!vlan || !vlan.vlanId || !vlan.interface || !vlan.mode) {
+        if (!vlan || !vlan.vlanId ) {
           setError(`Please fill all required VLAN fields for entry ${i + 1}.`);
           return;
         }
@@ -1319,17 +1319,20 @@ function ConfigDevice() {
                           <div className="vlan-config-device">
                             <div className="vlan-name-id">
                               <div className="config-device-input-text">
-                                <label>VLAN ID:</label>
+                                <label>VLAN ID (1-1005):</label>
                                 <input
-                                  type="text"
+                                  type="number"
+                                  min="1"
+                                  max="1005"
                                   value={link.vlanData.vlanId}
-                                  onChange={(e) =>
-                                    handleHostChange(
-                                      index,
-                                      { group: "vlanData", key: "vlanId" },
-                                      e.target.value
-                                    )
-                                  }
+                                  onChange={(e) => {
+                                    const value = parseInt(e.target.value, 10);
+                                  
+                                    // Ensure value is within 1-1005 or reset it
+                                    if (isNaN(value) || (value >= 1 && value <= 1005)) {
+                                      handleHostChange(index, { group: "vlanData", key: "vlanId" }, value);
+                                    }
+                                  }}
                                   placeholder="Enter VLAN ID"
                                 />
                               </div>
@@ -1351,7 +1354,7 @@ function ConfigDevice() {
                             </div>
                             <div className="ip-subnet-group-confdev">
                               <div className="ip-text">
-                                <label>IP Address (optional):</label>
+                                <label>IP address for SVI (optional):</label>
                                 <input
                                   type="text"
                                   value={link.vlanData.ipAddress}
@@ -1366,7 +1369,7 @@ function ConfigDevice() {
                                 />
                               </div>
                               <div className="config-device-input-text">
-                                <label>Subnet:</label>
+                                <label>Subnet (optional):</label>
                                 <input
                                   type="number"
                                   min={1}
@@ -1379,7 +1382,7 @@ function ConfigDevice() {
                                       parseInt(e.target.value, 10)
                                     )
                                   }
-                                  placeholder="Enter CIDR (e.g., 24)"
+                                  placeholder="e.g., 24"
                                 />
                               </div>
                             </div>
@@ -1387,7 +1390,7 @@ function ConfigDevice() {
                           <div className="line-vertical-confdev"></div>
                           <div className="vlan-config-device">
                             <div className="host-selection__dropdown-group">
-                              <label>Select Interface:</label>
+                              <label>Select Interface (optional):</label>
                               <select
                                 className="host-selection__dropdown"
                                 value={link.vlanData.interface}
@@ -1414,7 +1417,7 @@ function ConfigDevice() {
                               </select>
                             </div>
                             <div className="host-selection__dropdown-group">
-                              <label>Mode:</label>
+                              <label>Switchport Mode (optional):</label>
                               <select
                                 className="host-selection__dropdown"
                                 value={link.vlanData.mode}
@@ -1582,7 +1585,7 @@ function ConfigDevice() {
                                   parseInt(e.target.value, 10)
                                 )
                               }
-                              placeholder="Enter CIDR (e.g., 24)"
+                              placeholder="e.g., 24"
                             />
                           </div>
                         </div>
