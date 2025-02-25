@@ -462,7 +462,7 @@ function SwitchHost() {
                                 </select>
                               </div>
                               <div className="input-sw-sw-group">
-                                <label>IP Address:</label>
+                                <label>IP Address for SVI:</label>
                                 <input
                                   type="text"
                                   value={iface.vlanData.ipAddress}

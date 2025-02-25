@@ -449,7 +449,7 @@ function RouterRouter() {
                               />
                             </div>
                             <div className="host-selection__dropdown-group">
-                              <label>Subnet (subnet):</label>
+                              <label>Subnet (CIDR):</label>
                               <input
                                 type="number"
                                 min={1}
@@ -552,7 +552,7 @@ function RouterRouter() {
                               />
                             </div>
                             <div className="host-selection__dropdown-group">
-                              <label>Subnet (subnet):</label>
+                              <label>Subnet (CIDR):</label>
                               <input
                                 type="number"
                                 min={1}
