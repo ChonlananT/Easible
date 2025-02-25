@@ -345,7 +345,6 @@ function ConfigDevice() {
                   <div className="spinner-lab" />
                   <p>Loading...</p>
                 </div>
-                <button className="button-cancel-prev" onClick={onClose}>Close</button>
               </div>
             </div>
           );
@@ -415,9 +414,11 @@ function ConfigDevice() {
                     </div>
                   ))}
                 </div>
-                <button className="button-cancel-prev" onClick={onClose}>
-                  Close
-                </button>
+                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <button className="button-cancel-prev" style={{fontSize:'18px', padding: ' 5px 20px', borderRadius:'20px'}} onClick={onClose}>
+                    Close
+                  </button>
+                </div>
               </div>
             </div>
           );
