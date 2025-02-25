@@ -396,11 +396,13 @@ function SwitchRouter() {
                                 }
                               >
                                 <option value="">-- Select Interface --</option>
-                                {getInterfacesForHost(link.selectedSwitchHost).map((intf) => (
-                                  <option key={intf.interface} value={intf.interface}>
-                                    {intf.interface} ({intf.status})
-                                  </option>
-                                ))}
+                                {getInterfacesForHost(link.selectedSwitchHost)
+                                  .filter((intf) => !intf.interface.toLowerCase().includes('vlan'))
+                                  .map((intf) => (
+                                    <option key={intf.interface} value={intf.interface}>
+                                      {intf.interface} ({intf.status})
+                                    </option>
+                                  ))}
                               </select>
                             </div>
                           </div>
@@ -444,24 +446,27 @@ function SwitchRouter() {
                               </select>
                             </div>
                           </div>
-
-                          <select
-                            className="host-selection__dropdown"
-                            value={link.selectedRouterInterface}
-                            onChange={(e) =>
-                              handleLinkChange(index, 'selectedRouterInterface', e.target.value)
-                            }
-                          >
-                            <option value="">-- Select Interface --</option>
-                            {getInterfacesForHost(link.selectedRouterHost)
-                              .filter((intf) => intf.interface.includes('Gigabit'))
-                              .map((intf) => (
-                                <option key={intf.interface} value={intf.interface}>
-                                  {intf.interface} ({intf.status})
-                                </option>
-                              ))}
-                          </select>
-
+                          <div className="host-selection__dropdown-group">
+                            <label>Select Interface:</label>
+                            <div className="host-selection__dropdown-container">
+                              <select
+                                className="host-selection__dropdown"
+                                value={link.selectedRouterInterface}
+                                onChange={(e) =>
+                                  handleLinkChange(index, 'selectedRouterInterface', e.target.value)
+                                }
+                              >
+                                <option value="">-- Select Interface --</option>
+                                {getInterfacesForHost(link.selectedRouterHost)
+                                  .filter((intf) => intf.interface.includes('Gigabit'))
+                                  .map((intf) => (
+                                    <option key={intf.interface} value={intf.interface}>
+                                      {intf.interface} ({intf.status})
+                                    </option>
+                                  ))}
+                              </select>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>

@@ -436,7 +436,7 @@ function RouterRouter() {
                             </select>
                           </div>
                           <div className="ip-subnet-group">
-                            <div className="host-selection__dropdown-group">
+                            <div className="host-selection__dropdown-group" style={{ width: '80%' }}>
                               <label>IP Address (Router1):</label>
                               <input
                                 type="text"
@@ -448,7 +448,10 @@ function RouterRouter() {
                                 placeholder="Enter IP for Router1"
                               />
                             </div>
-                            <div className="host-selection__dropdown-group">
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                              <span style={{ fontSize: '25px', marginTop: '25px' }}>/</span>
+                            </div>
+                            <div className="host-selection__dropdown-group" style={{ width: '40%' }}>
                               <label>Subnet (CIDR):</label>
                               <input
                                 type="number"
@@ -539,7 +542,7 @@ function RouterRouter() {
                             </select>
                           </div>
                           <div className="ip-subnet-group">
-                            <div className="host-selection__dropdown-group">
+                            <div className="host-selection__dropdown-group" style={{ width: '80%' }}>
                               <label>IP Address (Router2):</label>
                               <input
                                 type="text"
@@ -551,7 +554,10 @@ function RouterRouter() {
                                 placeholder="Enter IP for Router2"
                               />
                             </div>
-                            <div className="host-selection__dropdown-group">
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                              <span style={{ fontSize: '25px', marginTop: '25px' }}>/</span>
+                            </div>
+                            <div className="host-selection__dropdown-group" style={{ width: '40%' }}>
                               <label>Subnet (CIDR):</label>
                               <input
                                 type="number"
