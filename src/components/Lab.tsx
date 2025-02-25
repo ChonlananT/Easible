@@ -148,6 +148,42 @@ function Lab() {
       },
     ],
   });
+
+  function OutputOnlyDiff({ diff }) {
+    if (!diff || diff.length === 0) {
+      return (
+        <div
+          style={{
+            fontFamily: "monospace",
+            whiteSpace: "pre-wrap",
+            color: "green",
+          }}
+        >
+          No differences found.
+        </div>
+      );
+    }
+  
+    return (
+      <div style={{ fontFamily: "monospace", whiteSpace: "pre-wrap" }}>
+        {diff.map((entry, idx) => (
+          <div key={idx} style={{ marginBottom: "10px" }}>
+            <div style={{ color: "green" }}>Actual: {entry.actual}</div>
+            <div
+              style={{
+                color: "red",
+                fontStyle: "italic",
+                marginLeft: "20px",
+              }}
+            >
+              Expected: {entry.expected}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  
   // State เพื่อตรวจสอบว่าอยู่ในโหมดแก้ไขหรือสร้างใหม่
   const [isEditing, setIsEditing] = useState(false);
   const [formError, setFormError] = useState("");
@@ -789,7 +825,7 @@ function Lab() {
                 style={{
                   padding: "10px",
                   width: "100%",
-                  height: "150px",
+                  height: "500px",
                   marginTop: "10px",
                 }}
                 placeholder="Expected output.."
@@ -840,37 +876,7 @@ function Lab() {
                 </div>
               ) : checkResults ? (
                 <div>
-                  {Object.keys(checkResults.comparison.details.matched).length >
-                    0 && (
-                      <div>
-                        <h3 style={{ color: "green" }}>Matched</h3>
-                        {Object.entries(
-                          checkResults.comparison.details.matched
-                        ).map(([hostname, details]) => (
-                          <div key={hostname}>
-                            <h4>{hostname}</h4>
-                            {details.map((item, idx) => (
-                              <div key={idx} style={{ marginBottom: "15px" }}>
-                                <p>
-                                  <strong>Command:</strong> {item.command}
-                                </p>
-                                <div
-                                  style={{
-                                    fontFamily: "monospace",
-                                    whiteSpace: "pre-wrap",
-                                    color: "green",
-                                  }}
-                                >
-                                  {item.actual.join("\n")}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  {Object.keys(checkResults.comparison.details.unmatch).length >
-                    0 && (
+                  {Object.keys(checkResults.comparison.details.unmatch).length > 0 ? (
                       <div>
                         <h3 style={{ color: "red" }}>Unmatched</h3>
                         {Object.entries(
@@ -883,16 +889,14 @@ function Lab() {
                                 <p>
                                   <strong>Command:</strong> {item.command}
                                 </p>
-                                <OutputWithDiff
-                                  actual={item.actual}
-                                  expected={item.expected}
-                                  diff={item.diff}
-                                />
+                                <OutputOnlyDiff diff={item.diff} />
                               </div>
                             ))}
                           </div>
                         ))}
                       </div>
+                    ):(
+                      <p>💩</p>
                     )}
                   <div style={{ display: "flex", justifyContent: "flex-end" }}>
                     <button
