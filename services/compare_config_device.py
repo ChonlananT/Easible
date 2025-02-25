@@ -89,7 +89,7 @@ def compare_config_device(request_data, parsed_result):
             }
             backend_vlan_details = grouped.get(host, {}).get("vlan", {}).get("vlan_details", {})
             backend_vlan_details["ipaddress"] = backend_vlan_details.get("ipaddress") or ""
-            backend_vlan_details["cidr"] = backend_vlan_details.get("cidr") or 24
+            backend_vlan_details["cidr"] = backend_vlan_details.get("cidr") or ""
             backend_vlan_details["vlanId"] = backend_vlan_details.get("vlanId") or (vlan_found.get("vlanId") if vlan_found else None)
             backend_cidr = backend_vlan_details.get("cidr")
             if isinstance(backend_cidr, str):
