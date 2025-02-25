@@ -299,6 +299,17 @@ function SwitchRouter() {
       });
   };
 
+  const isAllMatched = (comparison) => {
+    // Check that every VLAN in router is matched.
+    const routerMatches = Object.values(comparison.router).every(
+      (vlanData: any) => vlanData.match === true
+    );
+    // Check that the switch configuration is matched.
+    const switchMatches = comparison.switch.match === true;
+    return routerMatches && switchMatches;
+  };
+  
+
 
   return (
     <div className="App">
@@ -359,7 +370,6 @@ function SwitchRouter() {
                                 value={link.selectedSwitchHost}
                               >
                                 <option value="">-- Select a Switch Host --</option>
-                                <option value="test">test</option>
                                 {!loading &&
                                   hosts
                                     .filter(
@@ -420,7 +430,6 @@ function SwitchRouter() {
                                 value={link.selectedRouterHost}
                               >
                                 <option value="">-- Select a Router Host --</option>
-                                <option value="test">test</option>
                                 {!loading &&
                                   hosts
                                     .filter(
@@ -635,6 +644,7 @@ function SwitchRouter() {
                       ? resultData.comparison
                       : [resultData.comparison];
                     return (
+                      
                       <div
                         style={{
                           display: "flex",
@@ -643,87 +653,98 @@ function SwitchRouter() {
                         }}
                       >
                         {/* Applied on device Section */}
-                        <div
-                          style={{
-                            width: "49%",
-                            backgroundColor: "#e6f7ff",
-                            padding: "10px",
-                            border: "1px solid #b3daff",
-                            borderRadius: "5px",
-                          }}
-                        >
-                          <h4 style={{ marginTop: 0 }}>Applied on device:</h4>
-                          <div
-                            className="popup-table-section-result"
-                            style={{ maxHeight: "69vh", overflowX: "auto" }}
-                          >
-                            {comparisons.map((comp: any, index: number) => {
-                              // Using the same host names as in your snippet.
-                              const host1Name = "Switch";
-                              const host2Name = "Router";
-                              return (
-                                <div
-                                  key={index}
-                                  className="popup-table"
-                                  style={{
-                                    marginBottom: "20px",
-                                    backgroundColor: "#ffffff",
-                                    borderRadius: "4px",
-                                    padding: "10px",
-                                  }}
-                                >
-                                  <h5>{`${host1Name}-${host2Name} Link ${index + 1}`}</h5>
-                                  <div className="popup-table-wrapper" style={{ overflowX: "auto" }}>
-                                    <table
-                                      style={{
-                                        width: "100%",
-                                        borderCollapse: "collapse",
-                                        backgroundColor: "#fff",
-                                      }}
-                                      border={1}
-                                    >
-                                      <thead>
-                                        <tr style={{ backgroundColor: "#f0f8ff" }}>
-                                          <th>VLAN</th>
-                                          <th>Outgoing Interface Switch</th>
-                                          <th>Outgoing Interface Router</th>
-                                          <th>Gateway</th>
-                                        </tr>
-                                      </thead>
-                                      <tbody>
-                                        {Object.entries(comp.router).map(
-                                          ([vlan, details]: [string, any]) => (
-                                            <tr key={vlan}>
-                                              <td>{vlan}</td>
-                                              <td>
-                                                {comp.switch.backend &&
-                                                  comp.switch.backend.interface
-                                                  ? comp.switch.backend.interface
-                                                  : "Not Selected"}
-                                              </td>
-                                              <td>
-                                                {details.backend && details.backend.interface
-                                                  ? details.backend.interface
-                                                  : "Not Selected"}
-                                              </td>
-                                              <td>
-                                                {details.backend &&
-                                                  details.backend.gateway &&
-                                                  details.backend.subnet
-                                                  ? `${details.backend.gateway}/${details.backend.subnet}`
-                                                  : "Not Selected"}
-                                              </td>
-                                            </tr>
-                                          )
-                                        )}
-                                      </tbody>
-                                    </table>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
+                        {/* Applied on device Section */}
+<div
+  style={{
+    width: "49%",
+    backgroundColor: "#e6f7ff",
+    padding: "10px",
+    border: "1px solid #b3daff",
+    borderRadius: "5px",
+  }}
+>
+  <h4 style={{ marginTop: 0 }}>Applied on device:</h4>
+  <div
+    className="popup-table-section-result"
+    style={{ maxHeight: "69vh", overflowX: "auto" }}
+  >
+    {comparisons.map((comp: any, index: number) => {
+      const allMatched = isAllMatched(comp);
+      const hostName = `Switch-Router Link ${index + 1}`;
+      return (
+        <div
+          key={index}
+          className="popup-table"
+          style={{
+            marginBottom: "20px",
+            backgroundColor: "#ffffff",
+            borderRadius: "4px",
+            padding: "10px",
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <h5>{hostName}</h5>
+            <p
+              style={{
+                color: allMatched ? "green" : "red",
+                marginBottom: 0,
+              }}
+            >
+              {allMatched ? "Matched" : "Unmatched"}
+            </p>
+          </div>
+          <div className="popup-table-wrapper" style={{ overflowX: "auto" }}>
+            <table
+              style={{
+                width: "100%",
+                borderCollapse: "collapse",
+                backgroundColor: "#fff",
+              }}
+              border={1}
+            >
+              <thead>
+                <tr style={{ backgroundColor: "#f0f8ff" }}>
+                  <th>VLAN</th>
+                  <th>Outgoing Interface Switch</th>
+                  <th>Outgoing Interface Router</th>
+                  <th>Gateway</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Object.entries(comp.router).map(
+                  ([vlan, details]: [string, any]) => (
+                    <tr key={vlan}>
+                      <td>{vlan}</td>
+                      <td>
+                        {comp.switch.backend &&
+                        comp.switch.backend.interface
+                          ? comp.switch.backend.interface
+                          : "Not Selected"}
+                      </td>
+                      <td>
+                        {details.backend && details.backend.interface
+                          ? details.backend.interface
+                          : "Not Selected"}
+                      </td>
+                      <td>
+                        {details.backend &&
+                        details.backend.gateway &&
+                        details.backend.subnet
+                          ? `${details.backend.gateway}/${details.backend.subnet}`
+                          : "Not Selected"}
+                      </td>
+                    </tr>
+                  )
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    })}
+  </div>
+</div>
+
 
                         {/* Configuration sent Section */}
                         <div
