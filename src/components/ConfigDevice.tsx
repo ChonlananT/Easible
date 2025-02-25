@@ -1554,7 +1554,7 @@ function ConfigDevice() {
                       )}
                     {link.selectedCommand === "config_ip_router" &&
                       link.configIp && (
-                        <div className="config-command-board">
+                        <div className="config-command-board" style={{ width: '50%' }}>
                           <h4>Config IP Router</h4>
                           <div className="host-selection__dropdown-group">
                             <label>Select Interface:</label>
@@ -1625,7 +1625,7 @@ function ConfigDevice() {
                     {link.selectedCommand === "loopback" && link.loopbackData && (
                       <div className="config-command-board">
                         <h5>Loopback Configuration</h5>
-                        <div className="loopback-config-content">
+                        <div className="loopback-config-content" style={{ width: '95%', marginTop: '10px' }}>
                           <div className="config-device-input-text">
                             <label>Loopback Number:</label>
                             <input
@@ -1684,35 +1684,40 @@ function ConfigDevice() {
                         <div className="config-command-board">
                           <h5>Static Route Configuration</h5>
                           <div className="loopback-config-content">
-                            <div className="config-device-input-text">
-                              <label>Prefix:</label>
-                              <input
-                                type="text"
-                                value={link.staticRouteData.prefix}
-                                onChange={(e) =>
-                                  handleHostChange(
-                                    index,
-                                    { group: "staticRouteData", key: "prefix" },
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="Enter Prefix"
-                              />
-                            </div>
-                            <div className="config-device-input-text">
-                              <label>Subnet mask(CIDR):</label>
-                              <input
-                                type="text"
-                                value={link.staticRouteData.cidr}
-                                onChange={(e) =>
-                                  handleHostChange(
-                                    index,
-                                    { group: "staticRouteData", key: "cidr" },
-                                    e.target.value
-                                  )
-                                }
-                                placeholder="Enter Subnet mask"
-                              />
+                            <div style={{ display: 'flex' }}>
+                              <div className="config-device-input-text" style={{ width: '60%' }}>
+                                <label>Prefix:</label>
+                                <input
+                                  type="text"
+                                  value={link.staticRouteData.prefix}
+                                  onChange={(e) =>
+                                    handleHostChange(
+                                      index,
+                                      { group: "staticRouteData", key: "prefix" },
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder="Enter Prefix"
+                                />
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center' }}>
+                                <span style={{ fontSize: '25px', marginTop: '30px' }}>/</span>
+                              </div>
+                              <div className="config-device-input-text" style={{ width: '33%' }}>
+                                <label>Subnet mask(CIDR):</label>
+                                <input
+                                  type="text"
+                                  value={link.staticRouteData.cidr}
+                                  onChange={(e) =>
+                                    handleHostChange(
+                                      index,
+                                      { group: "staticRouteData", key: "cidr" },
+                                      e.target.value
+                                    )
+                                  }
+                                  placeholder="Enter Subnet mask"
+                                />
+                              </div>
                             </div>
                             <div className="config-device-input-text">
                               <label>Next Hop:</label>
