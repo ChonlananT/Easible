@@ -65,7 +65,6 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({
         { label: "Interface", value: comp.backend.interface },
         { label: "IP Address", value: comp.backend.ipaddress },
         { label: "Activate Protocol", value: comp.backend.activateProtocol },
-        { label: "CIDR", value: comp.backend.cidr },
       ];
       break;
 
