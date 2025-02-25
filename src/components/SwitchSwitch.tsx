@@ -380,11 +380,13 @@ function SwitchSwitch() {
                                   onChange={(e) => handleLinkChange(index, 'selectedInterface1', e.target.value)}
                                 >
                                   <option value="">-- Select Interface --</option>
-                                  {getInterfacesForHost(link.selectedHost1).map((intf) => (
-                                    <option key={intf.interface} value={intf.interface}>
-                                      {intf.interface} ({intf.status})
-                                    </option>
-                                  ))}
+                                  {getInterfacesForHost(link.selectedHost1)
+                                    .filter((intf) => !intf.interface.toLowerCase().includes('vlan'))
+                                    .map((intf) => (
+                                      <option key={intf.interface} value={intf.interface}>
+                                        {intf.interface} ({intf.status})
+                                      </option>
+                                    ))}
                                 </select>
                               </div>
                             </div>
@@ -428,11 +430,13 @@ function SwitchSwitch() {
                                   onChange={(e) => handleLinkChange(index, 'selectedInterface2', e.target.value)}
                                 >
                                   <option value="">-- Select Interface --</option>
-                                  {getInterfacesForHost(link.selectedHost2).map((intf) => (
-                                    <option key={intf.interface} value={intf.interface}>
-                                      {intf.interface} ({intf.status})
-                                    </option>
-                                  ))}
+                                  {getInterfacesForHost(link.selectedHost1)
+                                    .filter((intf) => !intf.interface.toLowerCase().includes('vlan'))
+                                    .map((intf) => (
+                                      <option key={intf.interface} value={intf.interface}>
+                                        {intf.interface} ({intf.status})
+                                      </option>
+                                    ))}
                                 </select>
                               </div>
                             </div>
@@ -567,15 +571,15 @@ function SwitchSwitch() {
                                         </tr>
                                       </thead>
                                       <tbody>
-                                      {[...allVlans].map((vlan) => {
-                                        return (
-                                          <tr key={vlan}>
-                                            <td>{vlan}</td>
-                                            <td>{sw1Data.interface}</td>
-                                            <td>{sw2Data.interface}</td>
-                                          </tr>
-                                        );
-                                      })}
+                                        {[...allVlans].map((vlan) => {
+                                          return (
+                                            <tr key={vlan}>
+                                              <td>{vlan}</td>
+                                              <td>{sw1Data.interface}</td>
+                                              <td>{sw2Data.interface}</td>
+                                            </tr>
+                                          );
+                                        })}
                                       </tbody>
                                     </table>
                                   </div>
