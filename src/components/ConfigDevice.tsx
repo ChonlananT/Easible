@@ -86,7 +86,7 @@ type DropdownOption = {
 };
 
 type VlanData = {
-  vlanId: number;
+  vlanId: string;
   vlanName?: string;
   ipAddress?: string;
   cidr?: string;
