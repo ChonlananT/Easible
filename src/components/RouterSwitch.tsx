@@ -308,7 +308,7 @@ function SwitchRouter() {
     const switchMatches = comparison.switch.match === true;
     return routerMatches && switchMatches;
   };
-  
+
 
 
   return (
@@ -445,25 +445,23 @@ function SwitchRouter() {
                             </div>
                           </div>
 
-                          <div className="host-selection__dropdown-group">
-                            <label>Select Interface:</label>
-                            <div className="host-selection__dropdown-container">
-                              <select
-                                className="host-selection__dropdown"
-                                value={link.selectedRouterInterface}
-                                onChange={(e) =>
-                                  handleLinkChange(index, 'selectedRouterInterface', e.target.value)
-                                }
-                              >
-                                <option value="">-- Select Interface --</option>
-                                {getInterfacesForHost(link.selectedRouterHost).map((intf) => (
-                                  <option key={intf.interface} value={intf.interface}>
-                                    {intf.interface} ({intf.status})
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                          </div>
+                          <select
+                            className="host-selection__dropdown"
+                            value={link.selectedRouterInterface}
+                            onChange={(e) =>
+                              handleLinkChange(index, 'selectedRouterInterface', e.target.value)
+                            }
+                          >
+                            <option value="">-- Select Interface --</option>
+                            {getInterfacesForHost(link.selectedRouterHost)
+                              .filter((intf) => intf.interface.includes('Gigabit'))
+                              .map((intf) => (
+                                <option key={intf.interface} value={intf.interface}>
+                                  {intf.interface} ({intf.status})
+                                </option>
+                              ))}
+                          </select>
+
                         </div>
                       </div>
                     </div>
@@ -644,7 +642,7 @@ function SwitchRouter() {
                       ? resultData.comparison
                       : [resultData.comparison];
                     return (
-                      
+
                       <div
                         style={{
                           display: "flex",
@@ -654,96 +652,96 @@ function SwitchRouter() {
                       >
                         {/* Applied on device Section */}
                         {/* Applied on device Section */}
-<div
-  style={{
-    width: "49%",
-    backgroundColor: "#e6f7ff",
-    padding: "10px",
-    border: "1px solid #b3daff",
-    borderRadius: "5px",
-  }}
->
-  <h4 style={{ marginTop: 0 }}>Applied on device:</h4>
-  <div
-    className="popup-table-section-result"
-    style={{ maxHeight: "69vh", overflowX: "auto" }}
-  >
-    {comparisons.map((comp: any, index: number) => {
-      const allMatched = isAllMatched(comp);
-      const hostName = `Switch-Router Link ${index + 1}`;
-      return (
-        <div
-          key={index}
-          className="popup-table"
-          style={{
-            marginBottom: "20px",
-            backgroundColor: "#ffffff",
-            borderRadius: "4px",
-            padding: "10px",
-          }}
-        >
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
-            <h5>{hostName}</h5>
-            <p
-              style={{
-                color: allMatched ? "green" : "red",
-                marginBottom: 0,
-              }}
-            >
-              {allMatched ? "Matched" : "Unmatched"}
-            </p>
-          </div>
-          <div className="popup-table-wrapper" style={{ overflowX: "auto" }}>
-            <table
-              style={{
-                width: "100%",
-                borderCollapse: "collapse",
-                backgroundColor: "#fff",
-              }}
-              border={1}
-            >
-              <thead>
-                <tr style={{ backgroundColor: "#f0f8ff" }}>
-                  <th>VLAN</th>
-                  <th>Outgoing Interface Switch</th>
-                  <th>Outgoing Interface Router</th>
-                  <th>Gateway</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Object.entries(comp.router).map(
-                  ([vlan, details]: [string, any]) => (
-                    <tr key={vlan}>
-                      <td>{vlan}</td>
-                      <td>
-                        {comp.switch.backend &&
-                        comp.switch.backend.interface
-                          ? comp.switch.backend.interface
-                          : "Not Selected"}
-                      </td>
-                      <td>
-                        {details.backend && details.backend.interface
-                          ? details.backend.interface
-                          : "Not Selected"}
-                      </td>
-                      <td>
-                        {details.backend &&
-                        details.backend.gateway &&
-                        details.backend.subnet
-                          ? `${details.backend.gateway}/${details.backend.subnet}`
-                          : "Not Selected"}
-                      </td>
-                    </tr>
-                  )
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      );
-    })}
-  </div>
-</div>
+                        <div
+                          style={{
+                            width: "49%",
+                            backgroundColor: "#e6f7ff",
+                            padding: "10px",
+                            border: "1px solid #b3daff",
+                            borderRadius: "5px",
+                          }}
+                        >
+                          <h4 style={{ marginTop: 0 }}>Applied on device:</h4>
+                          <div
+                            className="popup-table-section-result"
+                            style={{ maxHeight: "69vh", overflowX: "auto" }}
+                          >
+                            {comparisons.map((comp: any, index: number) => {
+                              const allMatched = isAllMatched(comp);
+                              const hostName = `Switch-Router Link ${index + 1}`;
+                              return (
+                                <div
+                                  key={index}
+                                  className="popup-table"
+                                  style={{
+                                    marginBottom: "20px",
+                                    backgroundColor: "#ffffff",
+                                    borderRadius: "4px",
+                                    padding: "10px",
+                                  }}
+                                >
+                                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                                    <h5>{hostName}</h5>
+                                    <p
+                                      style={{
+                                        color: allMatched ? "green" : "red",
+                                        marginBottom: 0,
+                                      }}
+                                    >
+                                      {allMatched ? "Matched" : "Unmatched"}
+                                    </p>
+                                  </div>
+                                  <div className="popup-table-wrapper" style={{ overflowX: "auto" }}>
+                                    <table
+                                      style={{
+                                        width: "100%",
+                                        borderCollapse: "collapse",
+                                        backgroundColor: "#fff",
+                                      }}
+                                      border={1}
+                                    >
+                                      <thead>
+                                        <tr style={{ backgroundColor: "#f0f8ff" }}>
+                                          <th>VLAN</th>
+                                          <th>Outgoing Interface Switch</th>
+                                          <th>Outgoing Interface Router</th>
+                                          <th>Gateway</th>
+                                        </tr>
+                                      </thead>
+                                      <tbody>
+                                        {Object.entries(comp.router).map(
+                                          ([vlan, details]: [string, any]) => (
+                                            <tr key={vlan}>
+                                              <td>{vlan}</td>
+                                              <td>
+                                                {comp.switch.backend &&
+                                                  comp.switch.backend.interface
+                                                  ? comp.switch.backend.interface
+                                                  : "Not Selected"}
+                                              </td>
+                                              <td>
+                                                {details.backend && details.backend.interface
+                                                  ? details.backend.interface
+                                                  : "Not Selected"}
+                                              </td>
+                                              <td>
+                                                {details.backend &&
+                                                  details.backend.gateway &&
+                                                  details.backend.subnet
+                                                  ? `${details.backend.gateway}/${details.backend.subnet}`
+                                                  : "Not Selected"}
+                                              </td>
+                                            </tr>
+                                          )
+                                        )}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
 
 
                         {/* Configuration sent Section */}
@@ -844,12 +842,6 @@ function SwitchRouter() {
             </div>
           </div>
         )}
-
-
-
-
-
-
 
         {error && (
           <div className="popup-overlay">
