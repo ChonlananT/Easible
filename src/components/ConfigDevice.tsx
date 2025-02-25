@@ -480,7 +480,7 @@ function ConfigDevice() {
       // Otherwise, sort by hostname.
       return a.hostname.localeCompare(b.hostname);
     });
-    
+
     // If no resultData exists, show a summary table of the user inputs.
     return (
       <div className="popup-overlay">
@@ -489,7 +489,7 @@ function ConfigDevice() {
           {stpResults.length > 0 ? (
             <>
               <h2 className="summary-title">Spanning Tree Summary</h2>
-              <div style={{ height:"88%", padding:"20px 10px"}}>
+              <div style={{ height: "88%", padding: "20px 10px" }}>
                 {sortedStpResults.map((sw, index) => (
                   <div key={index} className="switch-card">
                     <div
@@ -853,7 +853,7 @@ function ConfigDevice() {
 
       if (link.selectedCommand === "vlan") {
         const vlan = link.vlanData;
-        if (!vlan || !vlan.vlanId ) {
+        if (!vlan || !vlan.vlanId) {
           setError(`Please fill VLAN ID `);
           return;
         }
@@ -1009,7 +1009,7 @@ function ConfigDevice() {
 
       if (link.selectedCommand === "vlan") {
         const vlan = link.vlanData;
-        if (!vlan || !vlan.vlanId ) {
+        if (!vlan || !vlan.vlanId) {
           setError(`Please fill all required VLAN fields for entry ${i + 1}.`);
           return;
         }
@@ -1349,7 +1349,7 @@ function ConfigDevice() {
                                   value={link.vlanData.vlanId}
                                   onChange={(e) => {
                                     const value = parseInt(e.target.value, 10);
-                                  
+
                                     // Ensure value is within 1-1005 or reset it
                                     if (isNaN(value) || (value >= 1 && value <= 1005)) {
                                       handleHostChange(index, { group: "vlanData", key: "vlanId" }, value);
@@ -1375,7 +1375,7 @@ function ConfigDevice() {
                               </div>
                             </div>
                             <div className="ip-subnet-group-confdev">
-                              <div className="ip-text">
+                              <div className="ip-text" style={{width:"60%"}}>
                                 <label>IP address for SVI (optional):</label>
                                 <input
                                   type="text"
@@ -1390,7 +1390,10 @@ function ConfigDevice() {
                                   placeholder="Enter IP Address"
                                 />
                               </div>
-                              <div className="config-device-input-text">
+                              <div style={{ display: 'flex', alignItems: 'center' }}>
+                                <span style={{ fontSize: '25px', marginTop: '30px' }}>/</span>
+                              </div>
+                              <div className="config-device-input-text" style={{width:"50%"}}>
                                 <label>Subnet (optional):</label>
                                 <input
                                   type="number"
@@ -1483,13 +1486,13 @@ function ConfigDevice() {
                                 vlans[link.selectedHost]
                                   .filter((vlanObj) => vlanObj.stp_detail)
                                   .map((vlanObj) => (
-                                  <option
-                                    key={vlanObj.vlan_id}
-                                    value={vlanObj.vlan_id}
-                                  >
-                                    {`VLAN ${vlanObj.vlan_id}`}
-                                  </option>
-                                ))}
+                                    <option
+                                      key={vlanObj.vlan_id}
+                                      value={vlanObj.vlan_id}
+                                    >
+                                      {`VLAN ${vlanObj.vlan_id}`}
+                                    </option>
+                                  ))}
                             </select>
                           </div>
                           <div className="host-selection__dropdown-group">
