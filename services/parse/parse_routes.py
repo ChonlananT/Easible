@@ -26,6 +26,10 @@ def parse_routes(data):
         'R': 'RIPv2'
     }
 
+    header_regex = re.compile(
+        r'^\s*(?P<header_subnet>\d+\.\d+\.\d+\.\d+/\d+)\s+is subnetted', re.IGNORECASE
+    )
+
     # Regex to match route lines:
     #
     # Examples of lines we want to capture:
@@ -41,7 +45,7 @@ def parse_routes(data):
     #   .*?,\s*(?P<intf>\S+)\s*$           => capture the outgoing interface at the end of line, after a comma
     route_regex = re.compile(
         r'^(?P<proto>[COR])\s+'
-        r'(?P<subnet>\d+\.\d+\.\d+\.\d+/\d+)'
+        r'(?P<subnet>\d+\.\d+\.\d+\.\d+(?:/\d+)?)'
         r'(?:.*?via\s+(?P<nexthop>\d+\.\d+\.\d+\.\d+))?'
         r'.*?,\s*(?P<intf>\S+)\s*$',
         re.IGNORECASE
@@ -72,29 +76,41 @@ def parse_routes(data):
         route_lines = lines[start_index+1:]
 
         host_routes = []
+        current_header_mask = None  # เก็บ subnet mask จาก header ล่าสุด
+
         for line in route_lines:
             line = line.strip()
             if not line:
                 continue
 
+            # หากเป็นบรรทัด header ที่บอก subnet mask (เช่น "1.0.0.0/30 is subnetted,...")
+            header_match = header_regex.match(line)
+            if header_match:
+                current_header_mask = header_match.group("header_subnet").split('/')[-1]
+                continue
+
             m = route_regex.search(line)
             if not m:
-                # It's often a local (L) route or something else. We skip it.
+                # ถ้าไม่ match route line ให้ข้าม
                 continue
 
             proto_letter = m.group("proto").upper()
             if proto_letter not in proto_map:
-                # skip lines for protocols we don't map (e.g. L, S, etc.)
                 continue
 
             protocol = proto_map[proto_letter]
             subnet = m.group("subnet")
             nexthop = m.group("nexthop")
+            # สำหรับ connected routes ถ้าไม่มี nexthop กำหนดเป็น "directly"
             if proto_letter == 'C' and not nexthop:
-                # For connected routes, if there's no "via x.x.x.x"
                 nexthop = "directly"
 
             outgoing_intf = m.group("intf")
+
+            # ถ้า protocol เป็น OSPF หรือ RIP แล้ว subnet ที่จับมาไม่มี mask (ไม่มี '/' ใน subnet)
+            if proto_letter in ['O', 'R'] and '/' not in subnet:
+                if current_header_mask:
+                    subnet = f"{subnet}/{current_header_mask}"
 
             route_entry = {
                 "nexthop": nexthop,
@@ -106,5 +122,6 @@ def parse_routes(data):
 
         results[host] = host_routes
 
+    print(results)
     return results
 
