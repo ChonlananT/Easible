@@ -203,6 +203,7 @@ function ConfigDevice() {
     switch (input.selectedCommand) {
       case "vlan":
         if (input.vlanData) {
+          const ipAddressValue = input.vlanData.ipAddress || "-";
           return (
             <div
               style={{
@@ -228,17 +229,20 @@ function ConfigDevice() {
                 <strong>Mode:</strong> {input.vlanData.mode}
               </div>
               <div>
-                <strong>IP Address:</strong> {input.vlanData.ipAddress || "-"}
+                <strong>IP Address:</strong> {ipAddressValue}
               </div>
-              <div>
-                <strong>CIDR:</strong> {input.vlanData.cidr}
-              </div>
+              {ipAddressValue !== "-" && (
+                <div>
+                  <strong>CIDR:</strong> {input.vlanData.cidr}
+                </div>
+              )}
             </div>
           );
         }
         break;
       case "config_ip_router":
         if (input.configIp) {
+          const ipAddressValue = input.configIp.ipAddress;
           return (
             <div
               style={{
@@ -255,11 +259,13 @@ function ConfigDevice() {
                 <strong>Interface:</strong> {input.configIp.interface}
               </div>
               <div>
-                <strong>IP Address:</strong> {input.configIp.ipAddress}
+                <strong>IP Address:</strong> {ipAddressValue}
               </div>
-              <div>
-                <strong>CIDR:</strong> {input.configIp.cidr}
-              </div>
+              {ipAddressValue !== "-" && (
+                <div>
+                  <strong>CIDR:</strong> {input.configIp.cidr}
+                </div>
+              )}
             </div>
           );
         }
@@ -325,6 +331,7 @@ function ConfigDevice() {
       default:
         return <span>-</span>;
     }
+    
 
     return <span>-</span>;
   };
@@ -437,11 +444,14 @@ function ConfigDevice() {
               ) : (
                 <ResultDisplay selectedCommand={selectedCommand} resultData={resultData} />
               )}
-              <div style={{ display:"flex", justifyContent:"end"}}>
-                <button className="button-cancel-prev" onClick={onClose}>
-                  Close
-                </button>
-              </div>
+              {!isLoading && (
+                <div style={{ display: "flex", justifyContent: "end" }}>
+                  <button className="button-cancel-prev" onClick={onClose}>
+                    Close
+                  </button>
+                </div>
+              )}
+
 
             </div>
           </div>
