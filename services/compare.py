@@ -1,10 +1,17 @@
+import re
+import json
+
+def remove_time(text):
+    """
+    ลบข้อมูลเวลาที่อยู่ในรูปแบบ ", xx:xx:xx," ออกจากข้อความ
+    """
+    return re.sub(r',\s*\d{2}:\d{2}:\d{2}\s*,', '', text)
+
 def normalize_text(text):
     """
     Normalize text โดยการลบช่องว่างเกินและรวมข้อความทุกบรรทัดเป็นสตริงเดียว
     """
-    # แปลงเป็น list ของคำ (โดยใช้ whitespace เป็นตัวแบ่ง) แล้ว join ด้วย single space
     return " ".join(text.split())
-
 
 def compare_expected_outputs(parsed_output, lab_commands):
     """
@@ -24,6 +31,8 @@ def compare_expected_outputs(parsed_output, lab_commands):
       - expected: ข้อความ expected (multiline string)
       - actual: รายการผลลัพธ์ที่ได้ (list ของ string)
       - diff: รายการของบรรทัดที่ไม่ตรงกัน (แต่ละ entry ระบุ expected กับ actual)
+      
+    โค้ดนี้จะละเว้นการเปรียบเทียบข้อมูลเวลาที่อยู่ในรูปแบบ ", xx:xx:xx," ด้วย
     """
     result = {
         "matched": {},
@@ -36,23 +45,27 @@ def compare_expected_outputs(parsed_output, lab_commands):
         for host_exp in host_expected_list:
             hostname = host_exp.get("hostname")
             expected = host_exp.get("expected_output", "")
-            normalized_expected = normalize_text(expected)
+            
+            # นำข้อมูลเวลาที่อยู่ใน expected ออกก่อนที่จะ normalize
+            expected_no_time = remove_time(expected)
+            normalized_expected = normalize_text(expected_no_time)
 
             actual_lines = parsed_output.get(hostname, [])
             combined_actual = "\n".join(actual_lines)
-            normalized_actual = normalize_text(combined_actual)
+            # นำข้อมูลเวลาที่อยู่ใน actual ออกก่อน normalize
+            actual_no_time = remove_time(combined_actual)
+            normalized_actual = normalize_text(actual_no_time)
 
             # ฟังก์ชันสำหรับสร้าง diff แบบบรรทัดต่อบรรทัด
             def generate_diff(expected_str, actual_list):
                 diff_list = []
                 expected_lines = expected_str.splitlines()
-                # actual_lines ที่รับเข้ามาเป็น list อยู่แล้ว
                 max_lines = max(len(expected_lines), len(actual_list))
                 for i in range(max_lines):
                     exp_line = expected_lines[i] if i < len(expected_lines) else ""
                     act_line = actual_list[i] if i < len(actual_list) else ""
-                    # เปรียบเทียบแบบ normalize แต่เก็บข้อความเดิมไว้ใน diff
-                    if normalize_text(exp_line) != normalize_text(act_line):
+                    # นำข้อมูลเวลาที่อยู่ในแต่ละบรรทัดออกก่อนเปรียบเทียบ
+                    if normalize_text(remove_time(exp_line)) != normalize_text(remove_time(act_line)):
                         diff_list.append({
                             "expected": exp_line,
                             "actual": act_line
