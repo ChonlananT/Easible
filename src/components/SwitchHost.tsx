@@ -407,6 +407,7 @@ function SwitchHost() {
                                 value={link.selectedHost}
                               >
                                 <option value="">-- Select a Host --</option>
+                                <option value="test">test</option>
                                 {!loading &&
                                   hosts.map((host) => (
                                     <option key={host.hostname} value={host.hostname}>
@@ -423,8 +424,8 @@ function SwitchHost() {
                     {link.selectedHost && (
                       <div className="command-section-swh">
                         {link.interfaces.map((iface, ifaceIndex) => (
-                          <div key={ifaceIndex} className="interface-config-swh">
-                            <div className="interface-selection__vlan-configuration-swh">
+                          <div key={ifaceIndex} className="interface-config-swh" style={{ width: '90%' }}>
+                            <div className="interface-selection__vlan-configuration-swh" style={{ width: '35%'}}>
                               <div className="host-selection__dropdown-swh">
                                 <label>Select Interface for {link.selectedHost}:</label>
                                 <select
@@ -443,8 +444,8 @@ function SwitchHost() {
                                 </select>
                               </div>
                             </div>
-                            <div className="host-selection__vlan-configuration-swh">
-                              <div className="input-sw-sw-group">
+                            <div className="host-selection__vlan-configuration-swh" style={{ width: '100%', justifyContent: 'space-between' }}>
+                              <div className="input-sw-sw-group" style={{ width: '30%' }}>
                                 <label>VLAN ID:</label>
                                 <select
                                   className="host-selection__dropdown-vlan"
@@ -461,31 +462,36 @@ function SwitchHost() {
                                   ))}
                                 </select>
                               </div>
-                              <div className="input-sw-sw-group">
-                                <label>IP Address for SVI:</label>
-                                <input
-                                  type="text"
-                                  value={iface.vlanData.ipAddress}
-                                  onChange={(e) =>
-                                    handleVlanChange(linkIndex, ifaceIndex, "ipAddress", e.target.value)
-                                  }
-                                  placeholder="Enter IP Address"
-                                  className="input-sw-sw"
-                                />
-                              </div>
-                              <div className="input-sw-sw-group">
-                                <label>Subnet Mask (CIDR):</label>
-                                <input
-                                  type="number"
-                                  min={1}
-                                  max={32}
-                                  value={iface.vlanData.subnetMask}
-                                  onChange={(e) =>
-                                    handleVlanChange(linkIndex, ifaceIndex, "subnetMask", e.target.value)
-                                  }
-                                  placeholder="Enter Subnet Mask"
-                                  className="input-sw-sw"
-                                />
+                              <div style={{ display: 'flex', flexDirection: 'row', width: '70%', justifyContent: 'space-between' }}>
+                                <div className="input-sw-sw-group" style={{ width: '55%'}}>
+                                  <label>IP Address for SVI:</label>
+                                  <input
+                                    type="text"
+                                    value={iface.vlanData.ipAddress}
+                                    onChange={(e) =>
+                                      handleVlanChange(linkIndex, ifaceIndex, "ipAddress", e.target.value)
+                                    }
+                                    placeholder="Enter IP Address"
+                                    className="input-sw-sw"
+                                  />
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                  <span style={{ fontSize: '25px', marginTop: '23px', paddingLeft: '10px' }}>/</span>
+                                </div>
+                                <div className="input-sw-sw-group" style={{ width: '35%'}}>
+                                  <label>Subnet Mask (CIDR):</label>
+                                  <input
+                                    type="number"
+                                    min={1}
+                                    max={32}
+                                    value={iface.vlanData.subnetMask}
+                                    onChange={(e) =>
+                                      handleVlanChange(linkIndex, ifaceIndex, "subnetMask", e.target.value)
+                                    }
+                                    placeholder="Enter Subnet Mask"
+                                    className="input-sw-sw"
+                                  />
+                                </div>
                               </div>
                             </div>
                             {link.interfaces.length > 1 && (
