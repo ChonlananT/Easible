@@ -472,9 +472,7 @@ function Lab() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const handleDeleteLab = async () => {
     try {
-      console.log("Lab ID to delete:", customLabForm.id);
       const url = `/api/custom_lab/${customLabForm.id}`;
-      console.log("Deleting lab at URL:", url);
 
       const response = await fetch(url, {
         method: "DELETE",

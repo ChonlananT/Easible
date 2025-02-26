@@ -11,7 +11,7 @@ function Jobs() {
     fetch('/api/get_hosts')
       .then((res) => res.json())
       .then((data) => {
-        console.log('Fetched Hosts:', data); // Log the fetched data
+        
         setHosts(data); // Store the data in state
       })
       .catch((err) => console.error('Error fetching hosts:', err));

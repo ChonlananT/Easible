@@ -227,7 +227,6 @@ function SwitchRouter() {
       vlanConfigs: link.vlanConfigs,
     }));
 
-    console.log('Sending data to backend for verification:', requestData);
 
     // ส่งข้อมูลไปยัง backend เพื่อตรวจสอบ (verify)
     fetch('/api/create_playbook_swtort', {
@@ -240,7 +239,6 @@ function SwitchRouter() {
         if (data.error) {
           setError(data.error);
         } else {
-          console.log('Playbook created:', data.playbook);
           // เปิด popup summary เพื่อให้ผู้ใช้ตรวจสอบข้อมูล
           setIsPopupOpen(true);
         }
@@ -264,7 +262,7 @@ function SwitchRouter() {
       vlanConfigs: link.vlanConfigs,
     }));
 
-    console.log('Sending data to backend for execution:', requestData);
+    
 
     // Open the result popup immediately and start the spinner
     setIsPopupOpen(false);

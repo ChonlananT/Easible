@@ -31,7 +31,6 @@ function App() {
         const sortedData = (data.awx_data || []).sort((a, b) => a.id - b.id);
 
         setAwxData(sortedData);
-        console.log(sortedData);
       })
       .catch((error) => console.error(error));
   }, []);

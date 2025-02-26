@@ -265,7 +265,7 @@ function SwitchHost() {
       })),
     }));
 
-    console.log('Sending data to backend for playbook creation:', requestData);
+    
 
     // Show summary popup immediately.
     setSummaryLinks([...links]);
@@ -282,7 +282,7 @@ function SwitchHost() {
         if (data.error) {
           setError(data.error);
         } else {
-          console.log('Playbook created:', data.playbook);
+          
         }
       })
       .catch((err) => {
@@ -304,7 +304,6 @@ function SwitchHost() {
       })),
     }));
 
-    console.log('Confirming configuration to backend:', requestData);
 
     setIsResultLoading(true);
     fetch('/api/run_playbook/swtohost', {
@@ -317,7 +316,7 @@ function SwitchHost() {
         if (data.error) {
           setError(data.error);
         } else {
-          console.log('Playbook executed:', data);
+          
           setResultData(data);
         }
       })

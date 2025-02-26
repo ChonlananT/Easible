@@ -973,7 +973,6 @@ function ConfigDevice() {
         } else {
           setStpResults(data.stp_result || []); // Store STP results in state
           setBridgeOpen(true); // Open the summary popup
-          console.log("Playbook created:", data.playbook);
         }
       })
       .catch((err) => {
@@ -1121,7 +1120,6 @@ function ConfigDevice() {
         : {}),
     }));
 
-    console.log('Confirming configuration to backend:', requestData);
 
     // เรียก API /api/run_playbook/configdevice ด้วย method POST
     fetch("/api/run_playbook/configdevice", {

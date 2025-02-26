@@ -230,7 +230,6 @@ function RouterRouter() {
           setError(data.error);
           return;
         }
-        console.log("Verification data:", data);
         handleClosePopup();
         setComparisonResult(data.comparison);
         setParsedRoutes(data.parsed_routes);
@@ -293,7 +292,7 @@ function RouterRouter() {
         : {}),
     }));
 
-    console.log("Sending data to backend (router-router):", requestData);
+
 
     setPopupData(requestData);
     setShowPopup(true);
@@ -308,12 +307,7 @@ function RouterRouter() {
         if (data.error) {
           setError(data.error);
         } else {
-          console.log("Playbook created:", data.playbook);
           setRoutingTables(data.routing_tables);
-          console.log(
-            "routing_tables:",
-            JSON.stringify(data.routing_tables, null, 2)
-          );
         }
       })
       .catch((err) => {
