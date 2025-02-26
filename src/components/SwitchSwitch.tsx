@@ -430,7 +430,7 @@ function SwitchSwitch() {
                                   onChange={(e) => handleLinkChange(index, 'selectedInterface2', e.target.value)}
                                 >
                                   <option value="">-- Select Interface --</option>
-                                  {getInterfacesForHost(link.selectedHost1)
+                                  {getInterfacesForHost(link.selectedHost2)
                                     .filter((intf) => !intf.interface.toLowerCase().includes('vlan'))
                                     .map((intf) => (
                                       <option key={intf.interface} value={intf.interface}>
