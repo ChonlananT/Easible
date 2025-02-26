@@ -220,7 +220,7 @@ function SwitchSwitch() {
       interface2: link.selectedInterface2,
       vlans: link.vlans.filter((vlan) => vlan !== ''),
     }));
-    console.log('Sending data to backend:', requestData);
+    
     setIsResultLoading(true); // start result loading
 
     fetch('/api/run_playbook/swtosw', {
@@ -270,7 +270,7 @@ function SwitchSwitch() {
       vlans: link.vlans.filter((vlan) => vlan !== ''),
     }));
 
-    console.log('Sending data to backend (create_playbook_swtosw):', requestData);
+    
 
     fetch('/api/create_playbook_swtosw', {
       method: 'POST',
