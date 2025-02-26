@@ -1,11 +1,12 @@
 import paramiko
+import os
 
 def create_ssh_connection():
     # Static values for the connection
-    host = "127.0.0.1"
-    port = 3022
-    username = "suphanath"
-    password = "Admin!1234"
+    host = os.getenv("SSH_HOST", "127.0.0.1")
+    port = int(os.getenv("SSH_PORT", 22))
+    username = os.getenv("SSH_USERNAME", "admin")
+    password = os.getenv("SSH_PASSWORD", "P@ssw0rd")
 
     # Create the SSH client and set missing host key policy
     ssh = paramiko.SSHClient()

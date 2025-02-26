@@ -107,8 +107,8 @@ def dashboard():
         ssh, username = create_ssh_connection()
 
         # Define paths for inventory and playbook inside the VM
-        inventory_path = f"/home/{username}/inventory/inventory.ini"
-        playbook_path = f"/home/{username}/playbook/dashboard.yml"
+        inventory_path = f"/app/inventory/inventory.ini"
+        playbook_path = f"/app/playbook/dashboard.yml"
 
         # Write the playbook content to a file on the VM
         sftp = ssh.open_sftp()
@@ -174,7 +174,7 @@ def create_inventory():
             raise Exception("Failed to create SSH connection or retrieve username.")
 
         # Define the path using the returned username
-        inventory_path = f"/home/{username}/inventory/inventory.ini"
+        inventory_path = f"/app/inventory/inventory.ini"
 
         # Write inventory content to the remote file
         sftp = ssh.open_sftp()
@@ -197,8 +197,8 @@ def show_interface_brief():
         ssh, username = create_ssh_connection()
 
         # Define paths for inventory and playbook inside the VM
-        inventory_path = f"/home/{username}/inventory/inventory.ini"
-        playbook_path = f"/home/{username}/playbook/interface.yml"
+        inventory_path = f"/app/inventory/inventory.ini"
+        playbook_path = f"/app/playbook/interface.yml"
 
         # Write the playbook content to a file on the VM
         sftp = ssh.open_sftp()
@@ -236,8 +236,8 @@ def show_interface_brief_router():
         ssh, username = create_ssh_connection()
 
         # Define paths for inventory and playbook inside the VM
-        inventory_path = f"/home/{username}/inventory/inventory.ini"
-        playbook_path = f"/home/{username}/playbook/interface.yml"
+        inventory_path = f"/app/inventory/inventory.ini"
+        playbook_path = f"/app/playbook/interface.yml"
 
         # Write the playbook content to a file on the VM
         sftp = ssh.open_sftp()
@@ -274,8 +274,8 @@ def show_swtort():
         ssh, username = create_ssh_connection()
 
         # Define paths for inventory and playbook inside the VM
-        inventory_path = f"/home/{username}/inventory/inventory.ini"
-        playbook_path = f"/home/{username}/playbook/interface.yml"
+        inventory_path = f"/app/inventory/inventory.ini"
+        playbook_path = f"/app/playbook/interface.yml"
 
         # Write the playbook content to a file on the VM
         sftp = ssh.open_sftp()
@@ -414,8 +414,8 @@ def create_playbook():
 
         # 3) Write the playbook to a file on the remote server and (optionally) run ansible-playbook
         ssh, username = create_ssh_connection()  
-        playbook_path = f"/home/{username}/playbook/multi_links_playbook.yml"
-        inventory_path = f"/home/{username}/inventory/inventory.ini"
+        playbook_path = f"/app/playbook/multi_links_playbook.yml"
+        inventory_path = f"/app/inventory/inventory.ini"
 
         sftp = ssh.open_sftp()
         with sftp.open(playbook_path, "w") as playbook_file:
@@ -565,8 +565,8 @@ def create_playbook_routerrouter():
             return jsonify({"error": f"Validation failed: {str(ve)}"}), 400
         
         ssh, username = create_ssh_connection()  
-        playbook_path = f"/home/{username}/playbook/multi_links_playbook.yml"
-        inventory_path = f"/home/{username}/inventory/inventory.ini"
+        playbook_path = f"/app/playbook/multi_links_playbook.yml"
+        inventory_path = f"/app/inventory/inventory.ini"
 
         sftp = ssh.open_sftp()
         with sftp.open(playbook_path, "w") as playbook_file:
@@ -849,8 +849,8 @@ def create_playbook_configdevice():
         # 3) Write the combined playbook to a file on the server and optionally execute it
 
         ssh, username = create_ssh_connection()
-        playbook_path = f"/home/{username}/playbook/configdevice_playbook.yml"
-        inventory_path = f"/home/{username}/inventory/inventory.ini"
+        playbook_path = f"/app/playbook/configdevice_playbook.yml"
+        inventory_path = f"/app/inventory/inventory.ini"
 
         sftp = ssh.open_sftp()
         with sftp.open(playbook_path, "w") as playbook_file:
@@ -889,8 +889,8 @@ def show_configd():
         ssh, username = create_ssh_connection()
 
         # Define paths for inventory and playbook inside the VM
-        inventory_path = f"/home/{username}/inventory/inventory.ini"
-        playbook_path = f"/home/{username}/playbook/configd.yml"
+        inventory_path = f"/app/inventory/inventory.ini"
+        playbook_path = f"/app/playbook/configd.yml"
 
         # Write the playbook content to a file on the VM
         sftp = ssh.open_sftp()
@@ -1004,8 +1004,8 @@ def create_playbook_switchhost():
 
         # 3) Write the generated playbook to a file on the server and (optionally) execute it
         ssh, username = create_ssh_connection()
-        playbook_path = f"/home/{username}/playbook/multi_links_playbook.yml"
-        inventory_path = f"/home/{username}/inventory/inventory.ini"
+        playbook_path = f"/app/playbook/multi_links_playbook.yml"
+        inventory_path = f"/app/inventory/inventory.ini"
 
         sftp = ssh.open_sftp()
         with sftp.open(playbook_path, "w") as playbook_file:
@@ -1135,8 +1135,8 @@ def create_playbook_switchrouter():
 
         # 3) Write the playbook to the remote VM and (optionally) run it
         ssh, username = create_ssh_connection()  
-        playbook_path = f"/home/{username}/playbook/multi_links_playbook.yml"
-        inventory_path = f"/home/{username}/inventory/inventory.ini"
+        playbook_path = f"/app/playbook/multi_links_playbook.yml"
+        inventory_path = f"/app/inventory/inventory.ini"
 
         sftp = ssh.open_sftp()
         with sftp.open(playbook_path, "w") as playbook_file:
@@ -1179,15 +1179,15 @@ def run_playbook_switchswitch():
 
         # สร้าง SSH connection, run playbook, etc.
         ssh, username = create_ssh_connection()
-        playbook_path = f"/home/{username}/playbook/multi_links_playbook.yml"
-        inventory_path = f"/home/{username}/inventory/inventory.ini"
+        playbook_path = f"/app/playbook/multi_links_playbook.yml"
+        inventory_path = f"/app/inventory/inventory.ini"
 
         stdin, stdout, stderr = ssh.exec_command(f"ansible-playbook -i {inventory_path} {playbook_path}")
         output = stdout.read().decode('utf-8')
         errors = stderr.read().decode('utf-8')
 
         playbook_content = sh_int_trunk()  # สมมติว่าฟังก์ชันนี้ return playbook content ที่ต้องการ
-        verify_playbook_path = f"/home/{username}/playbook/verify_playbook.yml"
+        verify_playbook_path = f"/app/playbook/verify_playbook.yml"
 
         sftp = ssh.open_sftp()
         with sftp.open(verify_playbook_path, "w") as playbook_file:
@@ -1307,8 +1307,8 @@ def run_playbook_routerrouter():
 
         # สร้าง SSH connection, run playbook, etc.
         ssh, username = create_ssh_connection()
-        playbook_path = f"/home/{username}/playbook/multi_links_playbook.yml"
-        inventory_path = f"/home/{username}/inventory/inventory.ini"
+        playbook_path = f"/app/playbook/multi_links_playbook.yml"
+        inventory_path = f"/app/inventory/inventory.ini"
 
         stdin, stdout, stderr = ssh.exec_command(f"ansible-playbook -i {inventory_path} {playbook_path}")
         output = stdout.read().decode('utf-8')
@@ -1317,7 +1317,7 @@ def run_playbook_routerrouter():
         time.sleep(3) # add delay to wait for the playbook to complete
 
         playbook_content = sh_ip_route()  # สมมติว่าฟังก์ชันนี้ return playbook content ที่ต้องการ
-        verify_playbook_path = f"/home/{username}/playbook/verify_playbook.yml"
+        verify_playbook_path = f"/app/playbook/verify_playbook.yml"
 
         sftp = ssh.open_sftp()
         with sftp.open(verify_playbook_path, "w") as playbook_file:
@@ -1349,15 +1349,15 @@ def run_playbook_configdevice():
         data = request.json
         # สร้าง SSH connection, run playbook, etc.
         ssh, username = create_ssh_connection()
-        playbook_path = f"/home/{username}/playbook/configdevice_playbook.yml"
-        inventory_path = f"/home/{username}/inventory/inventory.ini"
+        playbook_path = f"/app/playbook/configdevice_playbook.yml"
+        inventory_path = f"/app/inventory/inventory.ini"
 
         stdin, stdout, stderr = ssh.exec_command(f"ansible-playbook -i {inventory_path} {playbook_path}")
         output = stdout.read().decode('utf-8')
         errors = stderr.read().decode('utf-8')
 
         playbook_content = sh_config_device(data)
-        verify_playbook_path = f"/home/{username}/playbook/verify_playbook.yml"
+        verify_playbook_path = f"/app/playbook/verify_playbook.yml"
 
         sftp = ssh.open_sftp()
         with sftp.open(verify_playbook_path, "w") as playbook_file:
@@ -1392,8 +1392,8 @@ def run_playbook_switchhost():
 
         # Create SSH connection
         ssh, username = create_ssh_connection()
-        playbook_path = f"/home/{username}/playbook/multi_links_playbook.yml"
-        inventory_path = f"/home/{username}/inventory/inventory.ini"
+        playbook_path = f"/app/playbook/multi_links_playbook.yml"
+        inventory_path = f"/app/inventory/inventory.ini"
 
         # Execute the first playbook
         stdin, stdout, stderr = ssh.exec_command(
@@ -1404,7 +1404,7 @@ def run_playbook_switchhost():
 
         # Generate playbook content using sh_run_int by passing the data from the frontend.
         playbook_content = sh_sw_host(data)
-        verify_playbook_path = f"/home/{username}/playbook/verify_playbook.yml"
+        verify_playbook_path = f"/app/playbook/verify_playbook.yml"
 
         # Write the generated playbook content to the file on the remote host
         sftp = ssh.open_sftp()
@@ -1446,15 +1446,15 @@ def run_playbook_switchrouter():
 
         # สร้าง SSH connection, run playbook, etc.
         ssh, username = create_ssh_connection()
-        playbook_path = f"/home/{username}/playbook/multi_links_playbook.yml"
-        inventory_path = f"/home/{username}/inventory/inventory.ini"
+        playbook_path = f"/app/playbook/multi_links_playbook.yml"
+        inventory_path = f"/app/inventory/inventory.ini"
 
         stdin, stdout, stderr = ssh.exec_command(f"ansible-playbook -i {inventory_path} {playbook_path}")
         output = stdout.read().decode('utf-8')
         errors = stderr.read().decode('utf-8')
 
         playbook_content = sh_router_switch(data)  # สมมติว่าฟังก์ชันนี้ return playbook content ที่ต้องการ
-        verify_playbook_path = f"/home/{username}/playbook/verify_playbook.yml"
+        verify_playbook_path = f"/app/playbook/verify_playbook.yml"
 
         sftp = ssh.open_sftp()
         with sftp.open(verify_playbook_path, "w") as playbook_file:
@@ -1580,8 +1580,8 @@ def create_playbook_check_lab():
 
         # 4) เขียน playbook ลงไฟล์บนเซิร์ฟเวอร์ผ่าน SSH
         ssh, username = create_ssh_connection()
-        playbook_path = f"/home/{username}/playbook/custom_lab_check.yml"
-        inventory_path = f"/home/{username}/inventory/inventory.ini"
+        playbook_path = f"/app/playbook/custom_lab_check.yml"
+        inventory_path = f"/app/inventory/inventory.ini"
         
         sftp = ssh.open_sftp()
         with sftp.open(playbook_path, "w") as playbook_file:

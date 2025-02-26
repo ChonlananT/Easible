@@ -1,10 +1,11 @@
 import psycopg2
+import os
 
 DB_CONFIG = {
-    "host": "127.0.0.1",  # แทนที่ด้วย IP Address ของ VM
-    "database": "custom_lab",
-    "user":"suphanath",
-    "password":"Admin!1234"
+    "host": os.getenv("DB_HOST", "127.0.0.1"),
+    "database": os.getenv("CUSTOM_DB_NAME", "custom_lab"),
+    "user": os.getenv("DB_USER", "admin"),
+    "password": os.getenv("DB_PASSWORD", "P@ssw0rd")
 }
 
 # ฟังก์ชันสำหรับเชื่อมต่อฐานข้อมูล
