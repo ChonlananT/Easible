@@ -66,7 +66,6 @@ function OutputWithDiff({ actual, expected, diff }) {
                 style={{
                   color: "red",
                   fontStyle: "italic",
-                  marginLeft: "20px",
                 }}
               >
                 Expected: {expLine}
@@ -167,13 +166,12 @@ function Lab() {
     return (
       <div style={{ fontFamily: "monospace", whiteSpace: "pre-wrap" }}>
         {diff.map((entry, idx) => (
-          <div key={idx} style={{ marginBottom: "10px" }}>
+          <div key={idx} style={{ marginBottom: "10px", padding: "10px", border: "1px solid #ccc", borderRadius: "6px", backgroundColor:"#F5F6FA" }}>
             <div style={{ color: "#FE4141" }}>Actual: {entry.actual}</div>
             <div
               style={{
                 color: "#949292",
                 fontStyle: "italic",
-                marginLeft: "20px",
               }}
             >
               Expected: {entry.expected}
@@ -865,10 +863,10 @@ function Lab() {
         {/* Modal สำหรับ Check Lab Result */}
         {isCheckModalOpen && (
           <div className="popup-overlay">
-            <div className="popup-content-lab">
+            <div className="popup-content-lab" style={{ height: isLoading ? "92%" : "auto" }}>
               <h2>Check Lab Result</h2>
               {isLoading ? (
-                <div className="loading-container">
+                <div className="loading-container" >
                   <div className="spinner-lab" />
                   <p>Loading...</p>
                 </div>
