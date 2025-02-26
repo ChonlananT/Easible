@@ -367,7 +367,7 @@ function ConfigDevice() {
             <div className="popup-overlay">
               <div className="popup-preview">
                 <h2 className="summary-title">
-                ResultEIEI{" "}
+                Result{" "}
                   <span
                     style={{
                       color:
