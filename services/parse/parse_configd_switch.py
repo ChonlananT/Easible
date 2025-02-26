@@ -155,7 +155,6 @@ def parse_configd(big_output):
                 continue
             if vid not in vlans_dict:
                 vlans_dict[vid] = {"vlan_id": vid}
-        print(f"DEBUG: Raw VLAN dict for host {hostname}:", json.dumps(vlans_dict, indent=2))
         # (c) Process STP detail (bridge/root info) from the third array.
         stp_text = "\n".join(stp_arr)
         stp_details = {}
@@ -176,7 +175,6 @@ def parse_configd(big_output):
         for vid, detail in stp_details.items():
             if vid in vlans_dict:
                 vlans_dict[vid]["stp_detail"] = detail
-        print(f"DEBUG: VLAN dict after merging STP for host {hostname}:", json.dumps(vlans_dict, indent=2))
         
         # (d) Process STP interface blocks from the entire STP text.
         for block in vlan_stp_block_pattern.finditer(stp_text):

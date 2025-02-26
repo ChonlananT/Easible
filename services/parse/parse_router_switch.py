@@ -40,6 +40,5 @@ def parse_router_switch(log_text):
                 'subnet': subnet
             }
         results.append(result)
-        print(result)
     
     return results

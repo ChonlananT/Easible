@@ -29,5 +29,4 @@ def parse_dashboard(output):
             elif status == "fatal":
                 parsed_data["fatal"].append(device)
 
-    print(parsed_data)
     return parsed_data

@@ -255,7 +255,7 @@ def show_interface_brief_router():
 
         # Parse the interface data
         parsed_result = parse_interface(output)
-        print(parse_result)
+        
         ssh.close()
 
         # Return the structured data
@@ -733,7 +733,6 @@ def create_playbook_configdevice():
                 parsed_result = cmd.get("parsed_result")
                 if not parsed_result:
                     return jsonify({"error": "Missing parsed configuration data."}), 400
-                print(f"🟢 [Backend] Processing Bridge Priority for {host}: VLAN {vlan}, Priority {priority}")
 
                 stp_result = recalc_stp(parsed_result, vlan, host, priority)
                 response_data["stp_result"].extend(stp_result)
@@ -848,7 +847,6 @@ def create_playbook_configdevice():
                 return jsonify({"error": f"Unsupported command type '{cmd_type}'."}), 400
 
         # 3) Write the combined playbook to a file on the server and optionally execute it
-        print("🟢 [Backend] Sending STP Results:", json.dumps(response_data["stp_result"], indent=2))
 
         ssh, username = create_ssh_connection()
         playbook_path = f"/home/{username}/playbook/configdevice_playbook.yml"
@@ -907,7 +905,7 @@ def show_configd():
         stdin, stdout, stderr = ssh.exec_command(ansible_command)
         output = stdout.read().decode("utf-8")
         error = stderr.read().decode("utf-8")
-        print(output)
+       
 
         # เลือก parse output ตามประเภทของ device
         if device_type == "switch":
@@ -1370,12 +1368,11 @@ def run_playbook_configdevice():
         verify_output = stdout.read().decode('utf-8')
         verify_errors = stderr.read().decode('utf-8')
         ssh.close()
-        print(verify_output)
+        
         parsed_result = parse_config_device(verify_output)
-        print(parsed_result)
+       
         comparison = compare_config_device(data, parsed_result)
-        print("Comparison:")
-        print(comparison)
+        
 
         return jsonify({
             "comparison": comparison
@@ -1601,7 +1598,7 @@ def create_playbook_check_lab():
         # 6) แยกผลลัพธ์จาก task "Display" ด้วย regex (โดยสมมุติว่ามีฟังก์ชัน parse_ansible_output อยู่)
         parsed_output = parse_ansible_output(ansible_output)
         compare_result = compare_expected_outputs(parsed_output, lab_commands)
-        print(compare_result)
+        
 
         # 7) ส่งผลลัพธ์กลับไปยัง Frontend
         return jsonify({

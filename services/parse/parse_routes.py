@@ -122,6 +122,5 @@ def parse_routes(data):
 
         results[host] = host_routes
 
-    print(results)
     return results
 

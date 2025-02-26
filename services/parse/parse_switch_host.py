@@ -33,5 +33,4 @@ def parse_switch_host(output):
             "subnet_mask": subnet_mask
         })
     
-    print(results)
     return results
