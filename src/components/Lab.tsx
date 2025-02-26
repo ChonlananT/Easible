@@ -168,10 +168,10 @@ function Lab() {
       <div style={{ fontFamily: "monospace", whiteSpace: "pre-wrap" }}>
         {diff.map((entry, idx) => (
           <div key={idx} style={{ marginBottom: "10px" }}>
-            <div style={{ color: "green" }}>Actual: {entry.actual}</div>
+            <div style={{ color: "#FE4141" }}>Actual: {entry.actual}</div>
             <div
               style={{
-                color: "red",
+                color: "#949292",
                 fontStyle: "italic",
                 marginLeft: "20px",
               }}
@@ -876,7 +876,16 @@ function Lab() {
                 <div>
                   {Object.keys(checkResults.comparison.details.unmatch).length > 0 ? (
                       <div>
-                        <h3 style={{ color: "red" }}>Unmatched</h3>
+                        {/* Add the image from the public folder */}
+                        <img 
+                            src="/Lab_Unmatched.png" 
+                            alt="Lab Unmatched" 
+                            style={{ maxWidth: "25%", marginBottom: "15px" ,display: "block", 
+                              marginLeft: "auto", 
+                              marginRight: "auto" }}
+                          />
+                        <h3 style={{ color: "#FE4141", textAlign: "center" }}>Unmatched</h3>
+                        
                         {Object.entries(
                           checkResults.comparison.details.unmatch
                         ).map(([hostname, details]) => (
@@ -894,7 +903,15 @@ function Lab() {
                         ))}
                       </div>
                     ):(
-                      <p>💩</p>
+                      <div>
+                        <img 
+                          src="/Lab_Match.png" 
+                          alt="Lab Match" 
+                          style={{ maxWidth: "25%", marginBottom: "15px", display: "block", marginLeft: "auto", marginRight: "auto" }}
+                        />
+                        <h3 style={{ color: "#6ABD65", textAlign: "center" }}>All Matched</h3>
+                        <p style={{ color: "#a6a4a4", textAlign: "center" }}>The lab configuration is verified and correct</p>
+                      </div>
                     )}
                   <div style={{ display: "flex", justifyContent: "flex-end" }}>
                     <button
