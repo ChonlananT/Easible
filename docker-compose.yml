@@ -1,0 +1,61 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:16
+    container_name: db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: P@ssw0rd
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - mynetwork
+
+  ansible:
+    build: ./ansible
+    container_name: ansible
+    ports:
+      - "22:22"         # เปิด SSH port
+    networks:
+      - mynetwork
+    depends_on:
+      - db
+
+  backend:
+    build: ./backend
+    container_name: backend
+    environment:
+      SSH_HOST: ansible
+      SSH_PORT: 22
+      SSH_USERNAME: admin
+      SSH_PASSWORD: P@ssw0rd
+      DB_HOST: db
+      DB_NAME: inventory
+      DB_USER: admin
+      DB_PASSWORD: P@ssw0rd
+      CUSTOM_DB_NAME: custom_lab
+    networks:
+      - mynetwork
+    depends_on:
+      - db
+      - ansible
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    networks:
+      - mynetwork
+    depends_on:
+      - backend
+
+networks:
+  mynetwork:
+    driver: bridge
+
+volumes:
+  pgdata:
