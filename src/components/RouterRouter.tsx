@@ -697,6 +697,7 @@ function RouterRouter() {
             <button
               onClick={handleAddLink}
               className={`button-sw-sw-add ${loading ? "loading" : ""}`}
+              disabled={loading}
             >
               {loading ? (
                 <>
@@ -712,9 +713,14 @@ function RouterRouter() {
         </div>
 
         <div className="submit-sw-sw-container">
-          <button className="button-sw-sw-submit" onClick={handleSubmitAll}>
+          <button
+            className="button-sw-sw-submit"
+            onClick={handleSubmitAll}
+            disabled={loading}
+          >
             Verify
           </button>
+
           {/* Popup Summary */}
           {!error && showPopup && (
             <div className="popup-overlay">

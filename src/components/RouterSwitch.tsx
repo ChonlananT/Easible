@@ -554,6 +554,7 @@ function SwitchRouter() {
             <button
               onClick={handleAddLink}
               className={`button-sw-sw-add ${loading ? 'loading' : ''}`}
+              disabled={loading}
             >
               {loading ? (
                 <>
@@ -865,7 +866,7 @@ function SwitchRouter() {
         )}
 
         <div className="submit-sw-sw-container">
-          <button className="button-sw-sw-submit" onClick={handleSubmitAll}>
+          <button className="button-sw-sw-submit" onClick={handleSubmitAll} disabled={loading}>
             Verify
           </button>
         </div>

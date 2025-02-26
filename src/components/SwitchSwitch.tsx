@@ -764,7 +764,7 @@ function SwitchSwitch() {
 
           <div className="line-container">
             <div className="line"></div>
-            <button onClick={handleAddLink} className={`button-sw-sw-add ${loading ? 'loading' : ''}`}>
+            <button onClick={handleAddLink} className={`button-sw-sw-add ${loading ? 'loading' : ''} `} disabled={loading}>
               {loading ? (
                 <>
                   <Spinner color="white" size="small" />
@@ -783,6 +783,7 @@ function SwitchSwitch() {
             onClick={() => {
               handleSubmitAll();
             }}
+            disabled={loading}
           >
             Verify
           </button>

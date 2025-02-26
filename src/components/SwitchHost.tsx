@@ -407,7 +407,7 @@ function SwitchHost() {
                                 value={link.selectedHost}
                               >
                                 <option value="">-- Select a Host --</option>
-                                <option value="test">test</option>
+        
                                 {!loading &&
                                   hosts.map((host) => (
                                     <option key={host.hostname} value={host.hostname}>
@@ -515,7 +515,7 @@ function SwitchHost() {
 
           <div className="line-container">
             <div className="line"></div>
-            <button className={`button-sw-sw-add ${loading ? 'loading' : ''}`} onClick={handleAddLink}>
+            <button className={`button-sw-sw-add ${loading ? 'loading' : ''}`} onClick={handleAddLink} disabled={loading}>
               {loading ? (
                 <>
                   <Spinner color="white" size="small" />
@@ -530,7 +530,7 @@ function SwitchHost() {
         </div>
 
         <div className="submit-sw-sw-container">
-          <button className="button-sw-sw-submit" onClick={handleSubmitAll}>
+          <button className="button-sw-sw-submit" onClick={handleSubmitAll} disabled={loading}>
             Verify
           </button>
         </div>

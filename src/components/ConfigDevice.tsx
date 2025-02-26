@@ -863,8 +863,7 @@ function ConfigDevice() {
         const bridge = link.bridgePriority;
         if (!bridge || bridge.vlan === 0) {
           setError(
-            `Please fill all required Bridge Priority fields for entry ${i + 1
-            }.`
+            `Please fill all required Bridge Priority fields (VLAN, Priority)`
           );
           return;
         }
@@ -879,7 +878,7 @@ function ConfigDevice() {
           !configIp.cidr
         ) {
           setError(
-            `Please fill all required Config IP fields for entry ${i + 1}.`
+            `Please fill all required Config IP fields (Interface, IP Adress, Subnet)`
           );
           return;
         }
@@ -889,7 +888,7 @@ function ConfigDevice() {
         const loopback = link.loopbackData;
         if (!loopback || !loopback.loopbackNumber || !loopback.ipAddress || !loopback.activateProtocol) {
           setError(
-            `Please fill all required Loopback fields for entry ${i + 1}.`
+            `Please fill all required Loopback fields (LoopbackID, IP Adress, Protocol Activation)`
           );
           return;
         }
@@ -904,7 +903,7 @@ function ConfigDevice() {
           !static_route.nextHop
         ) {
           setError(
-            `Please fill all required Static route fields for entry ${i + 1}.`
+            `Please fill all required Static Route fields (Prefix, Subnet, Next Hop)`
           );
           return;
         }
@@ -1010,7 +1009,7 @@ function ConfigDevice() {
       if (link.selectedCommand === "vlan") {
         const vlan = link.vlanData;
         if (!vlan || !vlan.vlanId) {
-          setError(`Please fill all required VLAN fields for entry ${i + 1}.`);
+          setError(`Please fill all required VLAN fields (VLAN ID)`);
           return;
         }
       }
@@ -1019,8 +1018,7 @@ function ConfigDevice() {
         const bridge = link.bridgePriority;
         if (!bridge || bridge.vlan === 0) {
           setError(
-            `Please fill all required Bridge Priority fields for entry ${i + 1
-            }.`
+            `Please fill all required Bridge Priority fields (VLAN, Priority)`
           );
           return;
         }
@@ -1035,7 +1033,7 @@ function ConfigDevice() {
           !configIp.cidr
         ) {
           setError(
-            `Please fill all required Config IP fields for entry ${i + 1}.`
+            `Please fill all required Config IP fields (Interface, IP Adress, Subnet)`
           );
           return;
         }
@@ -1045,7 +1043,7 @@ function ConfigDevice() {
         const loopback = link.loopbackData;
         if (!loopback || !loopback.loopbackNumber || !loopback.ipAddress || !loopback.activateProtocol) {
           setError(
-            `Please fill all required Loopback fields for entry ${i + 1}.`
+            `Please fill all required Loopback fields (LoopbackID, IP Adress, Protocol Activation)`
           );
           return;
         }
@@ -1060,7 +1058,7 @@ function ConfigDevice() {
           !staticRoute.nextHop
         ) {
           setError(
-            `Please fill all required Static Route fields for entry ${i + 1}.`
+            `Please fill all required Static Route fields (Prefix, Subnet, Next Hop)`
           );
           return;
         }
@@ -1628,22 +1626,50 @@ function ConfigDevice() {
                         <div className="loopback-config-content" style={{ width: '95%', marginTop: '10px' }}>
                           <div className="config-device-input-text">
                             <label>Loopback ID:</label>
-                            <input
-                              type="number"
-                              value={link.loopbackData.loopbackNumber === 0 ? "" : link.loopbackData.loopbackNumber}
-                              onChange={(e) => {
-                                const value = parseInt(e.target.value, 10);
+                            <input type="text"
+                                /* Tells mobile keyboards to show only digits */
+                                inputMode="numeric"
+                                /* Basic HTML pattern for digits only (fallback for some browsers) */
+                                pattern="[0-9]*"
+                                value={
+                                  link.loopbackData.loopbackNumber === 0
+                                    ? ""
+                                    : link.loopbackData.loopbackNumber
+                                }
+                                onKeyPress={(e) => {
+                                  // Disallow any character that's not a digit (0-9)
+                                  if (!/[0-9]/.test(e.key)) {
+                                    e.preventDefault();
+                                  }
+                                }}
+                                onChange={(e) => {
+                                  let { value } = e.target;
                                   
-                                    // Ensure value is within 1-1005 or reset it
-                                    if (isNaN(value) || (value >= 0 && value <= 2147483647)) {
-                                handleHostChange(
-                                  index,
-                                  { group: "loopbackData", key: "loopbackNumber" },
-                                  e.target.value
-                                )}
-                              }}
-                              placeholder="Enter Loopback ID"
-                            />
+                                  // 1. If user clears the input, store empty:
+                                  if (value === "") {
+                                    handleHostChange(index, { group: "loopbackData", key: "loopbackNumber" }, "");
+                                    return;
+                                  }
+                                  
+                                  // 2. Parse the string as an integer:
+                                  let parsed = parseInt(value, 10);
+                                  
+                                  // 3. Clamp the parsed value to 0–2147483647
+                                  if (parsed > 2147483647) {
+                                    parsed = 2147483647;
+                                  } else if (parsed < 0) {
+                                    parsed = 0;
+                                  }
+                                  
+                                  // 4. Convert to string to remove leading zeros
+                                  //    If the user typed multiple zeros like "000", it becomes "0"
+                                  const sanitized = parsed.toString();
+                                  
+                                  handleHostChange(index, { group: "loopbackData", key: "loopbackNumber" }, sanitized);
+                                }}
+                                placeholder="Enter Loopback ID (e.g., 0-2147483647)"
+                                />
+
                           </div>
 
                           <div className="config-device-input-text">
@@ -1691,7 +1717,7 @@ function ConfigDevice() {
                           <div className="loopback-config-content">
                             <div style={{ display: 'flex' }}>
                               <div className="config-device-input-text" style={{ width: '60%' }}>
-                                <label>Prefix:</label>
+                                <label>Destination Prefix:</label>
                                 <input
                                   type="text"
                                   value={link.staticRouteData.prefix}
@@ -1702,7 +1728,7 @@ function ConfigDevice() {
                                       e.target.value
                                     )
                                   }
-                                  placeholder="Enter Prefix"
+                                  placeholder="Enter Destination Prefix"
                                 />
                               </div>
                               <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -1755,6 +1781,7 @@ function ConfigDevice() {
             <button
               onClick={handleAddHost}
               className={`button-sw-sw-add ${loading ? "loading" : ""}`}
+              disabled={loading}
             >
               {loading ? (
                 <>
