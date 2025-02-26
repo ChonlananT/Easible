@@ -366,7 +366,17 @@ function ConfigDevice() {
           return (
             <div className="popup-overlay">
               <div className="popup-preview">
-                <h2 className="summary-title">Result</h2>
+                <h2 className="summary-title">
+                Result{" "}
+                  <span
+                    style={{
+                      color:
+                        resultData.comparison[0].match === true ? "#6ABD65" : "#FE4141",
+                    }}
+                  >
+                    {resultData.comparison[0].match === true ? "Matched" : "Unmatched"}
+                  </span>
+                </h2>
                 <div className="summary-content-cd">
                   {sortedResults.map((sw, index) => (
                     <div key={index} className="switch-card">
