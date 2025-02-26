@@ -7,7 +7,7 @@ RUN apt-get update && \
 
 WORKDIR /app
 # Clone repository จาก GitHub โดยใช้ branch "Backend"
-RUN git clone -b Backend https://github.com/ChonlananT/AnsibleAWX_Project.git .
+RUN git clone -b Backend https://github.com/ChonlananT/Easible.git .
 
 RUN pip install --no-cache-dir -r requirements.txt
 

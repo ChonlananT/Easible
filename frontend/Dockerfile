@@ -7,7 +7,7 @@ RUN apk update && apk add --no-cache git
 WORKDIR /app
 
 # Clone repository จาก GitHub โดยใช้ branch "Frontend"
-RUN git clone -b Frontend https://github.com/ChonlananT/AnsibleAWX_Project.git .
+RUN git clone -b Frontend https://github.com/ChonlananT/Easible.git .
 
 # คัดลอก package.json (และ package-lock.json ถ้ามี) แล้วติดตั้ง dependencies
 # (ในกรณีนี้ไฟล์ package*.json ถูก clone มาพร้อมกับ source code)
