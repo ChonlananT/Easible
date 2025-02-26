@@ -14,7 +14,7 @@ def netmask_to_cidr(mask):
 
 def compare_field(field_name, frontend_val, backend_val, diff):
     # For fields like 'cidr', normalize both values to integers for comparison.
-    if field_name == "cidr":
+    if field_name in ["cidr", "vlanId"]:
         try:
             frontend_val = int(frontend_val)
         except Exception:
@@ -23,7 +23,7 @@ def compare_field(field_name, frontend_val, backend_val, diff):
             backend_val = int(backend_val)
         except Exception:
             pass
-    if not frontend_val:
+    if frontend_val is None:
         return True
     if frontend_val != backend_val:
         diff[field_name] = {"frontend": frontend_val, "backend": backend_val}
