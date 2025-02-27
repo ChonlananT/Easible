@@ -172,6 +172,7 @@ function ConfigDevice() {
     // Close the popup by updating the state.
     setBridgeOpen(false);
     setResultData(null);
+    setIsLoadingRootInfo(true);
     // Fetch new data.
     try {
       const response = await fetch("/api/show_detail_configdevice", {
@@ -1563,16 +1564,19 @@ function ConfigDevice() {
                                       <div className="spinner-lab" />
                                       <p>Loading root info...</p>
                                     </div>
-                                  ) : rootInfo ? (
-                                    <div style={{ marginTop: "8px", fontWeight: "bold" }}>
-                                      Current root: {rootInfo.hostname} | Root Priority: {rootInfo.priority}
-                                    </div>
-                                  ) : null}
-
-                                  {hostPriority && (
-                                    <div style={{ marginTop: "8px" }}>
-                                      Your device's priority: {hostPriority}
-                                    </div>
+                                  ) : (
+                                    <>
+                                      {rootInfo && (
+                                        <div style={{ marginTop: "8px", fontWeight: "bold" }}>
+                                          Current root: {rootInfo.hostname} | Root Priority: {rootInfo.priority}
+                                        </div>
+                                      )}
+                                      {hostPriority && (
+                                        <div style={{ marginTop: "8px" }}>
+                                          Your device's priority: {hostPriority}
+                                        </div>
+                                      )}
+                                    </>
                                   )}
                                 </>
                               );
