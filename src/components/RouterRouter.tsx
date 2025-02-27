@@ -6,7 +6,7 @@ import "./Lab.css";
 import NetworkTopology from "./NetworkTopology(Router).tsx";
 import Navbar from "./Navbar.tsx";
 import Spinner from "./bootstrapSpinner.tsx";
-import { ArrowLeftFromLine, ChevronDown, Menu } from "lucide-react";
+import { ArrowLeftFromLine, ChevronDown, Menu, RefreshCcw } from "lucide-react";
 
 type DropdownOption = {
   hostname: string;
@@ -84,7 +84,7 @@ function RouterRouter() {
   }, [isNavOpen]);
 
   // useEffect: ดึงข้อมูล Hosts/Interfaces จาก backend
-  useEffect(() => {
+    const fetchRouter = () => {
     setLoading(true);
     fetch("/api/show_detail_router", {
       method: "POST",
@@ -126,6 +126,9 @@ function RouterRouter() {
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
+  };
+  useEffect(() => {
+    fetchRouter();
   }, []);
 
   // ฟังก์ชันดึง interfaces ของ host
@@ -333,7 +336,10 @@ function RouterRouter() {
     <div className="App">
       <Navbar isNavOpen={isNavOpen} setIsNavOpen={setIsNavOpen} />
       <div className={`content ${isNavOpen ? "expanded" : "full-width"}`}>
-        <div className="content-topic">
+        <div className="content-topic"
+          style={{ display:"flex", justifyContent:"space-between"}}
+          >
+         <div>
           {!isNavOpen && (
             <button
               style={{
@@ -352,6 +358,25 @@ function RouterRouter() {
           )}
           Configuration
           <span className="content-topic-small"> (Router-Router)</span>
+          </div>
+          <button
+            onClick={fetchRouter}
+            style={{
+              display: "flex",
+              fontSize: "16px",
+              gap: "10px",
+              alignItems: "center",
+              paddingRight: "50px",
+              paddingTop: "20px",
+              border: "none",
+              background: "none",
+              cursor: "pointer",
+              color: "#6A6A6A",
+            }}
+            disabled = {loading}
+          >
+            <RefreshCcw /> Refresh
+          </button>
         </div>
         <div className="content-board">
           <div className="all-links">

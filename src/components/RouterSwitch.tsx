@@ -4,7 +4,7 @@ import './Lab.css';
 import './Bar.css';
 import './SwitchSwitch.css';
 import Spinner from './bootstrapSpinner.tsx';
-import { ArrowLeftFromLine, ChevronDown, CircleMinus, Menu } from 'lucide-react';
+import { ArrowLeftFromLine, ChevronDown, CircleMinus, Menu, RefreshCcw } from 'lucide-react';
 import Navbar from "./Navbar.tsx";
 
 type DropdownOption = {
@@ -65,7 +65,7 @@ function SwitchRouter() {
   }, [isNavOpen]);
 
   // Fetch data from backend
-  useEffect(() => {
+  const fetchRouterSwitch = () => {
     setLoading(true);
     fetch('/api/show_detail_swtort', {
       method: 'POST',
@@ -101,7 +101,11 @@ function SwitchRouter() {
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, []);
+  };
+  useEffect(() => {
+    fetchRouterSwitch();
+  }
+  , []);
 
   // Retrieve interfaces for a given host by hostname
   const getInterfacesForHost = (hostname: string) => {
@@ -313,24 +317,44 @@ function SwitchRouter() {
     <div className="App">
       <Navbar isNavOpen={isNavOpen} setIsNavOpen={setIsNavOpen} />
       <div className={`content ${isNavOpen ? 'expanded' : 'full-width'}`}>
-        <div className="content-topic">
+      <div className="content-topic" style={{ display: "flex", justifyContent: "space-between" }}>
+          <div>
           {!isNavOpen && (
-            <button
-              style={{
-                padding: '8px',
-                color: 'black',
-                borderRadius: '8px',
-                zIndex: 50,
-                border: 'none',
-                background: 'white',
-                marginRight: '8px',
-              }}
-              onClick={() => setIsNavOpen(true)}
-            >
-              <Menu size={24} />
-            </button>
-          )}
-          Configuration <span className="content-topic-small">(Router-Switch)</span>
+              <button
+                style={{
+                  padding: '8px',
+                  color: 'black',
+                  borderRadius: '8px',
+                  zIndex: 50,
+                  border: 'none',
+                  background: 'white',
+                  marginRight: '8px',
+                }}
+                onClick={() => setIsNavOpen(true)}
+              >
+                <Menu size={24} />
+              </button>
+            )}
+            Configuration <span className="content-topic-small">(Router-Switch)</span>
+          </div> 
+          <button
+            onClick={fetchRouterSwitch}
+            style={{
+              color: "#6a6a6a",
+              display: "flex",
+              fontSize: "16px",
+              gap: "10px",
+              alignItems: "center",
+              paddingRight: "50px",
+              paddingTop: "20px",
+              border: "none",
+              background: "none",
+              cursor: "pointer",
+            }}
+            disabled={loading}
+          >
+            <RefreshCcw /> Refresh
+          </button>
         </div>
         <div className="content-board">
           <div className="all-links">
