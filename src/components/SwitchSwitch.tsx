@@ -512,7 +512,7 @@ function SwitchSwitch() {
                     <h1 style={{ fontSize: '38px' }}>Result</h1>
                     <div className="loading-container">
                       <div className="spinner-lab" />
-                      <p>Loading...</p>
+                      <p>Applying Configuration...</p>
                     </div>
                   </div>
                 ) : backendResult ? (

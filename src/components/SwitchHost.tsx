@@ -597,7 +597,7 @@ function SwitchHost() {
                 <div style={{ height: "100%" }}>
                   <div className="loading-container">
                     <div className="spinner-lab" />
-                    <p>Loading...</p>
+                    <p>Applying Configuration...</p>
                   </div>
                 </div>
               ) : resultData ? (
