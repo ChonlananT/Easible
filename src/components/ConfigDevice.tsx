@@ -173,12 +173,16 @@ function ConfigDevice() {
     setResultData(null);
     // Fetch new data.
     try {
-      const response = await fetch("/api/show_detail_configdevice");
+      const response = await fetch("/api/show_detail_configdevice", {
+        method: "POST", // Use POST as the endpoint likely requires
+        headers: { "Content-Type": "application/json" },
+        // Include a body if the endpoint expects one (adjust as needed)
+        body: JSON.stringify({})
+      });
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
       const newData = await response.json();
-      // Update your result data with the new data.
       setResultData(newData);
     } catch (error) {
       console.error("Error fetching detail config device:", error);
