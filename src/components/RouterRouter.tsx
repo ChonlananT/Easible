@@ -379,6 +379,7 @@ function RouterRouter() {
           </button>
         </div>
         <div className="content-board">
+          {loading && (
           <div className="all-links">
             {links.map((link, index) => (
               <div key={index} className="switch-switch">
@@ -710,6 +711,7 @@ function RouterRouter() {
               </div>
             ))}
           </div>
+          )}
 
           <div className="line-container">
             <div className="line"></div>

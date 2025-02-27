@@ -396,6 +396,7 @@ function SwitchHost() {
           </button>
         </div>
         <div className="content-board">
+          {loading && (
           <div className="all-links-swh">
             {links.map((link, linkIndex) => (
               <div key={linkIndex} className="switch-switch">
@@ -535,6 +536,7 @@ function SwitchHost() {
               </div>
             ))}
           </div>
+        )}
 
           <div className="line-container">
             <div className="line"></div>

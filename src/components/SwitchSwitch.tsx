@@ -348,6 +348,7 @@ function SwitchSwitch() {
           </button>
         </div>
         <div className="content-board">
+          {loading && (
           <div className="all-links">
             {links.map((link, index) => {
               const commonVlans = getCommonVlans(link);
@@ -525,7 +526,7 @@ function SwitchSwitch() {
               );
             })}
           </div>
-
+          )}
           {/* Popup for Summary/Confirm */}
           {isShowPopup && (
             <div className="popup-overlay">
