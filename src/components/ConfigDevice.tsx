@@ -193,7 +193,6 @@ function ConfigDevice() {
       combineHostsData();
 
       // Optionally, if you want to store the new result data:
-      setResultData(newData);
       } catch (error) {
         console.error("Error fetching detail config device:", error);
     }
