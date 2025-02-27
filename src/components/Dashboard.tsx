@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Menu } from "lucide-react";
+import { Menu, RefreshCcw } from "lucide-react";
 import "./Bar.css";
 import "./Dashboard.css";
 import "./Lab.css";
@@ -105,7 +105,7 @@ function Dashboard() {
     localStorage.setItem("isNavOpen", isNavOpen.toString());
   }, [isNavOpen]);
 
-  useEffect(() => {
+  const fetchDashboard = () => {
     setLoading(true);
     fetch("/api/dashboard", {
       method: "POST",
@@ -120,6 +120,10 @@ function Dashboard() {
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchDashboard();
   }, []);
 
   let onlineDevices: {
@@ -182,13 +186,38 @@ function Dashboard() {
     <div className="App">
       <Navbar isNavOpen={isNavOpen} setIsNavOpen={setIsNavOpen} />
       <div className={`content ${isNavOpen ? "expanded" : "full-width"}`}>
-        <div className="content-topic">
-          {!isNavOpen && (
-            <button className="nav-open-btn" onClick={() => setIsNavOpen(true)}>
-              <Menu size={24} />
-            </button>
-          )}
-          Dashboard
+      <div
+          className="content-topic"
+          style={{ display: "flex", justifyContent: "space-between" }}
+        >
+          <div>
+            {!isNavOpen && (
+              <button
+                className="nav-open-btn"
+                onClick={() => setIsNavOpen(true)}
+              >
+                <Menu size={24} />
+              </button>
+            )}
+            Dashboard
+          </div>
+          {/* Refresh button that triggers data re-fetch */}
+          <button
+            onClick={fetchDashboard}
+            style={{
+              display: "flex",
+              fontSize: "16px",
+              gap: "10px",
+              alignItems: "center",
+              paddingRight: "50px",
+              paddingTop: "20px",
+              border: "none",
+              background: "none",
+              cursor: "pointer",
+            }}
+          >
+            <RefreshCcw /> Refresh
+          </button>
         </div>
 
         {loading ? (
