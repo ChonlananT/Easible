@@ -362,12 +362,10 @@ def create_playbook():
 """
             if switchport_mode == "access":
                 playbook_content += f"""        - no switchport trunk allowed vlan
-        - no switchport mode trunk
         - switchport mode access
 """
             else:  # trunk mode
-                playbook_content += f"""        - no switchport mode access
-        - no switchport access vlan
+                playbook_content += f"""        - no switchport access vlan
         - switchport mode trunk
 """
                 if vlans:
@@ -392,12 +390,10 @@ def create_playbook():
 """
             if switchport_mode == "access":
                 playbook_content += f"""        - no switchport trunk allowed vlan
-        - no switchport mode trunk
         - switchport mode access
 """
             else:
-                playbook_content += f"""        - no switch mode access
-        - no switchport access vlan
+                playbook_content += f"""        - no switchport access vlan
         - switchport mode trunk
 """
                 if vlans:
@@ -1314,7 +1310,7 @@ def run_playbook_routerrouter():
         output = stdout.read().decode('utf-8')
         errors = stderr.read().decode('utf-8')
 
-        time.sleep(3) # add delay to wait for the playbook to complete
+        time.sleep(5) # add delay to wait for the protocol update
 
         playbook_content = sh_ip_route()  # สมมติว่าฟังก์ชันนี้ return playbook content ที่ต้องการ
         verify_playbook_path = f"/app/playbook/verify_playbook.yml"
