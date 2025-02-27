@@ -366,9 +366,9 @@ def create_playbook():
         - switchport mode access
 """
             else:  # trunk mode
-                playbook_content += f"""        - switchport mode trunk
-        - no switchport mode access
+                playbook_content += f"""        - no switchport mode access
         - no switchport access vlan
+        - switchport mode trunk
 """
                 if vlans:
                     allowed_vlans = ",".join(vlans)
@@ -396,9 +396,9 @@ def create_playbook():
         - switchport mode access
 """
             else:
-                playbook_content += f"""        - switchport mode trunk
-        -no switch mode access
-        -no switchport access vlan
+                playbook_content += f"""        - no switch mode access
+        - no switchport access vlan
+        - switchport mode trunk
 """
                 if vlans:
                     allowed_vlans = ",".join(vlans)
