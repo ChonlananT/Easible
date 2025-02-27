@@ -357,7 +357,7 @@ function SwitchRouter() {
           </button>
         </div>
         <div className="content-board">
-          {loading && (
+          {!loading && (
           <div className="all-links">
             {links.map((link, index) => (
               <div key={index} className="switch-switch">

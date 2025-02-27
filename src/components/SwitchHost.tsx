@@ -396,7 +396,7 @@ function SwitchHost() {
           </button>
         </div>
         <div className="content-board">
-          {loading && (
+          {!loading && (
           <div className="all-links-swh">
             {links.map((link, linkIndex) => (
               <div key={linkIndex} className="switch-switch">

@@ -348,7 +348,7 @@ function SwitchSwitch() {
           </button>
         </div>
         <div className="content-board">
-          {loading && (
+          {!loading && (
           <div className="all-links">
             {links.map((link, index) => {
               const commonVlans = getCommonVlans(link);
