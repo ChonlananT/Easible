@@ -167,7 +167,23 @@ function ConfigDevice() {
   const [resultData, setResultData] = useState<any>(null);
   const [selectedCommand, setSelectedCommand] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-
+  const handleClose = async () => {
+    // Close the popup by updating the state.
+    setBridgeOpen(false);
+    setResultData(null);
+    // Fetch new data.
+    try {
+      const response = await fetch("/api/show_detail_configdevice");
+      if (!response.ok) {
+        throw new Error("Network response was not ok");
+      }
+      const newData = await response.json();
+      // Update your result data with the new data.
+      setResultData(newData);
+    } catch (error) {
+      console.error("Error fetching detail config device:", error);
+    }
+  };
 
   // Commands available by device type
   const commandsByDeviceType: {
@@ -343,7 +359,7 @@ function ConfigDevice() {
                 <h2 className="summary-title">Result</h2>
                 <div className="loading-container">
                   <div className="spinner-lab" />
-                  <p>Loading...</p>
+                  <p>Applying Configuration...</p>
                 </div>
               </div>
             </div>
@@ -454,7 +470,7 @@ function ConfigDevice() {
               {isLoading ? (
                 <div className="loading-container">
                   <div className="spinner-lab" />
-                  <p>Loading...</p>
+                  <p>Applying Configuration...</p>
                 </div>
               ) : (
                 <ResultDisplay selectedCommand={selectedCommand} resultData={resultData} />
@@ -1803,10 +1819,7 @@ function ConfigDevice() {
               selectedCommand={selectedCommand}
               userInputs={links}
               result_loading={isLoading}  // pass isLoading as loading prop
-              onClose={() => {
-                setBridgeOpen(false);
-                setResultData(null);
-              }}
+              onClose={handleClose}
             />
           )}
         </div>
