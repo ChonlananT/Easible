@@ -177,15 +177,25 @@ function ConfigDevice() {
         method: "POST", // Use POST as the endpoint likely requires
         headers: { "Content-Type": "application/json" },
         // Include a body if the endpoint expects one (adjust as needed)
-        body: JSON.stringify({})
+        body: JSON.stringify({ deviceType: "switch" })
       });
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
       const newData = await response.json();
+      // Update the detailsByType for the given device type with the new data.
+      setDetailsByType((prevDetails) => ({
+        ...prevDetails,
+      switch: newData.parsed_result, // adjust if your API returns a different property
+      }));
+
+      // Recombine your host data so that combinedHosts is updated.
+      combineHostsData();
+
+      // Optionally, if you want to store the new result data:
       setResultData(newData);
-    } catch (error) {
-      console.error("Error fetching detail config device:", error);
+      } catch (error) {
+        console.error("Error fetching detail config device:", error);
     }
   };
 
