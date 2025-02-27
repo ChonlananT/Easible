@@ -178,7 +178,7 @@ function ConfigDevice() {
         headers: { "Content-Type": "application/json" },
         // Include a body if the endpoint expects one (adjust as needed)
         body: JSON.stringify({ deviceType: "switch" })
-      });
+      }).finally(()=>setBridgeOpen(false));
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
