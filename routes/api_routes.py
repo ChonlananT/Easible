@@ -684,6 +684,7 @@ def create_playbook_configdevice():
     ios_config:
       parents: interface {interface_value}
       lines:
+        - no shutdown
         - no switch mode trunk
         - no switchport trunk allowed vlan
         - switchport mode access
@@ -707,6 +708,7 @@ def create_playbook_configdevice():
     ios_config:
       parents: interface {interface_value}
       lines:
+        - no shutdown
         - no switchport mode access
         - no switchport access vlan
         - switchport mode trunk
@@ -758,6 +760,7 @@ def create_playbook_configdevice():
     ios_config:
       parents: interface {interface}
       lines:
+        - no shutdown
         - ip address {ip_address} {subnet_mask}
     when: inventory_hostname == "{host}"
 """
@@ -836,6 +839,7 @@ def create_playbook_configdevice():
   - name: "[Command#{idx}] Configure Static Route on {host}"
     ios_config:
       lines:
+        - no shutdown
         - ip route {network_static} {subnet_static} {nextHop}
     when: inventory_hostname == "{host}"
 """
