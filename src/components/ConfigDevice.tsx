@@ -167,6 +167,7 @@ function ConfigDevice() {
   const [resultData, setResultData] = useState<any>(null);
   const [selectedCommand, setSelectedCommand] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingRootInfo, setIsLoadingRootInfo] = useState(false);
   const handleClose = async () => {
     // Close the popup by updating the state.
     setBridgeOpen(false);
@@ -178,7 +179,7 @@ function ConfigDevice() {
         headers: { "Content-Type": "application/json" },
         // Include a body if the endpoint expects one (adjust as needed)
         body: JSON.stringify({ deviceType: "switch" })
-      }).finally(()=>setBridgeOpen(false));
+      });
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
@@ -195,6 +196,9 @@ function ConfigDevice() {
       // Optionally, if you want to store the new result data:
       } catch (error) {
         console.error("Error fetching detail config device:", error);
+    } finally {
+      // Done fetching root info
+      setIsLoadingRootInfo(false);
     }
   };
 
@@ -1554,17 +1558,17 @@ function ConfigDevice() {
                               );
                               return (
                                 <>
-                                  {rootInfo && (
-                                    <div
-                                      style={{
-                                        marginTop: "8px",
-                                        fontWeight: "bold",
-                                      }}
-                                    >
-                                      Current root: {rootInfo.hostname} | Root
-                                      Priority: {rootInfo.priority}
+                                  {isLoadingRootInfo ? (
+                                    <div className="loading-container">
+                                      <div className="spinner-lab" />
+                                      <p>Loading root info...</p>
                                     </div>
-                                  )}
+                                  ) : rootInfo ? (
+                                    <div style={{ marginTop: "8px", fontWeight: "bold" }}>
+                                      Current root: {rootInfo.hostname} | Root Priority: {rootInfo.priority}
+                                    </div>
+                                  ) : null}
+
                                   {hostPriority && (
                                     <div style={{ marginTop: "8px" }}>
                                       Your device's priority: {hostPriority}
