@@ -452,6 +452,28 @@
     margin-bottom: 20px;
 }
 
+.loading-container-rootbridge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 50px;
+    height: 50;
+}
+
+
+.spinner-lab-rootbridge {
+    border: 4px solid #f3f3f3;
+    /* Light grey */
+    border-top: 4px solid #3498db;
+    /* Blue */
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 10px;
+}
+
 @keyframes spin {
     0% {
         transform: rotate(0deg);

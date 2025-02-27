@@ -1561,7 +1561,7 @@ function ConfigDevice() {
                                 <>
                                   {isLoadingRootInfo ? (
                                     <div className="loading-container">
-                                      <div className="spinner-lab" />
+                                      <div className="spinner-lab-rootbridge" />
                                       <p>Loading root info...</p>
                                     </div>
                                   ) : (
