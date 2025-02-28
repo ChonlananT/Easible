@@ -1000,6 +1000,7 @@ function RouterRouter() {
                 onClick={() => {
                   setError("");
                   setShowPopup(false);
+                  setShowComparisonPopup(false);
                 }}
               >
                 close

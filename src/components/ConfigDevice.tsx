@@ -604,9 +604,9 @@ function ConfigDevice() {
             <button
               className="button-cancel-prev"
               style={{ fontSize: "16px", padding: "4px 15px" }}
-              onClick={onClose}
+              onClick= { () => setBridgeOpen(false)}
             >
-              Close
+              Back
             </button>
             <button
               className="button-confirm-prev"
@@ -1458,16 +1458,17 @@ function ConfigDevice() {
                               >
                                 <option value="">-- Select Interface --</option>
                                 {link.selectedHost &&
-                                  getInterfacesForHost(link.selectedHost).map(
-                                    (intf) => (
-                                      <option
-                                        key={intf.interface}
-                                        value={intf.interface}
-                                      >
+                                  getInterfacesForHost(link.selectedHost)
+                                    .filter((intf) =>
+                                      intf.interface.startsWith("Gigabit") ||
+                                      intf.interface.startsWith("Fast")
+                                    )
+                                    .map((intf) => (
+                                      <option key={intf.interface} value={intf.interface}>
                                         {intf.interface} ({intf.status})
                                       </option>
-                                    )
-                                  )}
+                                    ))
+                                }
                               </select>
                             </div>
                             <div className="host-selection__dropdown-group">
