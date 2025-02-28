@@ -211,7 +211,7 @@
 
 /* button */
 .button-prev-section {
-  margin: 7px 10px;
+  margin-top: 20px;
   display: flex;
   align-items: flex-end;
   justify-content: flex-end; /* Aligns buttons to the right */
