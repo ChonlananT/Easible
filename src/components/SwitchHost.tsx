@@ -487,7 +487,7 @@ function SwitchHost() {
                                 </select>
                               </div>
                               <div style={{ display: 'flex', flexDirection: 'row', width: '70%', justifyContent: 'space-between' }}>
-                                <div className="input-sw-sw-group" style={{ width: '55%'}}>
+                                <div className="input-sw-sw-group" style={{ width: '45%'}}>
                                   <label>IP Address for SVI:</label>
                                   <input
                                     type="text"
@@ -500,9 +500,9 @@ function SwitchHost() {
                                   />
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'center' }}>
-                                  <span style={{ fontSize: '25px', marginTop: '23px', paddingLeft: '10px' }}>/</span>
+                                  <span style={{ fontSize: '25px', marginTop: '25px', paddingLeft: '10px' }}>/</span>
                                 </div>
-                                <div className="input-sw-sw-group" style={{ width: '35%'}}>
+                                <div className="input-sw-sw-group" style={{ width: '45%'}}>
                                   <label>Subnet Mask (CIDR):</label>
                                   <input
                                     type="number"

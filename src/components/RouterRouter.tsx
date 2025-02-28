@@ -456,7 +456,7 @@ function RouterRouter() {
                             </select>
                           </div>
                           <div className="ip-subnet-group">
-                            <div className="host-selection__dropdown-group" style={{ width: '80%' }}>
+                            <div className="host-selection__dropdown-group" style={{ width: '65%' }}>
                               <label>IP Address (Router1):</label>
                               <input
                                 type="text"
@@ -562,7 +562,7 @@ function RouterRouter() {
                             </select>
                           </div>
                           <div className="ip-subnet-group">
-                            <div className="host-selection__dropdown-group" style={{ width: '80%' }}>
+                            <div className="host-selection__dropdown-group" style={{ width: '65%' }}>
                               <label>IP Address (Router2):</label>
                               <input
                                 type="text"
