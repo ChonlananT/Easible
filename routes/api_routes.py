@@ -1314,12 +1314,6 @@ def run_playbook_switchswitch():
                     "parsed_vlans": entry_result.get(req_hostname2, {}).get(req_iface2, {}).get("parsed_vlans", [])
                 }
             })
-        print("PAIR LINKS")    
-        print(paired_links)
-        print("COMPARISON")
-        print(comparison)
-        print("PARSED RESULT")
-        print(parsed_result)
         return jsonify({
             "comparison": paired_links
         })
@@ -1331,8 +1325,6 @@ def run_playbook_switchswitch():
 def run_playbook_routerrouter():
     try:
         data = request.json
-        print("DATA: ")
-        print(data)
         # If data is a list, use all entries' protocol values; otherwise, wrap it in a list.
         protocols = []
         if isinstance(data, list):
@@ -1350,20 +1342,19 @@ def run_playbook_routerrouter():
                     p = route.get("protocol")
                     if p:
                         protocols.append(p.lower())
-        print("protocols: ")
         # Determine the dynamic delay based on the protocols provided:
         if "ospf" in protocols:
             delay = 8
-            print("delay 8 is used")
+            
         elif "ripv2" in protocols:
             delay = 6
-            print("delay 6 is used")
+            
         elif "connected" in protocols:
             delay = 2
-            print("delay 2 is used")
+            
         else:
             delay = 1
-            print("delay 1 is used")
+            
         # ตรวจสอบว่า data เป็น list หรือไม่ ถ้าใช่ ให้ใช้ตัวแรก
         if isinstance(data, list):
             data = data[0]
@@ -1519,11 +1510,9 @@ def run_playbook_configdevice():
         ssh.close()
         
         parsed_result = parse_config_device(verify_output)
-        print("parsed_result: ")
-        print(parsed_result)
+       
         comparison = compare_config_device(data, parsed_result)
-        print("comparison::")
-        print(comparison)
+      
 
         return jsonify({
             "comparison": comparison
@@ -1609,7 +1598,6 @@ def run_playbook_switchhost():
 
         parsed_result = parse_switch_host(verify_output)
         comparison = compare_switch_host(data, parsed_result)
-        print(comparison)
         return jsonify({
             "parsed": parsed_result,
             "comparison": comparison
