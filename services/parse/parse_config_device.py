@@ -139,21 +139,16 @@ def parse_config_device(log_text):
 
         # CATEGORY 6.1: Loopback ripv2 output
         elif task_line.startswith("Display loopback running RIPv2 output for"):
-            interface = None
-            ipaddress = None
-            cidr = None
             activateProtocol = None
             for line in msg_lines:
                 m_ap = re.search(r'router (\S+)', line)
                 if m_ap:
                     activateProtocol = clean_value(m_ap.group(1))
-                m_ip = re.search(r'network (\S+)', line)
-                if m_ip:
-                    ipaddress = clean_value(m_ip.group(1))
-            parsed_data['loopback'] = {
-                'ipaddress': ipaddress,
-                'activateProtocol': activateProtocol+"v2"
-            }
+
+            # Now just merge the protocol field
+            if 'loopback' not in parsed_data:
+                parsed_data['loopback'] = {}
+            parsed_data['loopback']['activateProtocol'] = activateProtocol + "v2"
 
         # CATEGORY 6.2: Loopback ospf output
         elif task_line.startswith("Display loopback running OSPF output for"):
@@ -168,10 +163,9 @@ def parse_config_device(log_text):
                 m_ip = re.search(r'network (\S+)\s+(\S+)', line)
                 if m_ip:
                     ipaddress = clean_value(m_ip.group(1))
-            parsed_data['loopback'] = {
-                'ipaddress': ipaddress,
-                'activateProtocol': activateProtocol
-            }
+                if 'loopback' not in parsed_data:
+                    parsed_data['loopback'] = {}
+                    parsed_data['loopback']['activateProtocol'] = activateProtocol
         
         # CATEGORY 7: Static route details
         elif task_line.startswith("Display static route output for prefix"):

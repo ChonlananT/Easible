@@ -685,7 +685,6 @@ def create_playbook_configdevice():
       parents: interface {interface_value}
       lines:
         - no shutdown
-        - no switch mode trunk
         - no switchport trunk allowed vlan
         - switchport mode access
         - switchport access vlan {vlan_id}
@@ -698,7 +697,6 @@ def create_playbook_configdevice():
     ios_config:
       parents: interface {interface_value}
       lines:
-        - no switchport mode access
         - switchport trunk allowed vlan add {vlan_id}
     when: inventory_hostname == "{host}"
 """
@@ -709,7 +707,6 @@ def create_playbook_configdevice():
       parents: interface {interface_value}
       lines:
         - no shutdown
-        - no switchport mode access
         - no switchport access vlan
         - switchport mode trunk
         - switchport trunk allowed vlan {vlan_id}
@@ -839,7 +836,6 @@ def create_playbook_configdevice():
   - name: "[Command#{idx}] Configure Static Route on {host}"
     ios_config:
       lines:
-        - no shutdown
         - ip route {network_static} {subnet_static} {nextHop}
     when: inventory_hostname == "{host}"
 """
@@ -984,7 +980,7 @@ def create_playbook_switchhost():
     ios_config:
       parents: interface {interface}
       lines:
-        - no swwitchport mode trunk
+        - no switchport mode trunk
         - no switchport trunk allowed vlan
         - switchport mode access
         - switchport access vlan {vlan_id}
@@ -1094,7 +1090,7 @@ def create_playbook_switchrouter():
                 else:
                     # Not configured as trunk yet => configure trunk mode and allowed VLAN
                     switch_lines = [
-                        "no switchport mode access"
+                        "no switchport mode access",
                         "no switchport access vlan",
                         "switchport mode trunk",
                         f"switchport trunk allowed vlan {vlan_id}"
@@ -1118,15 +1114,21 @@ def create_playbook_switchrouter():
                 # Build the router subinterface name by appending a dot and the VLAN ID
                 subinterface = f"{router_interface}.{vlan_id}"
                 router_commands = [
-                    f"interface {subinterface}",
                     f"encapsulation dot1q {vlan_id}",
                     f"ip address {gateway} {netmask}",
-                    f"no shutdown"
                 ]
 
                 playbook_content += f"""
+  - name: "[Link#{idx}] Configure no shutdown {router_interface} on router {router_host}"
+    ios_config:
+      parents: "interface {router_interface}"
+      lines:
+        - no shutdown
+    when: inventory_hostname == "{router_host}"
+
   - name: "[Link#{idx}] Configure subinterface {subinterface} on router {router_host}"
     ios_config:
+      parents: "interface {subinterface}"
       lines:
 """
                 for cmd in router_commands:
@@ -1183,8 +1185,44 @@ def run_playbook_switchswitch():
         inventory_path = f"/app/inventory/inventory.ini"
 
         stdin, stdout, stderr = ssh.exec_command(f"ansible-playbook -i {inventory_path} {playbook_path}")
+        exit_status = stdout.channel.recv_exit_status()
         output = stdout.read().decode('utf-8')
         errors = stderr.read().decode('utf-8')
+        # Check for errors and filter for fatal messages only
+        if exit_status != 0 or "FAILED!" in output:
+            combined = output.splitlines() + errors.splitlines()
+            fatal_error_line = None
+            for line in combined:
+                if line.strip().startswith("fatal: ["):
+                    fatal_error_line = line.strip()
+                    break
+            if fatal_error_line:
+                # Extract the JSON portion after "FAILED! =>"
+                match = re.search(r'FAILED! => (.*)', fatal_error_line)
+                if match:
+                    json_str = match.group(1)
+                    try:
+                        error_obj = json.loads(json_str)
+                        module_stderr = error_obj.get("module_stderr", "")
+                        # Remove the last line (typically the command prompt)
+                        lines = module_stderr.splitlines()
+                        if len(lines) > 1:
+                            module_stderr = "\n".join(lines[:-1])
+                        # Remove any '%' characters
+                        module_stderr = module_stderr.replace("%", "").strip()
+                        # Extract device name from the fatal error line, e.g., "fatal: [R101]: ..."
+                        device_match = re.search(r'fatal:\s+\[([^\]]+)\]', fatal_error_line)
+                        device_name = device_match.group(1) if device_match else ""
+                        # Prepend the device name in the desired format
+                        module_stderr = f"[{device_name}]: " + module_stderr
+                    except Exception as e:
+                        module_stderr = "Error parsing JSON: " + str(e)
+                else:
+                    module_stderr = "No JSON error message found."
+            else:
+                module_stderr = errors or output
+            ssh.close()
+            return jsonify({"error": module_stderr}), 500
 
         playbook_content = sh_int_trunk()  # สมมติว่าฟังก์ชันนี้ return playbook content ที่ต้องการ
         verify_playbook_path = f"/app/playbook/verify_playbook.yml"
@@ -1193,7 +1231,6 @@ def run_playbook_switchswitch():
         with sftp.open(verify_playbook_path, "w") as playbook_file:
             playbook_file.write(playbook_content)
         sftp.close()
-
         stdin, stdout, stderr = ssh.exec_command(f"ansible-playbook -i {inventory_path} {verify_playbook_path}")
         verify_output = stdout.read().decode('utf-8')
         verify_errors = stderr.read().decode('utf-8')
@@ -1277,7 +1314,12 @@ def run_playbook_switchswitch():
                     "parsed_vlans": entry_result.get(req_hostname2, {}).get(req_iface2, {}).get("parsed_vlans", [])
                 }
             })
-
+        print("PAIR LINKS")    
+        print(paired_links)
+        print("COMPARISON")
+        print(comparison)
+        print("PARSED RESULT")
+        print(parsed_result)
         return jsonify({
             "comparison": paired_links
         })
@@ -1289,6 +1331,39 @@ def run_playbook_switchswitch():
 def run_playbook_routerrouter():
     try:
         data = request.json
+        print("DATA: ")
+        print(data)
+        # If data is a list, use all entries' protocol values; otherwise, wrap it in a list.
+        protocols = []
+        if isinstance(data, list):
+            for item in data:
+                rt = item.get("routing_tables", {})
+                for host, routes in rt.items():
+                    for route in routes:
+                        p = route.get("protocol")
+                        if p:
+                            protocols.append(p.lower())
+        else:
+            rt = data.get("routing_tables", {})
+            for host, routes in rt.items():
+                for route in routes:
+                    p = route.get("protocol")
+                    if p:
+                        protocols.append(p.lower())
+        print("protocols: ")
+        # Determine the dynamic delay based on the protocols provided:
+        if "ospf" in protocols:
+            delay = 8
+            print("delay 8 is used")
+        elif "ripv2" in protocols:
+            delay = 6
+            print("delay 6 is used")
+        elif "connected" in protocols:
+            delay = 2
+            print("delay 2 is used")
+        else:
+            delay = 1
+            print("delay 1 is used")
         # ตรวจสอบว่า data เป็น list หรือไม่ ถ้าใช่ ให้ใช้ตัวแรก
         if isinstance(data, list):
             data = data[0]
@@ -1311,10 +1386,48 @@ def run_playbook_routerrouter():
         inventory_path = f"/app/inventory/inventory.ini"
 
         stdin, stdout, stderr = ssh.exec_command(f"ansible-playbook -i {inventory_path} {playbook_path}")
+        exit_status = stdout.channel.recv_exit_status()
         output = stdout.read().decode('utf-8')
         errors = stderr.read().decode('utf-8')
+        # Check for errors and filter for fatal messages only
+        if exit_status != 0 or "FAILED!" in output:
+            combined = output.splitlines() + errors.splitlines()
+            fatal_error_line = None
+            for line in combined:
+                if line.strip().startswith("fatal: ["):
+                    fatal_error_line = line.strip()
+                    break
+            if fatal_error_line:
+                # Extract the JSON portion after "FAILED! =>"
+                match = re.search(r'FAILED! => (.*)', fatal_error_line)
+                if match:
+                    json_str = match.group(1)
+                    try:
+                        error_obj = json.loads(json_str)
+                        module_stderr = error_obj.get("module_stderr", "")
+                        # Remove the last line (typically the command prompt)
+                        lines = module_stderr.splitlines()
+                        if len(lines) > 1:
+                            module_stderr = "\n".join(lines[:-1])
+                        # Remove any '%' characters
+                        module_stderr = module_stderr.replace("%", "").strip()
+                        # Extract device name from the fatal error line, e.g., "fatal: [R101]: ..."
+                        device_match = re.search(r'fatal:\s+\[([^\]]+)\]', fatal_error_line)
+                        device_name = device_match.group(1) if device_match else ""
+                        # Prepend the device name in the desired format
+                        module_stderr = f"[{device_name}]: " + module_stderr
+                    except Exception as e:
+                        module_stderr = "Error parsing JSON: " + str(e)
+                else:
+                    module_stderr = "No JSON error message found."
+            else:
+                module_stderr = errors or output
+            ssh.close()
+            return jsonify({"error": module_stderr}), 500
 
-        time.sleep(5) # add delay to wait for the protocol update
+        # add delay to wait for the protocol update
+        # Dynamic sleep based on protocol
+        time.sleep(delay)
 
         playbook_content = sh_ip_route()  # สมมติว่าฟังก์ชันนี้ return playbook content ที่ต้องการ
         verify_playbook_path = f"/app/playbook/verify_playbook.yml"
@@ -1353,8 +1466,44 @@ def run_playbook_configdevice():
         inventory_path = f"/app/inventory/inventory.ini"
 
         stdin, stdout, stderr = ssh.exec_command(f"ansible-playbook -i {inventory_path} {playbook_path}")
+        exit_status = stdout.channel.recv_exit_status()
         output = stdout.read().decode('utf-8')
         errors = stderr.read().decode('utf-8')
+        # Check for errors and filter for fatal messages only
+        if exit_status != 0 or "FAILED!" in output:
+            combined = output.splitlines() + errors.splitlines()
+            fatal_error_line = None
+            for line in combined:
+                if line.strip().startswith("fatal: ["):
+                    fatal_error_line = line.strip()
+                    break
+            if fatal_error_line:
+                # Extract the JSON portion after "FAILED! =>"
+                match = re.search(r'FAILED! => (.*)', fatal_error_line)
+                if match:
+                    json_str = match.group(1)
+                    try:
+                        error_obj = json.loads(json_str)
+                        module_stderr = error_obj.get("module_stderr", "")
+                        # Remove the last line (typically the command prompt)
+                        lines = module_stderr.splitlines()
+                        if len(lines) > 1:
+                            module_stderr = "\n".join(lines[:-1])
+                        # Remove any '%' characters
+                        module_stderr = module_stderr.replace("%", "").strip()
+                        # Extract device name from the fatal error line, e.g., "fatal: [R101]: ..."
+                        device_match = re.search(r'fatal:\s+\[([^\]]+)\]', fatal_error_line)
+                        device_name = device_match.group(1) if device_match else ""
+                        # Prepend the device name in the desired format
+                        module_stderr = f"[{device_name}]: " + module_stderr
+                    except Exception as e:
+                        module_stderr = "Error parsing JSON: " + str(e)
+                else:
+                    module_stderr = "No JSON error message found."
+            else:
+                module_stderr = errors or output
+            ssh.close()
+            return jsonify({"error": module_stderr}), 500
 
         playbook_content = sh_config_device(data)
         verify_playbook_path = f"/app/playbook/verify_playbook.yml"
@@ -1363,16 +1512,18 @@ def run_playbook_configdevice():
         with sftp.open(verify_playbook_path, "w") as playbook_file:
             playbook_file.write(playbook_content)
         sftp.close()
-
+        
         stdin, stdout, stderr = ssh.exec_command(f"ansible-playbook -i {inventory_path} {verify_playbook_path}")
         verify_output = stdout.read().decode('utf-8')
         verify_errors = stderr.read().decode('utf-8')
         ssh.close()
         
         parsed_result = parse_config_device(verify_output)
-       
+        print("parsed_result: ")
+        print(parsed_result)
         comparison = compare_config_device(data, parsed_result)
-        
+        print("comparison::")
+        print(comparison)
 
         return jsonify({
             "comparison": comparison
@@ -1399,8 +1550,44 @@ def run_playbook_switchhost():
         stdin, stdout, stderr = ssh.exec_command(
             f"ansible-playbook -i {inventory_path} {playbook_path}"
         )
+        exit_status = stdout.channel.recv_exit_status()
         output = stdout.read().decode('utf-8')
         errors = stderr.read().decode('utf-8')
+        # Check for errors and filter for fatal messages only
+        if exit_status != 0 or "FAILED!" in output:
+            combined = output.splitlines() + errors.splitlines()
+            fatal_error_line = None
+            for line in combined:
+                if line.strip().startswith("fatal: ["):
+                    fatal_error_line = line.strip()
+                    break
+            if fatal_error_line:
+                # Extract the JSON portion after "FAILED! =>"
+                match = re.search(r'FAILED! => (.*)', fatal_error_line)
+                if match:
+                    json_str = match.group(1)
+                    try:
+                        error_obj = json.loads(json_str)
+                        module_stderr = error_obj.get("module_stderr", "")
+                        # Remove the last line (typically the command prompt)
+                        lines = module_stderr.splitlines()
+                        if len(lines) > 1:
+                            module_stderr = "\n".join(lines[:-1])
+                        # Remove any '%' characters
+                        module_stderr = module_stderr.replace("%", "").strip()
+                        # Extract device name from the fatal error line, e.g., "fatal: [R101]: ..."
+                        device_match = re.search(r'fatal:\s+\[([^\]]+)\]', fatal_error_line)
+                        device_name = device_match.group(1) if device_match else ""
+                        # Prepend the device name in the desired format
+                        module_stderr = f"[{device_name}]: " + module_stderr
+                    except Exception as e:
+                        module_stderr = "Error parsing JSON: " + str(e)
+                else:
+                    module_stderr = "No JSON error message found."
+            else:
+                module_stderr = errors or output
+            ssh.close()
+            return jsonify({"error": module_stderr}), 500
 
         # Generate playbook content using sh_run_int by passing the data from the frontend.
         playbook_content = sh_sw_host(data)
@@ -1422,7 +1609,7 @@ def run_playbook_switchhost():
 
         parsed_result = parse_switch_host(verify_output)
         comparison = compare_switch_host(data, parsed_result)
-
+        print(comparison)
         return jsonify({
             "parsed": parsed_result,
             "comparison": comparison
@@ -1450,8 +1637,44 @@ def run_playbook_switchrouter():
         inventory_path = f"/app/inventory/inventory.ini"
 
         stdin, stdout, stderr = ssh.exec_command(f"ansible-playbook -i {inventory_path} {playbook_path}")
+        exit_status = stdout.channel.recv_exit_status()
         output = stdout.read().decode('utf-8')
         errors = stderr.read().decode('utf-8')
+        # Check for errors and filter for fatal messages only
+        if exit_status != 0 or "FAILED!" in output:
+            combined = output.splitlines() + errors.splitlines()
+            fatal_error_line = None
+            for line in combined:
+                if line.strip().startswith("fatal: ["):
+                    fatal_error_line = line.strip()
+                    break
+            if fatal_error_line:
+                # Extract the JSON portion after "FAILED! =>"
+                match = re.search(r'FAILED! => (.*)', fatal_error_line)
+                if match:
+                    json_str = match.group(1)
+                    try:
+                        error_obj = json.loads(json_str)
+                        module_stderr = error_obj.get("module_stderr", "")
+                        # Remove the last line (typically the command prompt)
+                        lines = module_stderr.splitlines()
+                        if len(lines) > 1:
+                            module_stderr = "\n".join(lines[:-1])
+                        # Remove any '%' characters
+                        module_stderr = module_stderr.replace("%", "").strip()
+                        # Extract device name from the fatal error line, e.g., "fatal: [R101]: ..."
+                        device_match = re.search(r'fatal:\s+\[([^\]]+)\]', fatal_error_line)
+                        device_name = device_match.group(1) if device_match else ""
+                        # Prepend the device name in the desired format
+                        module_stderr = f"[{device_name}]: " + module_stderr
+                    except Exception as e:
+                        module_stderr = "Error parsing JSON: " + str(e)
+                else:
+                    module_stderr = "No JSON error message found."
+            else:
+                module_stderr = errors or output
+            ssh.close()
+            return jsonify({"error": module_stderr}), 500
 
         playbook_content = sh_router_switch(data)  # สมมติว่าฟังก์ชันนี้ return playbook content ที่ต้องการ
         verify_playbook_path = f"/app/playbook/verify_playbook.yml"
