@@ -165,3 +165,12 @@
 .content-body {
   margin: 10px 20px;
 }
+
+.button-refresh {
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.button-refresh:hover {
+  transform: scale(1.05); /* slightly enlarges the button */
+  color: #8c94dc; /* change text color on hover if you wish */
+}

@@ -352,6 +352,7 @@ function SwitchRouter() {
               cursor: "pointer",
             }}
             disabled={loading}
+            className="button-refresh"
           >
             <RefreshCcw /> Refresh
           </button>

@@ -343,6 +343,7 @@ function SwitchSwitch() {
               color: "#6A6A6A",
             }}
             disabled = {loading}
+            className="button-refresh"
           >
             <RefreshCcw /> Refresh
           </button>
