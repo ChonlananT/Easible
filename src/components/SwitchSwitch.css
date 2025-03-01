@@ -492,6 +492,7 @@
 }
 
 .button-refresh {
+    color: "#6A6A6A";
     transition: transform 0.3s ease, color 0.3s ease;
   }
   

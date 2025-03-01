@@ -214,7 +214,7 @@ function Dashboard() {
               border: "none",
               background: "none",
               cursor: "pointer",
-              color: "#6A6A6A",
+              
             }}
             disabled = {loading}
             className="button-refresh"

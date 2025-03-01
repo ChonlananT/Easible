@@ -340,7 +340,7 @@ function SwitchRouter() {
           <button
             onClick={fetchRouterSwitch}
             style={{
-              color: "#6a6a6a",
+              
               display: "flex",
               fontSize: "16px",
               gap: "10px",

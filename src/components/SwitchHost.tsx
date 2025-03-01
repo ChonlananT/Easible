@@ -379,7 +379,7 @@ function SwitchHost() {
           <button
             onClick={fetchSwitchHost}
             style={{
-              color: "#6a6a6a",
+              
               display: "flex",
               fontSize: "16px",
               gap: "10px",
