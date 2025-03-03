@@ -426,7 +426,7 @@ function Hosts() {
     return (
       <div className="popup-overlay">
         <div className="popup-content-host">
-          <h2>Add Host</h2>
+          <h2>Add Device</h2>
           <label>
             Device Type:
             <select name="deviceType" value={formData.deviceType} onChange={handleInputChange}>
@@ -501,7 +501,7 @@ function Hosts() {
               disabled={!!ipError || !!hostnameError}
               className="save-btn"
             >
-              Save Host
+              Save Device
             </button>
             <button onClick={() => setShowAddHostPopup(false)} className="cancel-btn">
               Cancel

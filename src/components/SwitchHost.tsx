@@ -388,7 +388,7 @@ function SwitchHost() {
               paddingTop: "20px",
               border: "none",
               background: "none",
-              cursor: "pointer",
+              cursor: loading ? "not-allowed" : "pointer",
             }}
             disabled={loading}
             className="button-refresh"
@@ -604,7 +604,7 @@ function SwitchHost() {
               )}
               <div className="submit-sw-sw-container" style={{ marginRight: "0px" }}>
                 <button className="button-swh-close" onClick={handleTogglePopup}>
-                  Close
+                  Back
                 </button>
                 {/* Confirm now calls handleConfirm */}
                 <button className="button-sw-sw-submit" onClick={handleConfirm}>

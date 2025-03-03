@@ -349,7 +349,7 @@ function SwitchRouter() {
               paddingTop: "20px",
               border: "none",
               background: "none",
-              cursor: "pointer",
+              cursor: loading ? "not-allowed" : "pointer",
             }}
             disabled={loading}
             className="button-refresh"
@@ -642,7 +642,7 @@ function SwitchRouter() {
               )}
               <div className="submit-sw-sw-container" style={{ marginTop: '15px' }}>
                 <button className="button-swh-close" onClick={() => setIsPopupOpen(false)}>
-                  Close
+                  Back
                 </button>
                 <button className="button-sw-sw-submit" onClick={handleConfirm}>
                   Confirm

@@ -370,8 +370,7 @@ function RouterRouter() {
               paddingTop: "20px",
               border: "none",
               background: "none",
-              cursor: "pointer",
-              
+              cursor: loading ? "not-allowed" : "pointer",
             }}
             disabled = {loading}
             className="button-refresh"
@@ -797,7 +796,7 @@ function RouterRouter() {
                     style={{ fontSize: "16px" }}
                     onClick={handleClosePopup}
                   >
-                    Cancel
+                    Back
                   </button>
                   <button
                     className="button-confirm-prev"

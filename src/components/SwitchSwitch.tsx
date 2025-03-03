@@ -223,7 +223,7 @@ function SwitchSwitch() {
       interface2: link.selectedInterface2,
       vlans: link.vlans.filter((vlan) => vlan !== ''),
     }));
-    
+
     setIsResultLoading(true); // start result loading
 
     fetch('/api/run_playbook/swtosw', {
@@ -273,7 +273,7 @@ function SwitchSwitch() {
       vlans: link.vlans.filter((vlan) => vlan !== ''),
     }));
 
-    
+
 
     fetch('/api/create_playbook_swtosw', {
       method: 'POST',
@@ -308,25 +308,25 @@ function SwitchSwitch() {
     <div className="App">
       <Navbar isNavOpen={isNavOpen} setIsNavOpen={setIsNavOpen} />
       <div className={`content ${isNavOpen ? 'expanded' : 'full-width'}`}>
-        <div className="content-topic" style={{ display:"flex", justifyContent:"space-between"}}>
-         <div>
-          {!isNavOpen && (
-            <button
-              style={{
-                padding: '8px',
-                color: 'black',
-                borderRadius: '8px',
-                zIndex: 50,
-                border: 'none',
-                background: 'white',
-                marginRight: '8px',
-              }}
-              onClick={() => setIsNavOpen(true)}
-            >
-              <Menu size={24} />
-            </button>
-          )}
-          Configuration <span className="content-topic-small">(Switch-Switch)</span>
+        <div className="content-topic" style={{ display: "flex", justifyContent: "space-between" }}>
+          <div>
+            {!isNavOpen && (
+              <button
+                style={{
+                  padding: '8px',
+                  color: 'black',
+                  borderRadius: '8px',
+                  zIndex: 50,
+                  border: 'none',
+                  background: 'white',
+                  marginRight: '8px',
+                }}
+                onClick={() => setIsNavOpen(true)}
+              >
+                <Menu size={24} />
+              </button>
+            )}
+            Configuration <span className="content-topic-small">(Switch-Switch)</span>
           </div>
           <button
             onClick={fetchSwitch}
@@ -339,10 +339,9 @@ function SwitchSwitch() {
               paddingTop: "20px",
               border: "none",
               background: "none",
-              cursor: "pointer",
-              
+              cursor: loading ? "not-allowed" : "pointer",
             }}
-            disabled = {loading}
+            disabled={loading}
             className="button-refresh"
           >
             <RefreshCcw /> Refresh
@@ -350,183 +349,183 @@ function SwitchSwitch() {
         </div>
         <div className="content-board">
           {!loading && (
-          <div className="all-links">
-            {links.map((link, index) => {
-              const commonVlans = getCommonVlans(link);
-              const selectedVlans = link.vlans.filter((v) => v);
-              const availableVlans = commonVlans.filter((vlan) => !selectedVlans.includes(vlan));
+            <div className="all-links">
+              {links.map((link, index) => {
+                const commonVlans = getCommonVlans(link);
+                const selectedVlans = link.vlans.filter((v) => v);
+                const availableVlans = commonVlans.filter((vlan) => !selectedVlans.includes(vlan));
 
-              return (
-                <div key={index} className="switch-switch">
-                  <div className="top-link">
-                    <div className="link-index">Link {index + 1}</div>
-                    <div className="remove-link-container">
-                      {links.length > 1 && (
-                        <button onClick={() => handleRemoveLink(index)} className="button-sw-sw-remove">
-                          <img
-                            src="bin.png"
-                            alt="Remove link"
-                            style={{ width: '45px', height: '27px' }}
-                          />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                  <div className="content-section">
-                    <div className="host-selection-container">
-                      <div className="host-selection__hosts">
-                        <div className="host-sw-sw">
-                          <div className="host-card">
-                            <div className="host-selection__dropdown-group">
-                              <label>Select Host (SW1):</label>
-                              <div className="host-selection__dropdown-container">
-                                <select
-                                  className="host-selection__dropdown"
-                                  onChange={(e) => handleHostChange(index, 'selectedHost1', e.target.value)}
-                                  value={link.selectedHost1}
-                                >
-                                  <option value="">-- Select a Host --</option>
-                                  {hosts
-                                    .filter((host) => host.hostname !== link.selectedHost2)
-                                    .map((host) => (
-                                      <option key={host.hostname} value={host.hostname}>
-                                        {host.hostname}
-                                      </option>
-                                    ))}
-                                </select>
-                              </div>
-                            </div>
-                            <div className="host-selection__dropdown-group">
-                              <label>Select Interface for {link.selectedHost1}:</label>
-                              <div className="host-selection__dropdown-container">
-                                <select
-                                  className="host-selection__dropdown"
-                                  value={link.selectedInterface1}
-                                  onChange={(e) => handleLinkChange(index, 'selectedInterface1', e.target.value)}
-                                >
-                                  <option value="">-- Select Interface --</option>
-                                  {getInterfacesForHost(link.selectedHost1)
-                                    .filter((intf) => !intf.interface.toLowerCase().includes('vlan'))
-                                    .map((intf) => (
-                                      <option key={intf.interface} value={intf.interface}>
-                                        {intf.interface} ({intf.status})
-                                      </option>
-                                    ))}
-                                </select>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="connect-pic-sw-sw">
-                          <img
-                            src="connect.png"
-                            alt="Connect"
-                            style={{ width: '150px', height: '100px' }}
-                          />
-                          <label>Trunk</label>
-                        </div>
-                        <div className="host-sw-sw">
-                          <div className="host-card">
-                            <div className="host-selection__dropdown-group">
-                              <label>Select Host (SW2):</label>
-                              <div className="host-selection__dropdown-container">
-                                <select
-                                  className="host-selection__dropdown"
-                                  onChange={(e) => handleHostChange(index, 'selectedHost2', e.target.value)}
-                                  value={link.selectedHost2}
-                                >
-                                  <option value="">-- Select a Host --</option>
-                                  {hosts
-                                    .filter((host) => host.hostname !== link.selectedHost1)
-                                    .map((host) => (
-                                      <option key={host.hostname} value={host.hostname}>
-                                        {host.hostname}
-                                      </option>
-                                    ))}
-                                </select>
-                              </div>
-                            </div>
-                            <div className="host-selection__dropdown-group">
-                              <label>Select Interface for {link.selectedHost2}:</label>
-                              <div className="host-selection__dropdown-container">
-                                <select
-                                  className="host-selection__dropdown"
-                                  value={link.selectedInterface2}
-                                  onChange={(e) => handleLinkChange(index, 'selectedInterface2', e.target.value)}
-                                >
-                                  <option value="">-- Select Interface --</option>
-                                  {getInterfacesForHost(link.selectedHost2)
-                                    .filter((intf) => !intf.interface.toLowerCase().includes('vlan'))
-                                    .map((intf) => (
-                                      <option key={intf.interface} value={intf.interface}>
-                                        {intf.interface} ({intf.status})
-                                      </option>
-                                    ))}
-                                </select>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="host-selection__switchport-configuration">
-                        <div className="host-selection__vlan-multiple">
-                          <h5 style={{ textAlign: 'center' }}>Add trunk allowed VLAN(s):</h5>
-                          {link.vlans.length === 0 && (
-                            <p style={{ color: 'grey', textAlign: 'center' }}>
-                              No VLANs have been added yet.
-                            </p>
-                          )}
-                          {link.vlans.map((selectedVlan, vlanIndex) => {
-                            const filteredVlans = availableVlans.filter(v =>
-                              !link.vlans.includes(v)
-                            );
-                            ;
-                            return (
-                              <div key={vlanIndex} className="vlan-selection-group">
-                                <select
-                                  className="host-selection__dropdown"
-                                  value={selectedVlan}
-                                  onChange={(e) => handleVlanChange(index, vlanIndex, e.target.value)}
-                                >
-                                  <option value="">-- Select VLAN --</option>
-                                  {filteredVlans.map((vlanOption) => (
-                                    <option key={vlanOption} value={vlanOption}>
-                                      {vlanOption}
-                                    </option>
-                                  ))}
-                                </select>
-
-                                <CircleMinus
-                                  style={{
-                                    width: '25px',
-                                    height: '25px',
-                                    color: 'red',
-                                    marginTop: '20px',
-                                    marginLeft: '5px',
-                                    cursor: 'pointer',
-                                  }}
-                                  onClick={() => handleRemoveVlan(index, vlanIndex)}
-                                />
-                              </div>
-                            );
-                          })}
-
-
-                          <button
-                            className="button-add-vlan"
-                            style={{ marginTop: '10px', width: '35%' }}
-                            onClick={() => handleAddVlan(index)}
-                          >
-                            + Add VLAN
+                return (
+                  <div key={index} className="switch-switch">
+                    <div className="top-link">
+                      <div className="link-index">Link {index + 1}</div>
+                      <div className="remove-link-container">
+                        {links.length > 1 && (
+                          <button onClick={() => handleRemoveLink(index)} className="button-sw-sw-remove">
+                            <img
+                              src="bin.png"
+                              alt="Remove link"
+                              style={{ width: '45px', height: '27px' }}
+                            />
                           </button>
+                        )}
+                      </div>
+                    </div>
+                    <div className="content-section">
+                      <div className="host-selection-container">
+                        <div className="host-selection__hosts">
+                          <div className="host-sw-sw">
+                            <div className="host-card">
+                              <div className="host-selection__dropdown-group">
+                                <label>Select Host (SW1):</label>
+                                <div className="host-selection__dropdown-container">
+                                  <select
+                                    className="host-selection__dropdown"
+                                    onChange={(e) => handleHostChange(index, 'selectedHost1', e.target.value)}
+                                    value={link.selectedHost1}
+                                  >
+                                    <option value="">-- Select a Host --</option>
+                                    {hosts
+                                      .filter((host) => host.hostname !== link.selectedHost2)
+                                      .map((host) => (
+                                        <option key={host.hostname} value={host.hostname}>
+                                          {host.hostname}
+                                        </option>
+                                      ))}
+                                  </select>
+                                </div>
+                              </div>
+                              <div className="host-selection__dropdown-group">
+                                <label>Select Interface for {link.selectedHost1}:</label>
+                                <div className="host-selection__dropdown-container">
+                                  <select
+                                    className="host-selection__dropdown"
+                                    value={link.selectedInterface1}
+                                    onChange={(e) => handleLinkChange(index, 'selectedInterface1', e.target.value)}
+                                  >
+                                    <option value="">-- Select Interface --</option>
+                                    {getInterfacesForHost(link.selectedHost1)
+                                      .filter((intf) => !intf.interface.toLowerCase().includes('vlan'))
+                                      .map((intf) => (
+                                        <option key={intf.interface} value={intf.interface}>
+                                          {intf.interface} ({intf.status})
+                                        </option>
+                                      ))}
+                                  </select>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="connect-pic-sw-sw">
+                            <img
+                              src="connect.png"
+                              alt="Connect"
+                              style={{ width: '150px', height: '100px' }}
+                            />
+                            <label>Trunk</label>
+                          </div>
+                          <div className="host-sw-sw">
+                            <div className="host-card">
+                              <div className="host-selection__dropdown-group">
+                                <label>Select Host (SW2):</label>
+                                <div className="host-selection__dropdown-container">
+                                  <select
+                                    className="host-selection__dropdown"
+                                    onChange={(e) => handleHostChange(index, 'selectedHost2', e.target.value)}
+                                    value={link.selectedHost2}
+                                  >
+                                    <option value="">-- Select a Host --</option>
+                                    {hosts
+                                      .filter((host) => host.hostname !== link.selectedHost1)
+                                      .map((host) => (
+                                        <option key={host.hostname} value={host.hostname}>
+                                          {host.hostname}
+                                        </option>
+                                      ))}
+                                  </select>
+                                </div>
+                              </div>
+                              <div className="host-selection__dropdown-group">
+                                <label>Select Interface for {link.selectedHost2}:</label>
+                                <div className="host-selection__dropdown-container">
+                                  <select
+                                    className="host-selection__dropdown"
+                                    value={link.selectedInterface2}
+                                    onChange={(e) => handleLinkChange(index, 'selectedInterface2', e.target.value)}
+                                  >
+                                    <option value="">-- Select Interface --</option>
+                                    {getInterfacesForHost(link.selectedHost2)
+                                      .filter((intf) => !intf.interface.toLowerCase().includes('vlan'))
+                                      .map((intf) => (
+                                        <option key={intf.interface} value={intf.interface}>
+                                          {intf.interface} ({intf.status})
+                                        </option>
+                                      ))}
+                                  </select>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="host-selection__switchport-configuration">
+                          <div className="host-selection__vlan-multiple">
+                            <h5 style={{ textAlign: 'center' }}>Add trunk allowed VLAN(s):</h5>
+                            {link.vlans.length === 0 && (
+                              <p style={{ color: 'grey', textAlign: 'center' }}>
+                                No VLANs have been added yet.
+                              </p>
+                            )}
+                            {link.vlans.map((selectedVlan, vlanIndex) => {
+                              const filteredVlans = availableVlans.filter(v =>
+                                !link.vlans.includes(v)
+                              );
+                              ;
+                              return (
+                                <div key={vlanIndex} className="vlan-selection-group">
+                                  <select
+                                    className="host-selection__dropdown"
+                                    value={selectedVlan}
+                                    onChange={(e) => handleVlanChange(index, vlanIndex, e.target.value)}
+                                  >
+                                    <option value="">-- Select VLAN --</option>
+                                    {filteredVlans.map((vlanOption) => (
+                                      <option key={vlanOption} value={vlanOption}>
+                                        {vlanOption}
+                                      </option>
+                                    ))}
+                                  </select>
+
+                                  <CircleMinus
+                                    style={{
+                                      width: '25px',
+                                      height: '25px',
+                                      color: 'red',
+                                      marginTop: '20px',
+                                      marginLeft: '5px',
+                                      cursor: 'pointer',
+                                    }}
+                                    onClick={() => handleRemoveVlan(index, vlanIndex)}
+                                  />
+                                </div>
+                              );
+                            })}
+
+
+                            <button
+                              className="button-add-vlan"
+                              style={{ marginTop: '10px', width: '35%' }}
+                              onClick={() => handleAddVlan(index)}
+                            >
+                              + Add VLAN
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
           )}
           {/* Popup for Summary/Confirm */}
           {isShowPopup && (
@@ -774,7 +773,7 @@ function SwitchSwitch() {
                     </div>
                     <div className="button-prev-section">
                       <button className="button-cancel-prev" style={{ fontSize: "16px" }} onClick={TogglePopup}>
-                        Cancel
+                        Back
                       </button>
                       <button className="button-confirm-prev" style={{ fontSize: "16px" }} onClick={handleConfirm}>
                         Confirm
