@@ -1820,14 +1820,7 @@ function ConfigDevice() {
               className={`button-sw-sw-add ${loading ? "loading" : ""}`}
               disabled={loading}
             >
-              {loading ? (
-                <>
-                  <Spinner color="white" size="small" />
-                  <span className="fetching-text">Fetching Data...</span>
-                </>
-              ) : (
-                "+ Add Host Config"
-              )}
+                + Add Host Config
             </button>
             <div className="line"></div>
           </div>
