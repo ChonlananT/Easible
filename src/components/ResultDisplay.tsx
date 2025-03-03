@@ -139,56 +139,61 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({
           }}
         >
           <h4 style={{ marginTop: 0 }}>Applied on device:</h4>
-          {resultData.comparison.map((comp: any, idx: number) => {
-            const appliedFields = getAppliedFields(comp);
-            return (
-              <div
-                key={idx}
-                style={{
-                  marginBottom: "20px",
-                  backgroundColor: "#ffffff",
-                  borderRadius: "4px",
-                  padding: "10px",
-                }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <h5>{comp.backend.hostname || "-"}</h5>
-                  <p style={{ color: comp.match ? "green" : "red", margin: 0 }}>
-                    {comp.match ? "Matched" : "Unmatched"}
-                  </p>
+          <div
+            className="popup-table-section-result"
+            style={{ maxHeight: "65vh", overflowY: "auto" }}
+          >
+            {resultData.comparison.map((comp: any, idx: number) => {
+              const appliedFields = getAppliedFields(comp);
+              return (
+                <div
+                  key={idx}
+                  style={{
+                    marginBottom: "20px",
+                    backgroundColor: "#ffffff",
+                    borderRadius: "4px",
+                    padding: "10px",
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <h5>{comp.backend.hostname || "-"}</h5>
+                    <p style={{ color: comp.match ? "green" : "red", margin: 0 }}>
+                      {comp.match ? "Matched" : "Unmatched"}
+                    </p>
+                  </div>
+                  <div style={{ overflowX: "auto" }}>
+                    <table
+                      border={1}
+                      style={{
+                        width: "100%",
+                        borderCollapse: "collapse",
+                        backgroundColor: "#fff",
+                      }}
+                    >
+                      <tbody>
+                        {appliedFields.map((field, index) => (
+                          <tr key={index}>
+                            <td
+                              style={{
+                                padding: "8px",
+                                fontWeight: "bold",
+                                backgroundColor: "#f0f8ff",
+                              }}
+                            >
+                              {field.label}
+                            </td>
+                            <td style={{ padding: "8px" }}>
+                              {field.value ? field.value : "-"}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-                <div style={{ overflowX: "auto" }}>
-                  <table
-                    border={1}
-                    style={{
-                      width: "100%",
-                      borderCollapse: "collapse",
-                      backgroundColor: "#fff",
-                    }}
-                  >
-                    <tbody>
-                      {appliedFields.map((field, index) => (
-                        <tr key={index}>
-                          <td
-                            style={{
-                              padding: "8px",
-                              fontWeight: "bold",
-                              backgroundColor: "#f0f8ff",
-                            }}
-                          >
-                            {field.label}
-                          </td>
-                          <td style={{ padding: "8px" }}>
-                            {field.value ? field.value : "-"}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
 
         {/* Configuration sent column */}
@@ -202,53 +207,58 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({
           }}
         >
           <h4 style={{ marginTop: 0 }}>Configuration sent:</h4>
-          {resultData.comparison.map((comp: any, idx: number) => {
-            const configFields = getConfigFields(comp);
-            return (
-              <div
-                key={idx}
-                style={{
-                  marginBottom: "20px",
-                  backgroundColor: "#ffffff",
-                  borderRadius: "4px",
-                  padding: "10px",
-                }}
-              >
-                <div style={{ marginBottom: "10px" }}>
-                  <h5>{comp.frontend.hostname || "-"}</h5>
+          <div
+            className="popup-table-section-result"
+            style={{ maxHeight: "65vh", overflowY: "auto" }}
+          >
+            {resultData.comparison.map((comp: any, idx: number) => {
+              const configFields = getConfigFields(comp);
+              return (
+                <div
+                  key={idx}
+                  style={{
+                    marginBottom: "20px",
+                    backgroundColor: "#ffffff",
+                    borderRadius: "4px",
+                    padding: "10px",
+                  }}
+                >
+                  <div style={{ marginBottom: "10px" }}>
+                    <h5>{comp.frontend.hostname || "-"}</h5>
+                  </div>
+                  <div style={{ overflowX: "auto" }}>
+                    <table
+                      border={1}
+                      style={{
+                        width: "100%",
+                        borderCollapse: "collapse",
+                        backgroundColor: "#fff",
+                      }}
+                    >
+                      <tbody>
+                        {configFields.map((field, index) => (
+                          <tr key={index}>
+                            <td
+                              style={{
+                                padding: "8px",
+                                fontWeight: "bold",
+                                backgroundColor: "#fff2e6",
+                              }}
+                            >
+                              {field.label}
+                            </td>
+                            <td style={{ padding: "8px" }}>
+                              {field.value ? field.value : "-"}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-                <div style={{ overflowX: "auto" }}>
-                  <table
-                    border={1}
-                    style={{
-                      width: "100%",
-                      borderCollapse: "collapse",
-                      backgroundColor: "#fff",
-                    }}
-                  >
-                    <tbody>
-                      {configFields.map((field, index) => (
-                        <tr key={index}>
-                          <td
-                            style={{
-                              padding: "8px",
-                              fontWeight: "bold",
-                              backgroundColor: "#fff2e6",
-                            }}
-                          >
-                            {field.label}
-                          </td>
-                          <td style={{ padding: "8px" }}>
-                            {field.value ? field.value : "-"}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>

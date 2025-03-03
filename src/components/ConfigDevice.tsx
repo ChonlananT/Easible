@@ -497,7 +497,7 @@ function ConfigDevice() {
               )}
               {!isLoading && (
                 <div style={{ display: "flex", justifyContent: "end" }}>
-                  <button className="button-cancel-prev" onClick={onClose}>
+                  <button className="button-cancel-prev" style={{marginTop:"20px"}}onClick={onClose}>
                     Close
                   </button>
                 </div>
