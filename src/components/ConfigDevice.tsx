@@ -188,15 +188,15 @@ function ConfigDevice() {
       // Update the detailsByType for the given device type with the new data.
       setDetailsByType((prevDetails) => ({
         ...prevDetails,
-      switch: newData.parsed_result, // adjust if your API returns a different property
+        switch: newData.parsed_result, // adjust if your API returns a different property
       }));
 
       // Recombine your host data so that combinedHosts is updated.
       combineHostsData();
 
       // Optionally, if you want to store the new result data:
-      } catch (error) {
-        console.error("Error fetching detail config device:", error);
+    } catch (error) {
+      console.error("Error fetching detail config device:", error);
     } finally {
       // Done fetching root info
       setIsLoadingRootInfo(false);
@@ -263,7 +263,9 @@ function ConfigDevice() {
                 <strong>Mode:</strong> {input.vlanData.mode || "-"}
               </div>
               <div>
-                <strong>IP Address:</strong> {ipAddressValue || "-"}/{input.vlanData.cidr}
+                <strong>IP Address:</strong> {ipAddressValue || "-"}
+                {input.vlanData.cidr != null && !isNaN(Number(input.vlanData.cidr)) && input.vlanData.cidr !== "" && `/${input.vlanData.cidr}`}
+
               </div>
             </div>
           );
@@ -401,7 +403,7 @@ function ConfigDevice() {
             <div className="popup-overlay">
               <div className="popup-preview">
                 <h2 className="summary-title">
-                Result{" "}
+                  Result{" "}
                   <span
                     style={{
                       color:
@@ -459,7 +461,7 @@ function ConfigDevice() {
                   ))}
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                  <button className="button-cancel-prev" style={{fontSize:'18px', padding: ' 5px 20px', borderRadius:'20px'}} onClick={onClose}>
+                  <button className="button-cancel-prev" style={{ fontSize: '18px', padding: ' 5px 20px', borderRadius: '20px' }} onClick={onClose}>
                     Close
                   </button>
                 </div>
@@ -604,7 +606,7 @@ function ConfigDevice() {
             <button
               className="button-cancel-prev"
               style={{ fontSize: "16px", padding: "4px 15px" }}
-              onClick= { () => setBridgeOpen(false)}
+              onClick={() => setBridgeOpen(false)}
             >
               Back
             </button>
@@ -1662,48 +1664,48 @@ function ConfigDevice() {
                           <div className="config-device-input-text">
                             <label>Loopback ID:</label>
                             <input type="text"
-                                /* Tells mobile keyboards to show only digits */
-                                inputMode="numeric"
-                                /* Basic HTML pattern for digits only (fallback for some browsers) */
-                                pattern="[0-9]*"
-                                value={
-                                  link.loopbackData.loopbackNumber === 0
-                                    ? ""
-                                    : link.loopbackData.loopbackNumber
+                              /* Tells mobile keyboards to show only digits */
+                              inputMode="numeric"
+                              /* Basic HTML pattern for digits only (fallback for some browsers) */
+                              pattern="[0-9]*"
+                              value={
+                                link.loopbackData.loopbackNumber === 0
+                                  ? ""
+                                  : link.loopbackData.loopbackNumber
+                              }
+                              onKeyPress={(e) => {
+                                // Disallow any character that's not a digit (0-9)
+                                if (!/[0-9]/.test(e.key)) {
+                                  e.preventDefault();
                                 }
-                                onKeyPress={(e) => {
-                                  // Disallow any character that's not a digit (0-9)
-                                  if (!/[0-9]/.test(e.key)) {
-                                    e.preventDefault();
-                                  }
-                                }}
-                                onChange={(e) => {
-                                  let { value } = e.target;
-                                  
-                                  // 1. If user clears the input, store empty:
-                                  if (value === "") {
-                                    handleHostChange(index, { group: "loopbackData", key: "loopbackNumber" }, "");
-                                    return;
-                                  }
-                                  
-                                  // 2. Parse the string as an integer:
-                                  let parsed = parseInt(value, 10);
-                                  
-                                  // 3. Clamp the parsed value to 0–2147483647
-                                  if (parsed > 2147483647) {
-                                    parsed = 2147483647;
-                                  } else if (parsed < 0) {
-                                    parsed = 0;
-                                  }
-                                  
-                                  // 4. Convert to string to remove leading zeros
-                                  //    If the user typed multiple zeros like "000", it becomes "0"
-                                  const sanitized = parsed.toString();
-                                  
-                                  handleHostChange(index, { group: "loopbackData", key: "loopbackNumber" }, sanitized);
-                                }}
-                                placeholder="Enter Loopback ID (e.g., 0-2147483647)"
-                                />
+                              }}
+                              onChange={(e) => {
+                                let { value } = e.target;
+
+                                // 1. If user clears the input, store empty:
+                                if (value === "") {
+                                  handleHostChange(index, { group: "loopbackData", key: "loopbackNumber" }, "");
+                                  return;
+                                }
+
+                                // 2. Parse the string as an integer:
+                                let parsed = parseInt(value, 10);
+
+                                // 3. Clamp the parsed value to 0–2147483647
+                                if (parsed > 2147483647) {
+                                  parsed = 2147483647;
+                                } else if (parsed < 0) {
+                                  parsed = 0;
+                                }
+
+                                // 4. Convert to string to remove leading zeros
+                                //    If the user typed multiple zeros like "000", it becomes "0"
+                                const sanitized = parsed.toString();
+
+                                handleHostChange(index, { group: "loopbackData", key: "loopbackNumber" }, sanitized);
+                              }}
+                              placeholder="Enter Loopback ID (e.g., 0-2147483647)"
+                            />
 
                           </div>
 

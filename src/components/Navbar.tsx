@@ -101,7 +101,7 @@ const Navbar = ({ isNavOpen, setIsNavOpen }) => {
             (e.currentTarget.style.color = isConfigActive ? "#8c94dc" : "black")
           }
         >
-          <a>Configure connenctions </a>
+          <a>Configure connections </a>
           <ChevronDown
             className={isNavDropdownOpen ? "chevron-nav rotated" : "chevron-nav"}
           />
