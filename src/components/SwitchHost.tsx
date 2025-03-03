@@ -123,7 +123,7 @@ function SwitchHost() {
   useEffect(() => {
     fetchSwitchHost();
   }
-  , []);
+    , []);
 
   // Get interfaces for a given host.
   const getInterfacesForHost = (hostname: string) => {
@@ -269,7 +269,7 @@ function SwitchHost() {
       })),
     }));
 
-    
+
 
     // Show summary popup immediately.
     setSummaryLinks([...links]);
@@ -286,7 +286,7 @@ function SwitchHost() {
         if (data.error) {
           setError(data.error);
         } else {
-          
+
         }
       })
       .catch((err) => {
@@ -320,7 +320,7 @@ function SwitchHost() {
         if (data.error) {
           setError(data.error);
         } else {
-          
+
           setResultData(data);
         }
       })
@@ -356,30 +356,30 @@ function SwitchHost() {
     <div className="App">
       <Navbar isNavOpen={isNavOpen} setIsNavOpen={setIsNavOpen} />
       <div className={`content ${isNavOpen ? 'expanded' : 'full-width'}`}>
-        <div className="content-topic"style={{ display: "flex", justifyContent: "space-between" }}>
+        <div className="content-topic" style={{ display: "flex", justifyContent: "space-between" }}>
           <div>
-          {!isNavOpen && (
-            <button
-              style={{
-                padding: '8px',
-                color: 'black',
-                borderRadius: '8px',
-                zIndex: 50,
-                border: 'none',
-                background: 'white',
-                marginRight: '8px',
-              }}
-              onClick={() => setIsNavOpen(true)}
-            >
-              <Menu size={24} />
-            </button>
-          )}
-          Configuration <span className="content-topic-small">(Switch-Host)</span>
+            {!isNavOpen && (
+              <button
+                style={{
+                  padding: '8px',
+                  color: 'black',
+                  borderRadius: '8px',
+                  zIndex: 50,
+                  border: 'none',
+                  background: 'white',
+                  marginRight: '8px',
+                }}
+                onClick={() => setIsNavOpen(true)}
+              >
+                <Menu size={24} />
+              </button>
+            )}
+            Configuration <span className="content-topic-small">(Switch-Host)</span>
           </div>
           <button
             onClick={fetchSwitchHost}
             style={{
-              
+
               display: "flex",
               fontSize: "16px",
               gap: "10px",
@@ -398,146 +398,149 @@ function SwitchHost() {
         </div>
         <div className="content-board">
           {!loading && (
-          <div className="all-links-swh">
-            {links.map((link, linkIndex) => (
-              <div key={linkIndex} className="switch-switch">
-                <div className="top-link">
-                  <div className="link-index">Link {linkIndex + 1}</div>
-                  <div className="remove-link-container">
-                    {links.length > 1 && (
-                      <button onClick={() => handleRemoveLink(linkIndex)} className="button-sw-sw-remove">
-                        <img
-                          src="bin.png"
-                          alt="Remove link"
-                          style={{ width: '45px', height: '27px' }}
-                        />
-                      </button>
-                    )}
+            <div className="all-links-swh">
+              {links.map((link, linkIndex) => (
+                <div key={linkIndex} className="switch-switch">
+                  <div className="top-link">
+                    <div className="link-index">Link {linkIndex + 1}</div>
+                    <div className="remove-link-container">
+                      {links.length > 1 && (
+                        <button onClick={() => handleRemoveLink(linkIndex)} className="button-sw-sw-remove">
+                          <img
+                            src="bin.png"
+                            alt="Remove link"
+                            style={{ width: '45px', height: '27px' }}
+                          />
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
 
-                <div className="content-section-swh">
-                  <div className={`host-selection-container-swh ${link.selectedHost ? "move-left" : ""}`}>
-                    <div className="host-selection__hosts-swh">
-                      <div className="host-swh">
-                        <div className="host-card">
-                          <div className="host-selection__dropdown-group">
-                            <label>Select Host (Switch):</label>
-                            <div className="host-selection__dropdown-container">
-                              <select
-                                className="host-selection__dropdown"
-                                onChange={(e) =>
-                                  handleLinkHostChange(linkIndex, e.target.value)
-                                }
-                                value={link.selectedHost}
-                              >
-                                <option value="">-- Select a Host --</option>
-        
-                                {!loading &&
-                                  hosts.map((host) => (
-                                    <option key={host.hostname} value={host.hostname}>
-                                      {host.hostname}
-                                    </option>
-                                  ))}
-                              </select>
+                  <div className="content-section-swh">
+                    <div className={`host-selection-container-swh ${link.selectedHost ? "move-left" : ""}`}>
+                      <div className="host-selection__hosts-swh">
+                        <div className="host-swh">
+                          <div className="host-card">
+                            <div className="host-selection__dropdown-group">
+                              <label>Select Host (Switch):</label>
+                              <div className="host-selection__dropdown-container">
+                                <select
+                                  className="host-selection__dropdown"
+                                  onChange={(e) =>
+                                    handleLinkHostChange(linkIndex, e.target.value)
+                                  }
+                                  value={link.selectedHost}
+                                >
+                                  <option value="">-- Select a Host --</option>
+
+                                  {!loading &&
+                                    hosts.map((host) => (
+                                      <option key={host.hostname} value={host.hostname}>
+                                        {host.hostname}
+                                      </option>
+                                    ))}
+                                </select>
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
-                    </div>
 
-                    {link.selectedHost && (
-                      <div className="command-section-swh">
-                        {link.interfaces.map((iface, ifaceIndex) => (
-                          <div key={ifaceIndex} className="interface-config-swh" style={{ width: '90%' }}>
-                            <div className="interface-selection__vlan-configuration-swh" style={{ width: '35%'}}>
-                              <div className="host-selection__dropdown-swh">
-                                <label>Select Interface for {link.selectedHost}:</label>
-                                <select
-                                  className="host-selection__dropdown"
-                                  value={iface.selectedInterface}
-                                  onChange={(e) =>
-                                    handleInterfaceChange(linkIndex, ifaceIndex, "selectedInterface", e.target.value)
-                                  }
-                                >
-                                  <option value="">-- Select Interface --</option>
-                                  {getInterfacesForHost(link.selectedHost).map((intf) => (
-                                    <option key={intf.interface} value={intf.interface}>
-                                      {intf.interface} ({intf.status})
-                                    </option>
-                                  ))}
-                                </select>
-                              </div>
-                            </div>
-                            <div className="host-selection__vlan-configuration-swh" style={{ width: '100%', justifyContent: 'space-between' }}>
-                              <div className="input-sw-sw-group" style={{ width: '30%' }}>
-                                <label>VLAN ID:</label>
-                                <select
-                                  className="host-selection__dropdown-vlan"
-                                  value={iface.vlanData.vlanId}
-                                  onChange={(e) =>
-                                    handleVlanChange(linkIndex, ifaceIndex, "vlanId", e.target.value)
-                                  }
-                                >
-                                  <option value="">-- Select VLAN --</option>
-                                  {getVlanIdsForHost(link.selectedHost).map((vlan) => (
-                                    <option key={vlan} value={vlan}>
-                                      {vlan}
-                                    </option>
-                                  ))}
-                                </select>
-                              </div>
-                              <div style={{ display: 'flex', flexDirection: 'row', width: '70%', justifyContent: 'space-between' }}>
-                                <div className="input-sw-sw-group" style={{ width: '45%'}}>
-                                  <label>IP Address for SVI:</label>
-                                  <input
-                                    type="text"
-                                    value={iface.vlanData.ipAddress}
+                      {link.selectedHost && (
+                        <div className="command-section-swh">
+                          {link.interfaces.map((iface, ifaceIndex) => (
+                            <div key={ifaceIndex} className="interface-config-swh" style={{ width: '90%' }}>
+                              <div className="interface-selection__vlan-configuration-swh" style={{ width: '35%' }}>
+                                <div className="host-selection__dropdown-swh">
+                                  <label>Select Interface for {link.selectedHost}:</label>
+                                  <select
+                                    className="host-selection__dropdown"
+                                    value={iface.selectedInterface}
                                     onChange={(e) =>
-                                      handleVlanChange(linkIndex, ifaceIndex, "ipAddress", e.target.value)
+                                      handleInterfaceChange(linkIndex, ifaceIndex, "selectedInterface", e.target.value)
                                     }
-                                    placeholder="Enter IP Address"
-                                    className="input-sw-sw"
-                                  />
+                                  >
+                                    <option value="">-- Select Interface --</option>
+                                    {getInterfacesForHost(link.selectedHost)
+                                      .filter((intf) => !intf.interface.toLowerCase().includes('vlan'))
+                                      .map((intf) => (
+                                        <option key={intf.interface} value={intf.interface}>
+                                          {intf.interface} ({intf.status})
+                                        </option>
+                                      ))}
+
+                                  </select>
                                 </div>
-                                <div style={{ display: 'flex', alignItems: 'center' }}>
-                                  <span style={{ fontSize: '25px', marginTop: '25px', paddingLeft: '10px' }}>/</span>
-                                </div>
-                                <div className="input-sw-sw-group" style={{ width: '45%'}}>
-                                  <label>Subnet Mask (CIDR):</label>
-                                  <input
-                                    type="number"
-                                    min={1}
-                                    max={32}
-                                    value={iface.vlanData.subnetMask}
+                              </div>
+                              <div className="host-selection__vlan-configuration-swh" style={{ width: '100%', justifyContent: 'space-between' }}>
+                                <div className="input-sw-sw-group" style={{ width: '30%' }}>
+                                  <label>VLAN ID:</label>
+                                  <select
+                                    className="host-selection__dropdown-vlan"
+                                    value={iface.vlanData.vlanId}
                                     onChange={(e) =>
-                                      handleVlanChange(linkIndex, ifaceIndex, "subnetMask", e.target.value)
+                                      handleVlanChange(linkIndex, ifaceIndex, "vlanId", e.target.value)
                                     }
-                                    placeholder="Enter Subnet Mask"
-                                    className="input-sw-sw"
-                                  />
+                                  >
+                                    <option value="">-- Select VLAN --</option>
+                                    {getVlanIdsForHost(link.selectedHost).map((vlan) => (
+                                      <option key={vlan} value={vlan}>
+                                        {vlan}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                                <div style={{ display: 'flex', flexDirection: 'row', width: '70%', justifyContent: 'space-between' }}>
+                                  <div className="input-sw-sw-group" style={{ width: '45%' }}>
+                                    <label>IP Address for SVI:</label>
+                                    <input
+                                      type="text"
+                                      value={iface.vlanData.ipAddress}
+                                      onChange={(e) =>
+                                        handleVlanChange(linkIndex, ifaceIndex, "ipAddress", e.target.value)
+                                      }
+                                      placeholder="Enter IP Address"
+                                      className="input-sw-sw"
+                                    />
+                                  </div>
+                                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                                    <span style={{ fontSize: '25px', marginTop: '25px', paddingLeft: '10px' }}>/</span>
+                                  </div>
+                                  <div className="input-sw-sw-group" style={{ width: '45%' }}>
+                                    <label>Subnet Mask (CIDR):</label>
+                                    <input
+                                      type="number"
+                                      min={1}
+                                      max={32}
+                                      value={iface.vlanData.subnetMask}
+                                      onChange={(e) =>
+                                        handleVlanChange(linkIndex, ifaceIndex, "subnetMask", e.target.value)
+                                      }
+                                      placeholder="Enter Subnet Mask (e.g., 24)"
+                                      className="input-sw-sw"
+                                    />
+                                  </div>
                                 </div>
                               </div>
+                              {link.interfaces.length > 1 && (
+                                <div>
+                                  <CircleMinus style={{ width: '30px', height: '30px', color: 'red', marginTop: '55px', marginLeft: '10px', cursor: 'pointer' }} onClick={() => handleRemoveInterface(linkIndex, ifaceIndex)} />
+                                </div>
+                              )}
                             </div>
-                            {link.interfaces.length > 1 && (
-                              <div>
-                                <CircleMinus style={{ width: '30px', height: '30px', color: 'red', marginTop: '55px', marginLeft: '10px', cursor: 'pointer' }} onClick={() => handleRemoveInterface(linkIndex, ifaceIndex)} />
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                        <span />
-                        <button className="button-add-interface" onClick={() => handleAddInterface(linkIndex)}>
-                          + Add Interface
-                        </button>
-                      </div>
-                    )}
+                          ))}
+                          <span />
+                          <button className="button-add-interface" onClick={() => handleAddInterface(linkIndex)}>
+                            + Add Interface
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
 
           <div className="line-container">
             <div className="line"></div>
