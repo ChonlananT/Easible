@@ -148,6 +148,7 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({
               return (
                 <div
                   key={idx}
+                  className="popup-table"
                   style={{
                     marginBottom: "20px",
                     backgroundColor: "#ffffff",
@@ -161,7 +162,10 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({
                       {comp.match ? "Matched" : "Unmatched"}
                     </p>
                   </div>
-                  <div style={{ overflowX: "auto" }}>
+                  <div
+                    className="popup-table-wrapper"
+                    style={{ overflowX: "auto" }}
+                  >
                     <table
                       border={1}
                       style={{
@@ -216,7 +220,9 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({
               return (
                 <div
                   key={idx}
+                  className="popup-table"
                   style={{
+
                     marginBottom: "20px",
                     backgroundColor: "#ffffff",
                     borderRadius: "4px",
@@ -226,7 +232,10 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({
                   <div style={{ marginBottom: "10px" }}>
                     <h5>{comp.frontend.hostname || "-"}</h5>
                   </div>
-                  <div style={{ overflowX: "auto" }}>
+                  <div
+                    className="popup-table-wrapper"
+                    style={{ overflowX: "auto" }}
+                  >
                     <table
                       border={1}
                       style={{
