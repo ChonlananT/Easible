@@ -1223,7 +1223,7 @@ def run_playbook_switchswitch():
                 module_stderr = errors or output
             ssh.close()
             return jsonify({"error": module_stderr}), 500
-
+        time.sleep(4)
         playbook_content = sh_int_trunk()  # สมมติว่าฟังก์ชันนี้ return playbook content ที่ต้องการ
         verify_playbook_path = f"/app/playbook/verify_playbook.yml"
 
