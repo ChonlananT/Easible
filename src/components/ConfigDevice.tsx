@@ -497,7 +497,7 @@ function ConfigDevice() {
               )}
               {!isLoading && (
                 <div style={{ display: "flex", justifyContent: "end" }}>
-                  <button className="button-cancel-prev" style={{marginTop:"20px"}}onClick={onClose}>
+                  <button className="button-cancel-prev" style={{ marginTop: "20px" }} onClick={onClose}>
                     Close
                   </button>
                 </div>
@@ -1289,44 +1289,61 @@ function ConfigDevice() {
 
                       <div className="host-selection__dropdown-group">
                         <label>Select Device:</label>
-                        <select
-                          className="host-selection__dropdown"
-                          value={link.selectedHost}
-                          onChange={(e) =>
-                            handleHostChange(
-                              index,
-                              "selectedHost",
-                              e.target.value
-                            )
-                          }
-                          disabled={
-                            !link.deviceType ||
-                            loading ||
-                            combinedHosts.filter(
-                              (host) => host.deviceType === link.deviceType
-                            ).length <= 1
-                          }
-                        >
-                          <option value="">
-                            {!link.deviceType
-                              ? "-- Select a Device --"
-                              : combinedHosts.some(
+                        <div style={{display:"flex"}}>
+                          <select
+                            className="host-selection__dropdown"
+                            style={{
+                              cursor:
+                                !link.deviceType ||
+                                  combinedHosts.some(
+                                    (host) => host.deviceType === link.deviceType
+                                  )
+                                  ? "default"
+                                  : "not-allowed",
+                            }}
+                            value={link.selectedHost}
+                            onChange={(e) =>
+                              handleHostChange(index, "selectedHost", e.target.value)
+                            }
+                            disabled={
+                              !link.deviceType ||
+                              !combinedHosts.some(
                                 (host) => host.deviceType === link.deviceType
-                              )
+                              ) ||
+                              combinedHosts.filter(
+                                (host) => host.deviceType === link.deviceType
+                              ).length <= 1
+                            }
+                          >
+                            <option value="">
+                              {!link.deviceType
                                 ? "-- Select a Device --"
-                                : "Loading..."}
-                          </option>
-                          {combinedHosts
-                            .filter(
+                                : combinedHosts.some(
+                                  (host) => host.deviceType === link.deviceType
+                                )
+                                  ? "-- Select a Device --"
+                                  : "Loading..."}
+                            </option>
+                            {combinedHosts
+                              .filter((host) => host.deviceType === link.deviceType)
+                              .map((host: DropdownOption) => (
+                                <option key={host.hostname} value={host.hostname}>
+                                  {host.hostname}
+                                </option>
+                              ))}
+                          </select>
+                          {link.deviceType &&
+                            !combinedHosts.some(
                               (host) => host.deviceType === link.deviceType
-                            )
-                            .map((host: DropdownOption) => (
-                              <option key={host.hostname} value={host.hostname}>
-                                {host.hostname}
-                              </option>
-                            ))}
-                        </select>
+                            ) && (
+                              <div style={{display:"flex", alignItems: "center" , paddingLeft: '10px'}}>
+                                <div className="spinner-lab-confd" />
+                              </div>
+                            )}
+                          </div>
                       </div>
+
+
 
                       <div className="host-selection__dropdown-group">
                         <label>Select Command:</label>
@@ -1820,7 +1837,7 @@ function ConfigDevice() {
               className={`button-sw-sw-add ${loading ? "loading" : ""}`}
               disabled={loading}
             >
-                + Add Host Config
+              + Add Host Config
             </button>
             <div className="line"></div>
           </div>
