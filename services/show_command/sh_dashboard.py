@@ -1,5 +1,5 @@
 def sh_dashboard():
-    hosts_line = "Alldevice"
+    hosts_line = "selectedgroup"
     
     # สร้างเนื้อหา Playbook โดยใช้ hostname ที่กรองแล้ว
     playbook_content = f"""
