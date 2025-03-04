@@ -752,7 +752,7 @@ function Hosts() {
           >Create Inventory</button>
           {showInventoryReminder && (
             <div className="inventory-reminder-text">
-              <div>Please click "Create Inventory" to start configuring your devices and groups.</div>
+              <div>Please click "Create Inventory" to update your devices and groups.</div>
             </div>
           )}
           {isPopupVisible && (
