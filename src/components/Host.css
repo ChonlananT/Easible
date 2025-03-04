@@ -515,6 +515,7 @@
 .button-hosts {
   margin-top: 8px;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   /* Centers the button horizontally */
   align-items: center;
@@ -551,7 +552,7 @@
   /* Border thickness */
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
   /* Inset shadow for depth */
-  height: 80%;
+  height: 74%;
   /* Adjust automatically based on content */
 }
 
@@ -879,4 +880,26 @@ input[type="radio"]:checked:before {
   width: fit-content;
   margin: 10px auto;
   font-family: Arial, sans-serif;
+}
+
+
+
+
+@keyframes blink {
+  50% { opacity: 0.25; }
+  100% { opacity: 1; }
+}
+
+.blink {
+  animation: blink 1.5s linear infinite;
+}
+
+.inventory-reminder-text {
+  background-color: #fffae6;
+  margin-top: 5px;
+  border-radius: 4px;
+  text-align: center;
+  font-weight: bold;
+  color: #b8860b;
+  font-size: 12px;
 }

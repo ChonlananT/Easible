@@ -118,6 +118,7 @@ function Hosts() {
         const newHost = await response.json();
         setHosts((prev) => [...prev, newHost]);
         setShowAddHostPopup(false);
+        setShowInventoryReminder(true);
       } else {
         console.error('Failed to save host');
       }
@@ -166,6 +167,7 @@ function Hosts() {
       if (response.ok) {
         const data = await response.json();
         setShowInventoryPopup(true);
+        setShowInventoryReminder(false);
       } else {
         const errorData = await response.json();
         alert(`Failed to create inventory: ${errorData.error || 'Unknown error'}`);
@@ -239,6 +241,7 @@ function Hosts() {
         // รีเฟรชข้อมูล hosts เพื่อแสดง Group ใหม่
         await fetchHosts();
         setShowAddGroupPopup(false);
+        setShowInventoryReminder(true);
       } else {
         const errorData = await response.json();
         alert(`Failed to add group: ${errorData.error || 'Unknown error'}`);
@@ -570,6 +573,9 @@ function Hosts() {
     setIsNavDropdownOpen(!isNavDropdownOpen);
   }
 
+  const [showInventoryReminder, setShowInventoryReminder] = useState(false);
+
+
   return (
     <div className="App">
       <Navbar isNavOpen={isNavOpen} setIsNavOpen={setIsNavOpen} />
@@ -739,7 +745,16 @@ function Hosts() {
             ปุ่ม Add Host, Add Group และ Create Inventory
         ------------------------- */}
         <div className="button-hosts">
-          <button className="purple-round" onClick={handleShowPopupButtonClick}>Create Inventory</button>
+          
+          <button
+            className={`purple-round ${showInventoryReminder ? "blink" : ""}`}
+            onClick={handleShowPopupButtonClick}
+          >Create Inventory</button>
+          {showInventoryReminder && (
+            <div className="inventory-reminder-text">
+              <div>Please click "Create Inventory" to start configuring your devices and groups.</div>
+            </div>
+          )}
           {isPopupVisible && (
             <div className="popup-overlay">
               <div className="popup-content-host">
