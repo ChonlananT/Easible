@@ -688,7 +688,7 @@ function SwitchHost() {
                                   <thead>
                                     <tr style={{ backgroundColor: "#f0f8ff" }}>
                                       <th>Interface</th>
-                                      <th>IP Address</th>
+                                      <th>SVI IP Address</th>
                                       <th>VLAN ID</th>
                                     </tr>
                                   </thead>
@@ -751,7 +751,7 @@ function SwitchHost() {
                                   <thead>
                                     <tr style={{ backgroundColor: "#fff2e6" }}>
                                       <th>Interface</th>
-                                      <th>IP Address</th>
+                                      <th>SVI IP Address</th>
                                       <th>VLAN ID</th>
                                     </tr>
                                   </thead>
