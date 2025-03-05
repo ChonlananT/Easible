@@ -24,10 +24,12 @@ function DonutChart({
   const dynamicDonutStyle = {
     width: `${size}px`,
     height: `${size}px`,
-    background: `conic-gradient(
-      green 0% ${onlinePercent}%,
-      red ${onlinePercent}% 100%
-    )`,
+    background: onlinePercent === 0
+      ? "grey"
+      : `conic-gradient(
+        green 0% ${onlinePercent}%,
+        red ${onlinePercent}% 100%
+      )`,
   };
 
   const donutHoleSize = size * 0.95; // Adjust hole size relative to donut size
