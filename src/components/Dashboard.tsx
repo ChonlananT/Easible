@@ -25,7 +25,7 @@ function DonutChart({
     width: `${size}px`,
     height: `${size}px`,
     background: onlinePercent === 0
-      ? "grey"
+      ? "#c3c3c3"
       : `conic-gradient(
         green 0% ${onlinePercent}%,
         red ${onlinePercent}% 100%
