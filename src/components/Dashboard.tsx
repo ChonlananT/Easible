@@ -150,10 +150,10 @@ function Dashboard() {
   const allDevices = [...onlineDevices, ...offlineDevices];
 
   const routers = allDevices
-    .filter((device) => device.deviceType.toLowerCase() === "router")
+    .filter((device) => device.deviceType && device.deviceType.toLowerCase() === "router")
     .sort((a, b) => a.hostname.localeCompare(b.hostname));
   const switches = allDevices
-    .filter((device) => device.deviceType.toLowerCase() === "switch")
+    .filter((device) => device.deviceType && device.deviceType.toLowerCase() === "switch")
     .sort((a, b) => a.hostname.localeCompare(b.hostname));
 
   const devicesOnline = allDevices.filter((d) => d.status === "online").length;
@@ -186,7 +186,7 @@ function Dashboard() {
     <div className="App">
       <Navbar isNavOpen={isNavOpen} setIsNavOpen={setIsNavOpen} />
       <div className={`content ${isNavOpen ? "expanded" : "full-width"}`}>
-      <div
+        <div
           className="content-topic"
           style={{ display: "flex", justifyContent: "space-between" }}
         >
@@ -214,9 +214,9 @@ function Dashboard() {
               border: "none",
               background: "none",
               cursor: "pointer",
-              
+
             }}
-            disabled = {loading}
+            disabled={loading}
             className="button-refresh"
           >
             <RefreshCcw /> Refresh
@@ -318,8 +318,6 @@ function Dashboard() {
             )}
           </div>
         )}
-
-
       </div>
     </div>
   );
