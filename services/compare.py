@@ -55,14 +55,14 @@ def compare_expected_outputs(parsed_output, lab_commands):
             if norm_exp not in normalized_actual:
                 diff_list.append({
                     "expected": expected_lines[idx],
-                    "actual": "not found"
+                    "actual": "Not Found"
                 })
         
         # ตรวจสอบบรรทัดที่มีใน actual แต่ไม่พบใน expected
         for idx, norm_act in enumerate(normalized_actual):
             if norm_act not in normalized_expected:
                 diff_list.append({
-                    "expected": "not expected",
+                    "expected": "Not Expected",
                     "actual": actual_lines[idx]
                 })
         return diff_list
