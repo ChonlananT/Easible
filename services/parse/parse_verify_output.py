@@ -60,4 +60,5 @@ def parse_verify_output(log_text):
                 "msg": lines_list
             })
 
+    print(result)
     return result

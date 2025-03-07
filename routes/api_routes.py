@@ -1322,7 +1322,6 @@ def run_playbook_switchswitch():
         return jsonify({"error": str(e)}), 500
 
 @api_bp.route('/api/run_playbook/rttort', methods=['POST'])
-
 def run_playbook_routerrouter():
     try:
         data = request.json
@@ -1436,16 +1435,15 @@ def run_playbook_routerrouter():
         ssh.close()
 
         parsed_result = parse_routes(verify_output)
-        parsed_verify = parse_verify_output(verify_output)
+        # parsed_verify = parse_verify_output(verify_output)
         if expected_tables:
             comparison_result = compare_routing_tables(expected_tables, parsed_result)
         else:
             comparison_result = {"message": "No routing_tables provided. Skipping compare."}
-        print (parsed_verify)
         return jsonify({
             "parsed_routes": parsed_result,
             "comparison": comparison_result,
-            "detail": parsed_verify
+            # "detail": parsed_verify
         })
 
     except Exception as e:
