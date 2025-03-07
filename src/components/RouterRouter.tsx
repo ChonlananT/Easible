@@ -926,17 +926,18 @@ function RouterRouter() {
                       {/* Conditionally render the detail data */}
                       {showDetailsPopup && (
                         <div className="popup-overlay">
-                          <div className="popup-content-host">
-                            <div className="popup-detail-section" style={{ marginTop: "10px", backgroundColor: "#fff", border: "1px solid #ccc", borderRadius: "4px", padding: "10px" }}>
-                              <h5>Detail Information</h5>
+                          <div className="popup-content-host" style={{ width: "80%", height: "95%" }}>
+                            <h5>Detail Information</h5>
+                            <div className="popup-detail-section" style={{ backgroundColor: "#fff", border: "1px solid #ccc", borderRadius: "4px", padding: "10px", height: "90%" }}>
                               <pre style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}>
                                 {showDetails ? JSON.stringify(showDetails, null, 2) : "No detail data available"}
                               </pre>
-                              <button
-                                className="cancel-btn"
-                                onClick={() => setShowDetailsPopup(!showDetailsPopup)}
-                              >close</button>
+
                             </div>
+                            <div style={{ display: "flex", justifyContent: "flex-end" }}><button
+                              className="cancel-btn"
+                              onClick={() => setShowDetailsPopup(!showDetailsPopup)}
+                            >close</button></div>
                           </div>
                         </div>
                       )}
