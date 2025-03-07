@@ -850,12 +850,14 @@ function RouterRouter() {
                         <h4 style={{ marginTop: 0 }}>Applied on device:</h4>
                         <button
                           style={{
-                            padding: "5px 12px",
+                            padding: "3px 10px",
                             cursor: "pointer",
                             borderRadius: "20px",
                             border: "none",
-                            backgroundColor: "rgb(125, 173, 216)",
+                            backgroundColor: "##3caee3",
                             color: "#fff",
+                            fontSize:"14px",
+                            height:"90%"
                           }}
                           onClick={() => setShowDetailsPopup(!showDetailsPopup)}
                         >
@@ -931,8 +933,8 @@ function RouterRouter() {
                         <div className="popup-overlay">
                           <div className="popup-content-host" style={{ width: "65%", height: "95%" }}>
                             <h5>Detail Information</h5>
-                            <div className="popup-detail-section" style={{ backgroundColor: "#fff", border: "1px solid #ccc", borderRadius: "4px", padding: "10px", height: "80%" }}>
-                              <pre style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}>
+                            <div className="popup-detail-section" style={{ backgroundColor: "#fff", border: "1px solid #ccc", borderRadius: "4px", padding: "10px", height: "85%" }}>
+                              <pre style={{ whiteSpace: "pre-wrap", wordWrap: "break-word", maxHeight:"100%" }}>
                                 {showDetails ? JSON.stringify(showDetails, null, 2) : "No detail data available"}
                               </pre>
 
