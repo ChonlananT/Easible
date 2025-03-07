@@ -917,7 +917,7 @@ function RouterRouter() {
                           backgroundColor: "#1890ff",
                           color: "#fff",
                         }}
-                        onClick={() => setShowDetails(!showDetailsPopup)}
+                        onClick={() => setShowDetailsPopup(!showDetailsPopup)}
                       >
                         {showDetailsPopup ? "Hide Details" : "Show Details"}
                       </button>
