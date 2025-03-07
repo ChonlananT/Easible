@@ -56,8 +56,8 @@ def parse_verify_output(log_text):
 
             # Append the current task's data to the host's list.
             result[hostname].append({
-                "msg": lines_list,
-                "task": task_name
+                "task": task_name,
+                "msg": lines_list
             })
 
     
