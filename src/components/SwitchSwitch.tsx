@@ -558,22 +558,24 @@ function SwitchSwitch() {
                             borderRadius: "5px",
                           }}
                         >
-                          <h4 style={{ marginTop: 0 }}>Applied on device:</h4>
-                          <button
-                          style={{
-                            padding: "3px 10px",
-                            cursor: "pointer",
-                            borderRadius: "20px",
-                            border: "none",
-                            backgroundColor: "#3caee3",
-                            color: "#fff",
-                            fontSize:"14px",
-                            height:"90%"
-                          }}
-                          onClick={() => setShowDetailsPopup(!showDetailsPopup)}
-                        >
-                          {showDetailsPopup ? "Hide Details" : "Show Details"}
-                        </button>
+                          <div style={{ display: "flex", justifyContent: "space-between" }}>
+                            <h4 style={{ marginTop: 0 }}>Applied on device:</h4>
+                            <button
+                              style={{
+                                padding: "3px 10px",
+                                cursor: "pointer",
+                                borderRadius: "20px",
+                                border: "none",
+                                backgroundColor: "#3caee3",
+                                color: "#fff",
+                                fontSize: "14px",
+                                height: "90%"
+                              }}
+                              onClick={() => setShowDetailsPopup(!showDetailsPopup)}
+                            >
+                              {showDetailsPopup ? "Hide Details" : "Show Details"}
+                            </button>
+                          </div>
                           <div className="popup-table-section-result" style={{ maxHeight: "69vh" }}>
                             {backendResult.comparison.map((comp: any, index: number) => {
                               const hostKeys = Object.keys(comp);
@@ -637,7 +639,7 @@ function SwitchSwitch() {
                                       <div className="popup-content-host" style={{ width: "65%", height: "95%" }}>
                                         <h4>Details Information</h4>
                                         <div className="popup-detail-section" style={{ backgroundColor: "#fff", border: "1px solid #ccc", borderRadius: "4px", padding: "10px", height: "85%" }}>
-                                          <pre style={{ whiteSpace: "pre-wrap", wordWrap: "break-word", maxHeight:"100%" }}>
+                                          <pre style={{ whiteSpace: "pre-wrap", wordWrap: "break-word", maxHeight: "100%" }}>
                                             {showDetails ? JSON.stringify(showDetails, null, 2) : "No detail data available"}
                                           </pre>
 
@@ -649,7 +651,7 @@ function SwitchSwitch() {
                                       </div>
                                     </div>
                                   )}
-                                            </div>
+                                </div>
                               );
                             })}
                           </div>

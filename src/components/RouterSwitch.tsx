@@ -107,7 +107,7 @@ function SwitchRouter() {
   useEffect(() => {
     fetchRouterSwitch();
   }
-  , []);
+    , []);
 
   // Retrieve interfaces for a given host by hostname
   const getInterfacesForHost = (hostname: string) => {
@@ -268,7 +268,7 @@ function SwitchRouter() {
       vlanConfigs: link.vlanConfigs,
     }));
 
-    
+
 
     // Open the result popup immediately and start the spinner
     setIsPopupOpen(false);
@@ -320,9 +320,9 @@ function SwitchRouter() {
     <div className="App">
       <Navbar isNavOpen={isNavOpen} setIsNavOpen={setIsNavOpen} />
       <div className={`content ${isNavOpen ? 'expanded' : 'full-width'}`}>
-      <div className="content-topic" style={{ display: "flex", justifyContent: "space-between" }}>
+        <div className="content-topic" style={{ display: "flex", justifyContent: "space-between" }}>
           <div>
-          {!isNavOpen && (
+            {!isNavOpen && (
               <button
                 style={{
                   padding: '8px',
@@ -339,11 +339,11 @@ function SwitchRouter() {
               </button>
             )}
             Configuration <span className="content-topic-small">(Router-Switch)</span>
-          </div> 
+          </div>
           <button
             onClick={fetchRouterSwitch}
             style={{
-              
+
               display: "flex",
               fontSize: "16px",
               gap: "10px",
@@ -362,220 +362,220 @@ function SwitchRouter() {
         </div>
         <div className="content-board">
           {!loading && (
-          <div className="all-links">
-            {links.map((link, index) => (
-              <div key={index} className="switch-switch">
-                <div className="top-link">
-                  <div className="link-index">Link {index + 1}</div>
-                  <div className="remove-link-container">
-                    {links.length > 1 && (
-                      <button onClick={() => handleRemoveLink(index)} className="button-sw-sw-remove">
-                        <img
-                          src="bin.png"
-                          alt="Remove link"
-                          style={{ width: '45px', height: '27px' }}
-                        />
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                <div className="content-section">
-                  <div className="host-selection-container">
-                    <div className="host-selection__hosts">
-                      {/* Switch Host Card */}
-                      <div style={{ marginTop: '20px' }}>
-                        <div className="host-card">
-                          <div className="host-selection__dropdown-group">
-                            <label>Switch:</label>
-                            <div className="host-selection__dropdown-container">
-                              <select
-                                className="host-selection__dropdown"
-                                onChange={(e) =>
-                                  handleLinkChange(index, 'selectedSwitchHost', e.target.value)
-                                }
-                                value={link.selectedSwitchHost}
-                              >
-                                <option value="">-- Select a Switch Host --</option>
-                                {!loading &&
-                                  hosts
-                                    .filter(
-                                      (host: DropdownOption) =>
-                                        host.deviceType.toLowerCase() === 'switch'
-                                    )
-                                    .map((host: DropdownOption) => (
-                                      <option key={host.hostname} value={host.hostname}>
-                                        {host.hostname}
-                                      </option>
-                                    ))}
-                              </select>
-                            </div>
-                          </div>
-
-                          <div className="host-selection__dropdown-group">
-                            <label>Select Interface:</label>
-                            <div className="host-selection__dropdown-container">
-                              <select
-                                className="host-selection__dropdown"
-                                value={link.selectedSwitchInterface}
-                                onChange={(e) =>
-                                  handleLinkChange(index, 'selectedSwitchInterface', e.target.value)
-                                }
-                              >
-                                <option value="">-- Select Interface --</option>
-                                {getInterfacesForHost(link.selectedSwitchHost)
-                                  .filter((intf) => !intf.interface.toLowerCase().includes('vlan'))
-                                  .map((intf) => (
-                                    <option key={intf.interface} value={intf.interface}>
-                                      {intf.interface} ({intf.status})
-                                    </option>
-                                  ))}
-                              </select>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="connect-pic-rt-rt">
-                        <img
-                          src="connect.png"
-                          alt="Connect"
-                          style={{ width: '150px', height: '100px' }}
-                        />
-                        <label>Inter-VLAN Routing</label>
-                      </div>
-
-                      {/* Router Host Card */}
-                      <div style={{ marginTop: '20px' }}>
-                        <div className="host-card">
-                          <div className="host-selection__dropdown-group">
-                            <label>Router:</label>
-                            <div className="host-selection__dropdown-container">
-                              <select
-                                className="host-selection__dropdown"
-                                onChange={(e) =>
-                                  handleLinkChange(index, 'selectedRouterHost', e.target.value)
-                                }
-                                value={link.selectedRouterHost}
-                              >
-                                <option value="">-- Select a Router Host --</option>
-                                {!loading &&
-                                  hosts
-                                    .filter(
-                                      (host: DropdownOption) =>
-                                        host.deviceType.toLowerCase() === 'router'
-                                    )
-                                    .map((host: DropdownOption) => (
-                                      <option key={host.hostname} value={host.hostname}>
-                                        {host.hostname}
-                                      </option>
-                                    ))}
-                              </select>
-                            </div>
-                          </div>
-                          <div className="host-selection__dropdown-group">
-                            <label>Select Interface:</label>
-                            <div className="host-selection__dropdown-container">
-                              <select
-                                className="host-selection__dropdown"
-                                value={link.selectedRouterInterface}
-                                onChange={(e) =>
-                                  handleLinkChange(index, 'selectedRouterInterface', e.target.value)
-                                }
-                              >
-                                <option value="">-- Select Interface --</option>
-                                {getInterfacesForHost(link.selectedRouterHost)
-                                  .filter((intf) => intf.interface.includes('Gigabit'))
-                                  .map((intf) => (
-                                    <option key={intf.interface} value={intf.interface}>
-                                      {intf.interface} ({intf.status})
-                                    </option>
-                                  ))}
-                              </select>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+            <div className="all-links">
+              {links.map((link, index) => (
+                <div key={index} className="switch-switch">
+                  <div className="top-link">
+                    <div className="link-index">Link {index + 1}</div>
+                    <div className="remove-link-container">
+                      {links.length > 1 && (
+                        <button onClick={() => handleRemoveLink(index)} className="button-sw-sw-remove">
+                          <img
+                            src="bin.png"
+                            alt="Remove link"
+                            style={{ width: '45px', height: '27px' }}
+                          />
+                        </button>
+                      )}
                     </div>
+                  </div>
 
-                    {/* VLAN Configuration Section */}
-                    <div className="vlan-rt-sw">
-                      <h5 style={{ margin: '0px auto' }}>VLAN Configuration</h5>
-                      <p />
-                      {link.vlanConfigs.length === 0 ? (
-                        <p style={{ color: 'grey', textAlign: 'center' }}>
-                          No VLANs have been added yet.
-                        </p>
-                      ) : (
-                        link.vlanConfigs.map((vlan, vlanIndex) => (
-                          <div key={vlanIndex} className="vlan-rt-sw-input">
-                            <div className="input-sw-sw-group">
-                              <label>VLAN ID:</label>
+                  <div className="content-section">
+                    <div className="host-selection-container">
+                      <div className="host-selection__hosts">
+                        {/* Switch Host Card */}
+                        <div style={{ marginTop: '20px' }}>
+                          <div className="host-card">
+                            <div className="host-selection__dropdown-group">
+                              <label>Switch:</label>
                               <div className="host-selection__dropdown-container">
                                 <select
-                                  className="input-sw-sw"
-                                  value={vlan.vlanId}
+                                  className="host-selection__dropdown"
                                   onChange={(e) =>
-                                    handleVlanChange(index, vlanIndex, 'vlanId', e.target.value)
+                                    handleLinkChange(index, 'selectedSwitchHost', e.target.value)
                                   }
+                                  value={link.selectedSwitchHost}
                                 >
-                                  <option value="">-- Select VLAN ID --</option>
-                                  {getVlanIdsForHost(link.selectedSwitchHost).map((vlanOption) => (
-                                    <option key={vlanOption} value={vlanOption}>
-                                      {vlanOption}
-                                    </option>
-                                  ))}
+                                  <option value="">-- Select a Switch Host --</option>
+                                  {!loading &&
+                                    hosts
+                                      .filter(
+                                        (host: DropdownOption) =>
+                                          host.deviceType.toLowerCase() === 'switch'
+                                      )
+                                      .map((host: DropdownOption) => (
+                                        <option key={host.hostname} value={host.hostname}>
+                                          {host.hostname}
+                                        </option>
+                                      ))}
                                 </select>
                               </div>
                             </div>
-                            <div className="input-sw-sw-group">
-                              <label>Gateway:</label>
-                              <input
-                                type="text"
-                                value={vlan.gateway}
-                                onChange={(e) =>
-                                  handleVlanChange(index, vlanIndex, 'gateway', e.target.value)
-                                }
-                                placeholder="Enter Gateway"
-                                className="input-sw-sw"
-                              />
+
+                            <div className="host-selection__dropdown-group">
+                              <label>Select Interface:</label>
+                              <div className="host-selection__dropdown-container">
+                                <select
+                                  className="host-selection__dropdown"
+                                  value={link.selectedSwitchInterface}
+                                  onChange={(e) =>
+                                    handleLinkChange(index, 'selectedSwitchInterface', e.target.value)
+                                  }
+                                >
+                                  <option value="">-- Select Interface --</option>
+                                  {getInterfacesForHost(link.selectedSwitchHost)
+                                    .filter((intf) => !intf.interface.toLowerCase().includes('vlan'))
+                                    .map((intf) => (
+                                      <option key={intf.interface} value={intf.interface}>
+                                        {intf.interface} ({intf.status})
+                                      </option>
+                                    ))}
+                                </select>
+                              </div>
                             </div>
-                            <div style={{ display: 'flex', alignItems: 'center' }}>
-                              <span style={{ fontSize: '25px', marginTop: '10px' }}>/</span>
-                            </div>
-                            <div className="input-sw-sw-group" style={{ width: '35%' }}>
-                              <label>Subnet:</label>
-                              <input
-                                type="number"
-                                value={vlan.subnet}
-                                onChange={(e) => handleVlanChange(index, vlanIndex, 'subnet', e.target.value)}
-                                className="input-sw-sw"
-                                min="1"
-                                max="32"
-                              />
-                            </div>
-                            <CircleMinus
-                              style={{
-                                width: '95px',
-                                height: '95px',
-                                color: 'red',
-                                marginTop: '10px',
-                                cursor: 'pointer',
-                              }}
-                              onClick={() => handleRemoveVlan(index, vlanIndex)}
-                            />
                           </div>
-                        ))
-                      )}
-                      <button className="button-add-vlan" onClick={() => handleAddVlan(index)}>
-                        + Add VLAN
-                      </button>
+                        </div>
+
+                        <div className="connect-pic-rt-rt">
+                          <img
+                            src="connect.png"
+                            alt="Connect"
+                            style={{ width: '150px', height: '100px' }}
+                          />
+                          <label>Inter-VLAN Routing</label>
+                        </div>
+
+                        {/* Router Host Card */}
+                        <div style={{ marginTop: '20px' }}>
+                          <div className="host-card">
+                            <div className="host-selection__dropdown-group">
+                              <label>Router:</label>
+                              <div className="host-selection__dropdown-container">
+                                <select
+                                  className="host-selection__dropdown"
+                                  onChange={(e) =>
+                                    handleLinkChange(index, 'selectedRouterHost', e.target.value)
+                                  }
+                                  value={link.selectedRouterHost}
+                                >
+                                  <option value="">-- Select a Router Host --</option>
+                                  {!loading &&
+                                    hosts
+                                      .filter(
+                                        (host: DropdownOption) =>
+                                          host.deviceType.toLowerCase() === 'router'
+                                      )
+                                      .map((host: DropdownOption) => (
+                                        <option key={host.hostname} value={host.hostname}>
+                                          {host.hostname}
+                                        </option>
+                                      ))}
+                                </select>
+                              </div>
+                            </div>
+                            <div className="host-selection__dropdown-group">
+                              <label>Select Interface:</label>
+                              <div className="host-selection__dropdown-container">
+                                <select
+                                  className="host-selection__dropdown"
+                                  value={link.selectedRouterInterface}
+                                  onChange={(e) =>
+                                    handleLinkChange(index, 'selectedRouterInterface', e.target.value)
+                                  }
+                                >
+                                  <option value="">-- Select Interface --</option>
+                                  {getInterfacesForHost(link.selectedRouterHost)
+                                    .filter((intf) => intf.interface.includes('Gigabit'))
+                                    .map((intf) => (
+                                      <option key={intf.interface} value={intf.interface}>
+                                        {intf.interface} ({intf.status})
+                                      </option>
+                                    ))}
+                                </select>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* VLAN Configuration Section */}
+                      <div className="vlan-rt-sw">
+                        <h5 style={{ margin: '0px auto' }}>VLAN Configuration</h5>
+                        <p />
+                        {link.vlanConfigs.length === 0 ? (
+                          <p style={{ color: 'grey', textAlign: 'center' }}>
+                            No VLANs have been added yet.
+                          </p>
+                        ) : (
+                          link.vlanConfigs.map((vlan, vlanIndex) => (
+                            <div key={vlanIndex} className="vlan-rt-sw-input">
+                              <div className="input-sw-sw-group">
+                                <label>VLAN ID:</label>
+                                <div className="host-selection__dropdown-container">
+                                  <select
+                                    className="input-sw-sw"
+                                    value={vlan.vlanId}
+                                    onChange={(e) =>
+                                      handleVlanChange(index, vlanIndex, 'vlanId', e.target.value)
+                                    }
+                                  >
+                                    <option value="">-- Select VLAN ID --</option>
+                                    {getVlanIdsForHost(link.selectedSwitchHost).map((vlanOption) => (
+                                      <option key={vlanOption} value={vlanOption}>
+                                        {vlanOption}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                              </div>
+                              <div className="input-sw-sw-group">
+                                <label>Gateway:</label>
+                                <input
+                                  type="text"
+                                  value={vlan.gateway}
+                                  onChange={(e) =>
+                                    handleVlanChange(index, vlanIndex, 'gateway', e.target.value)
+                                  }
+                                  placeholder="Enter Gateway"
+                                  className="input-sw-sw"
+                                />
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center' }}>
+                                <span style={{ fontSize: '25px', marginTop: '10px' }}>/</span>
+                              </div>
+                              <div className="input-sw-sw-group" style={{ width: '35%' }}>
+                                <label>Subnet:</label>
+                                <input
+                                  type="number"
+                                  value={vlan.subnet}
+                                  onChange={(e) => handleVlanChange(index, vlanIndex, 'subnet', e.target.value)}
+                                  className="input-sw-sw"
+                                  min="1"
+                                  max="32"
+                                />
+                              </div>
+                              <CircleMinus
+                                style={{
+                                  width: '95px',
+                                  height: '95px',
+                                  color: 'red',
+                                  marginTop: '10px',
+                                  cursor: 'pointer',
+                                }}
+                                onClick={() => handleRemoveVlan(index, vlanIndex)}
+                              />
+                            </div>
+                          ))
+                        )}
+                        <button className="button-add-vlan" onClick={() => handleAddVlan(index)}>
+                          + Add VLAN
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
           )}
           <div className="line-container">
             <div className="line"></div>
@@ -695,22 +695,24 @@ function SwitchRouter() {
                             borderRadius: "5px",
                           }}
                         >
-                          <h4 style={{ marginTop: 0 }}>Applied on device:</h4>
-                          <button
-                          style={{
-                            padding: "3px 10px",
-                            cursor: "pointer",
-                            borderRadius: "20px",
-                            border: "none",
-                            backgroundColor: "#3caee3",
-                            color: "#fff",
-                            fontSize:"14px",
-                            height:"90%"
-                          }}
-                          onClick={() => setShowDetailsPopup(!showDetailsPopup)}
-                        >
-                          {showDetailsPopup ? "Hide Details" : "Show Details"}
-                        </button>
+                          <div style={{ display: "flex", justifyContent: "space-between" }}>
+                            <h4 style={{ marginTop: 0 }}>Applied on device:</h4>
+                            <button
+                              style={{
+                                padding: "3px 10px",
+                                cursor: "pointer",
+                                borderRadius: "20px",
+                                border: "none",
+                                backgroundColor: "#3caee3",
+                                color: "#fff",
+                                fontSize: "14px",
+                                height: "90%"
+                              }}
+                              onClick={() => setShowDetailsPopup(!showDetailsPopup)}
+                            >
+                              {showDetailsPopup ? "Hide Details" : "Show Details"}
+                            </button>
+                          </div>
                           <div
                             className="popup-table-section-result"
                             style={{ maxHeight: "69vh", overflowX: "auto" }}
@@ -796,10 +798,10 @@ function SwitchRouter() {
                               <div className="popup-content-host" style={{ width: "65%", height: "95%" }}>
                                 <h4>Details Information</h4>
                                 <div className="popup-detail-section" style={{ backgroundColor: "#fff", border: "1px solid #ccc", borderRadius: "4px", padding: "10px", height: "85%" }}>
-                                  <pre style={{ whiteSpace: "pre-wrap", wordWrap: "break-word", maxHeight:"100%" }}>
+                                  <pre style={{ whiteSpace: "pre-wrap", wordWrap: "break-word", maxHeight: "100%" }}>
                                     {showDetails ? JSON.stringify(showDetails, null, 2) : "No detail data available"}
                                   </pre>
-                          
+
                                 </div>
                                 <div style={{ display: "flex", justifyContent: "flex-end" }}><button
                                   className="cancel-btn"
