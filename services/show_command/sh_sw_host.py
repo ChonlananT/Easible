@@ -56,7 +56,7 @@ def sh_sw_host(data):
             playbook_lines.append(task_command)
 
             # Task to debug the output of the commands.
-            task_debug = f"""    - name: Display output for {hostname} interface {interface}
+            task_debug = f"""    - name: Display output for {hostname} interface of {interface} and VLAN {vlanId}
       debug:
         msg: "{{{{ output_{hostname}_{safe_iface}.stdout_lines }}}}"
       when: inventory_hostname == "{hostname}" """
