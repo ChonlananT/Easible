@@ -1441,7 +1441,7 @@ def run_playbook_routerrouter():
             comparison_result = compare_routing_tables(expected_tables, parsed_result)
         else:
             comparison_result = {"message": "No routing_tables provided. Skipping compare."}
-
+        print (parsed_verify)
         return jsonify({
             "parsed_routes": parsed_result,
             "comparison": comparison_result,
