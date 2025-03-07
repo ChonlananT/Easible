@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 
 type ResultDisplayProps = {
   selectedCommand: string;
@@ -12,6 +12,9 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({
   resultData,
   setShowComparisonPopup,
 }) => {
+  const [showDetailsPopup, setShowDetailsPopup] = useState(false);
+  const [showDetails, setShowDetails] = useState<any>(null);
+
   if (!resultData || !resultData.comparison || resultData.comparison.length === 0) {
     return <div>No result data available.</div>;
   }
@@ -52,10 +55,7 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({
         return [
           { label: "Interface", value: comp.backend.interface },
           { label: "IP Address", value: comp.backend.ipaddress },
-          {
-            label: "Activate Protocol",
-            value: comp.backend.activateProtocol,
-          },
+          { label: "Activate Protocol", value: comp.backend.activateProtocol },
         ];
       case "static_route":
         return [
@@ -138,7 +138,17 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({
             borderRadius: "5px",
           }}
         >
-          <h4 style={{ marginTop: 0 }}>Applied on device:</h4>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <h4 style={{ marginTop: 0 }}>Applied on device:</h4>
+            <button
+              onClick={() => {
+                setShowDetails(resultData);
+                setShowDetailsPopup(true);
+              }}
+            >
+              Show Details
+            </button>
+          </div>
           <div
             className="popup-table-section-result"
             style={{ maxHeight: "65vh", overflowY: "auto" }}
@@ -222,7 +232,6 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({
                   key={idx}
                   className="popup-table"
                   style={{
-
                     marginBottom: "20px",
                     backgroundColor: "#ffffff",
                     borderRadius: "4px",
@@ -270,6 +279,34 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Details Popup */}
+      {showDetailsPopup && (
+        <div className="popup-overlay">
+          <div className="popup-content-host" style={{ width: "65%", height: "95%" }}>
+            <h4>Details Information</h4>
+            <div
+              className="popup-detail-section"
+              style={{
+                backgroundColor: "#fff",
+                border: "1px solid #ccc",
+                borderRadius: "4px",
+                padding: "10px",
+                height: "85%",
+              }}
+            >
+              <pre style={{ whiteSpace: "pre-wrap", wordWrap: "break-word", maxHeight: "100%" }}>
+                {showDetails ? JSON.stringify(showDetails, null, 2) : "No detail data available"}
+              </pre>
+            </div>
+            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+              <button className="cancel-btn" onClick={() => setShowDetailsPopup(false)}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

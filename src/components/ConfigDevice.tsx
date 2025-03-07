@@ -462,6 +462,24 @@ function ConfigDevice() {
                     </div>
                   ))}
                 </div>
+                {/* Conditionally render the detail data */}
+                {showDetailsPopup && (
+                            <div className="popup-overlay">
+                              <div className="popup-content-host" style={{ width: "65%", height: "95%" }}>
+                                <h4>Details Information</h4>
+                                <div className="popup-detail-section" style={{ backgroundColor: "#fff", border: "1px solid #ccc", borderRadius: "4px", padding: "10px", height: "85%" }}>
+                                  <pre style={{ whiteSpace: "pre-wrap", wordWrap: "break-word", maxHeight:"100%" }}>
+                                    {showDetails ? JSON.stringify(showDetails, null, 2) : "No detail data available"}
+                                  </pre>
+                          
+                                </div>
+                                <div style={{ display: "flex", justifyContent: "flex-end" }}><button
+                                  className="cancel-btn"
+                                  onClick={() => setShowDetailsPopup(!showDetailsPopup)}
+                                >Close</button></div>
+                              </div>
+                            </div>
+                          )}
                 <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                   <button className="button-cancel-prev" style={{ fontSize: '18px', padding: ' 5px 20px', borderRadius: '20px' }} onClick={onClose}>
                     Close
@@ -1179,6 +1197,7 @@ function ConfigDevice() {
       .then((data) => {
         if (data.error) {
           setError(data.error);
+          setShowDetails(data.detail);
         } else {
           setResultData(data);
           setShowDetails(data.detail);
