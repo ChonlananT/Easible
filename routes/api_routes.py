@@ -1435,7 +1435,7 @@ def run_playbook_routerrouter():
         ssh.close()
 
         parsed_result = parse_routes(verify_output)
-        # parsed_verify = parse_verify_output(verify_output)
+        parsed_verify = parse_verify_output(verify_output)
         if expected_tables:
             comparison_result = compare_routing_tables(expected_tables, parsed_result)
         else:
@@ -1443,7 +1443,7 @@ def run_playbook_routerrouter():
         return jsonify({
             "parsed_routes": parsed_result,
             "comparison": comparison_result,
-            # "detail": parsed_verify
+            "detail": parsed_verify
         })
 
     except Exception as e:
