@@ -238,7 +238,7 @@ function RouterRouter() {
         setComparisonResult(data.comparison);
         setParsedRoutes(data.parsed_routes);
         setShowDetails(data.detail);
-        console.log(showDetails)
+  
       })
       .catch((err) => {
         setError(err.message);
@@ -932,10 +932,10 @@ function RouterRouter() {
                       {showDetailsPopup && (
                         <div className="popup-overlay">
                           <div className="popup-content-host" style={{ width: "65%", height: "95%" }}>
-                            <h5>Details Information</h5>
+                            <h4>Details Information</h4>
                             <div className="popup-detail-section" style={{ backgroundColor: "#fff", border: "1px solid #ccc", borderRadius: "4px", padding: "10px", height: "85%" }}>
                               <pre style={{ whiteSpace: "pre-wrap", wordWrap: "break-word", maxHeight:"100%" }}>
-                                {showDetails ? JSON.stringify(showDetails, null, 2) : "No detail data available"}
+                                {showDetails || "No detail data available"}
                               </pre>
 
                             </div>
