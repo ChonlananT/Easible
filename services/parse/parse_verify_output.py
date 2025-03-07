@@ -60,5 +60,5 @@ def parse_verify_output(log_text):
                 "task": task_name
             })
 
-    print(result)
+    
     return result
