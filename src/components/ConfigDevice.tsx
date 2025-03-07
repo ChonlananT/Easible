@@ -404,17 +404,34 @@ function ConfigDevice() {
           return (
             <div className="popup-overlay">
               <div className="popup-preview">
-                <h2 className="summary-title">
-                  Result{" "}
-                  <span
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <h2 className="summary-title">
+                    Result{" "}
+                    <span
+                      style={{
+                        color:
+                          resultData.comparison[0].match === true ? "#6ABD65" : "#FE4141",
+                      }}
+                    >
+                      {resultData.comparison[0].match === true ? "Matched" : "Unmatched"}
+                    </span>
+                  </h2>                
+                  <button
                     style={{
-                      color:
-                        resultData.comparison[0].match === true ? "#6ABD65" : "#FE4141",
+                      padding: "3px 10px",
+                      cursor: "pointer",
+                      borderRadius: "20px",
+                      border: "none",
+                      backgroundColor: "#3caee3",
+                      color: "#fff",
+                      fontSize: "14px",
+                      height: "90%"
                     }}
+                    onClick={() => setShowDetailsPopup(!showDetailsPopup)}
                   >
-                    {resultData.comparison[0].match === true ? "Matched" : "Unmatched"}
-                  </span>
-                </h2>
+                    {showDetailsPopup ? "Hide Details" : "Show Details"}
+                  </button>
+                </div>
                 <div className="summary-content-cd">
                   {sortedResults.map((sw, index) => (
                     <div key={index} className="switch-card">
@@ -462,39 +479,24 @@ function ConfigDevice() {
                     </div>
                   ))}
                 </div>
-                <button
-                  style={{
-                    padding: "3px 10px",
-                    cursor: "pointer",
-                    borderRadius: "20px",
-                    border: "none",
-                    backgroundColor: "#3caee3",
-                    color: "#fff",
-                    fontSize: "14px",
-                    height: "90%"
-                  }}
-                  onClick={() => setShowDetailsPopup(!showDetailsPopup)}
-                >
-                  {showDetailsPopup ? "Hide Details" : "Show Details"}
-                </button>
                 {/* Conditionally render the detail data */}
                 {showDetailsPopup && (
-                            <div className="popup-overlay">
-                              <div className="popup-content-host" style={{ width: "65%", height: "95%" }}>
-                                <h4>Details Information</h4>
-                                <div className="popup-detail-section" style={{ backgroundColor: "#fff", border: "1px solid #ccc", borderRadius: "4px", padding: "10px", height: "85%" }}>
-                                  <pre style={{ whiteSpace: "pre-wrap", wordWrap: "break-word", maxHeight:"100%" }}>
-                                    {showDetails ? JSON.stringify(showDetails, null, 2) : "No detail data available"}
-                                  </pre>
-                          
-                                </div>
-                                <div style={{ display: "flex", justifyContent: "flex-end" }}><button
-                                  className="cancel-btn"
-                                  onClick={() => setShowDetailsPopup(!showDetailsPopup)}
-                                >Close</button></div>
-                              </div>
-                            </div>
-                          )}
+                  <div className="popup-overlay">
+                    <div className="popup-content-host" style={{ width: "65%", height: "95%" }}>
+                      <h4>Details Information</h4>
+                      <div className="popup-detail-section" style={{ backgroundColor: "#fff", border: "1px solid #ccc", borderRadius: "4px", padding: "10px", height: "85%" }}>
+                        <pre style={{ whiteSpace: "pre-wrap", wordWrap: "break-word", maxHeight: "100%" }}>
+                          {showDetails ? JSON.stringify(showDetails, null, 2) : "No detail data available"}
+                        </pre>
+
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "flex-end" }}><button
+                        className="cancel-btn"
+                        onClick={() => setShowDetailsPopup(!showDetailsPopup)}
+                      >Close</button></div>
+                    </div>
+                  </div>
+                )}
                 <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                   <button className="button-cancel-prev" style={{ fontSize: '18px', padding: ' 5px 20px', borderRadius: '20px' }} onClick={onClose}>
                     Close
@@ -1326,7 +1328,7 @@ function ConfigDevice() {
 
                       <div className="host-selection__dropdown-group">
                         <label>Select Device:</label>
-                        <div style={{display:"flex"}}>
+                        <div style={{ display: "flex" }}>
                           <select
                             className="host-selection__dropdown"
                             style={{
@@ -1373,11 +1375,11 @@ function ConfigDevice() {
                             !combinedHosts.some(
                               (host) => host.deviceType === link.deviceType
                             ) && (
-                              <div style={{display:"flex", alignItems: "center" , paddingLeft: '10px'}}>
+                              <div style={{ display: "flex", alignItems: "center", paddingLeft: '10px' }}>
                                 <div className="spinner-lab-confd" />
                               </div>
                             )}
-                          </div>
+                        </div>
                       </div>
 
 
