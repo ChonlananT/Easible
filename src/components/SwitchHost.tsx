@@ -835,6 +835,7 @@ function SwitchHost() {
                 onClick={() => {
                   setError("");
                   setShowPopup(false);
+                  setIsPopupOpen(false);
                 }}
               >
                 Close
