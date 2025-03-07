@@ -14,7 +14,7 @@ def sh_int_trunk():
             - show interface trunk
         register: interface_output
 
-      - name: Display interface details
+      - name: Display 'show ip interface brief' Command Details
         debug:
           msg: "{{{{ interface_output.stdout_lines }}}}"
 """

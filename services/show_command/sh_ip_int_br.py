@@ -15,7 +15,7 @@ def sh_ip_int_br():
             - show vlan brief
         register: interface_output
 
-      - name: Display interface details
+      - name: Display 'show ip interface brief' and 'show vlan brief' Command Details
         debug:
           msg: "{{{{ interface_output.stdout_lines }}}}"
     """

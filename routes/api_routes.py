@@ -4,7 +4,7 @@ import ipaddress
 import time
 from flask import Blueprint, request, jsonify
 from services.ssh_service import create_ssh_connection
-from services.parse import parse_ansible_output, parse_result, parse_interface, parse_configd, parse_dashboard, parse_sh_int_trunk, parse_routes, parse_switch_host, parse_router_switch, parse_config_device
+from services.parse import parse_ansible_output, parse_result, parse_interface, parse_configd, parse_dashboard, parse_sh_int_trunk, parse_routes, parse_switch_host, parse_router_switch, parse_config_device, parse_verify_output
 from services.database import add_device, fetch_all_devices, delete_device, assign_group_to_hosts, delete_group, create_custom_lab_in_db, fetch_all_custom_labs, delete_custom_lab_in_db, update_custom_lab_in_db
 from services.generate_inventory import generate_inventory_content
 from services.show_command import sh_ip_int_br, sh_ip_int_br_rt, sh_dashboard, sh_swtort, sh_int_trunk, sh_ip_route, sh_sw_host, sh_router_switch, sh_config_device
@@ -1238,7 +1238,7 @@ def run_playbook_switchswitch():
 
         # Parse output ที่ได้จาก verify_playbook
         parsed_result = parse_sh_int_trunk(verify_output)
-
+        parsed_verify = parse_verify_output(verify_output)
         # ฟังก์ชันสำหรับประมวลผล entry เดียว
         def process_entry(entry):
             req_hostname1 = entry.get("hostname1")
@@ -1315,7 +1315,8 @@ def run_playbook_switchswitch():
                 }
             })
         return jsonify({
-            "comparison": paired_links
+            "comparison": paired_links,
+            "detail": parsed_verify
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -1431,9 +1432,11 @@ def run_playbook_routerrouter():
         stdin, stdout, stderr = ssh.exec_command(f"ansible-playbook -i {inventory_path} {verify_playbook_path}")
         verify_output = stdout.read().decode('utf-8')
         verify_errors = stderr.read().decode('utf-8')
+        
         ssh.close()
 
         parsed_result = parse_routes(verify_output)
+        parsed_verify = parse_verify_output(verify_output)
         if expected_tables:
             comparison_result = compare_routing_tables(expected_tables, parsed_result)
         else:
@@ -1441,7 +1444,8 @@ def run_playbook_routerrouter():
 
         return jsonify({
             "parsed_routes": parsed_result,
-            "comparison": comparison_result
+            "comparison": comparison_result,
+            "detail": parsed_verify
         })
 
     except Exception as e:
@@ -1510,12 +1514,13 @@ def run_playbook_configdevice():
         ssh.close()
         
         parsed_result = parse_config_device(verify_output)
-       
+        parsed_verify = parse_verify_output(verify_output)
         comparison = compare_config_device(data, parsed_result)
       
 
         return jsonify({
-            "comparison": comparison
+            "comparison": comparison,
+            "detail": parsed_verify
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -1597,10 +1602,12 @@ def run_playbook_switchhost():
         ssh.close()
 
         parsed_result = parse_switch_host(verify_output)
+        parsed_verify = parse_verify_output(verify_output)
         comparison = compare_switch_host(data, parsed_result)
         return jsonify({
             "parsed": parsed_result,
-            "comparison": comparison
+            "comparison": comparison,
+            "detail":  parsed_verify
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -1678,10 +1685,12 @@ def run_playbook_switchrouter():
         ssh.close()
 
         parsed_result = parse_router_switch(verify_output)
+        parsed_verify = parse_verify_output(verify_output)
         comparison = compare_router_switch(data, parsed_result)
 
         return jsonify({
-            "comparison": comparison
+            "comparison": comparison,
+            "detail": parsed_verify
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500

@@ -34,7 +34,7 @@ def sh_config(device_type: str):
 {chr(10).join([f"            - {cmd}" for cmd in commands])}
         register: interface_output
 
-      - name: Display interface details
+      - name: Display 'show ip interface brief' Command Details
         debug:
           msg: "{{{{ interface_output.stdout_lines }}}}"
     """

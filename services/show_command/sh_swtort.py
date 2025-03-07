@@ -14,7 +14,7 @@ def sh_swtort():
         register: interface_output_sw
         when: "'selectedgroupswitch' in group_names"
 
-      - name: Display switch interface details
+      - name: Display 'show ip interface brief' and 'show vlan brief' Command Details on switches
         debug:
           msg: "{{{{ interface_output_sw.stdout_lines }}}}"
         when: "'selectedgroupswitch' in group_names"
@@ -26,7 +26,7 @@ def sh_swtort():
         register: interface_output_rt
         when: "'selectedgrouprouter' in group_names"
 
-      - name: Display router interface details
+      - name: Display 'show ip interface brief' Command Details on routers
         debug:
           msg: "{{{{ interface_output_rt.stdout_lines }}}}"
         when: "'selectedgrouprouter' in group_names"

@@ -14,7 +14,7 @@ def sh_ip_route():
             - show ip route
         register: interface_output
 
-      - name: Display interface details
+      - name: Display 'show ip route' Command Details
         debug:
           msg: "{{{{ interface_output.stdout_lines }}}}"
 """

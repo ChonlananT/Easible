@@ -86,7 +86,7 @@ def sh_router_switch(data):
                 f"      register: {router_reg}",
                 f"      when: inventory_hostname == \"{router_host}\"",
                 "",
-                f"    - name: Debug output for {router_host} interface {router_iface}",
+                f"    - name: Display output for {router_host} interface {router_iface}",
                 "      debug:",
                 f"        msg: \"{{{{ {router_reg}.stdout_lines }}}}\"",
                 f"      when: inventory_hostname == \"{router_host}\"",

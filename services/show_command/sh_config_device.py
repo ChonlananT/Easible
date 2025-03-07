@@ -103,7 +103,7 @@ def sh_config_device(data):
                     tasks_lines.append(f"          - sh run int {cip.get('interface')}")
                     tasks_lines.append(f"      register: config_ip_output_{safe_iface}")
                     tasks_lines.append(f"      when: inventory_hostname == '{hostname}'")
-                    tasks_lines.append(f"    - name: Display interface config output for {cip.get('interface')}")
+                    tasks_lines.append(f"    - name: Display 'show running interface on {cip.get('interface')}'")
                     tasks_lines.append("      debug:")
                     tasks_lines.append(f"        msg: \"{{{{ config_ip_output_{safe_iface}.stdout_lines }}}}\"")
                     tasks_lines.append(f"      when: inventory_hostname == '{hostname}'")
