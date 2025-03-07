@@ -854,7 +854,7 @@ function RouterRouter() {
                             cursor: "pointer",
                             borderRadius: "20px",
                             border: "none",
-                            backgroundColor: "##3caee3",
+                            backgroundColor: "#3caee3",
                             color: "#fff",
                             fontSize:"14px",
                             height:"90%"
@@ -932,7 +932,7 @@ function RouterRouter() {
                       {showDetailsPopup && (
                         <div className="popup-overlay">
                           <div className="popup-content-host" style={{ width: "65%", height: "95%" }}>
-                            <h5>Detail Information</h5>
+                            <h5>Details Information</h5>
                             <div className="popup-detail-section" style={{ backgroundColor: "#fff", border: "1px solid #ccc", borderRadius: "4px", padding: "10px", height: "85%" }}>
                               <pre style={{ whiteSpace: "pre-wrap", wordWrap: "break-word", maxHeight:"100%" }}>
                                 {showDetails ? JSON.stringify(showDetails, null, 2) : "No detail data available"}
@@ -942,7 +942,7 @@ function RouterRouter() {
                             <div style={{ display: "flex", justifyContent: "flex-end" }}><button
                               className="cancel-btn"
                               onClick={() => setShowDetailsPopup(!showDetailsPopup)}
-                            >close</button></div>
+                            >Close</button></div>
                           </div>
                         </div>
                       )}
