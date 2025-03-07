@@ -238,6 +238,7 @@ function RouterRouter() {
         setComparisonResult(data.comparison);
         setParsedRoutes(data.parsed_routes);
         setShowDetails(data.detail);
+        console.log(showDetails)
       })
       .catch((err) => {
         setError(err.message);
