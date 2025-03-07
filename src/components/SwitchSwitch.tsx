@@ -47,6 +47,8 @@ function SwitchSwitch() {
   const [loading, setLoading] = useState<boolean>(true);
   const [backendResult, setBackendResult] = useState<any>(null); // result from backend
   const [isResultLoading, setIsResultLoading] = useState(false); // New state for result loading
+  const [showDetailsPopup, setShowDetailsPopup] = useState(false);
+  const [showDetails, setShowDetails] = useState<any>(null);
 
   const [isNavOpen, setIsNavOpen] = useState(() => {
     const savedNavState = localStorage.getItem('isNavOpen');
@@ -237,6 +239,7 @@ function SwitchSwitch() {
           setError(data.error);
         } else {
           setBackendResult(data);
+          setShowDetails(data.detail);
         }
       })
       .catch((err) => {
@@ -556,6 +559,21 @@ function SwitchSwitch() {
                           }}
                         >
                           <h4 style={{ marginTop: 0 }}>Applied on device:</h4>
+                          <button
+                          style={{
+                            padding: "3px 10px",
+                            cursor: "pointer",
+                            borderRadius: "20px",
+                            border: "none",
+                            backgroundColor: "#3caee3",
+                            color: "#fff",
+                            fontSize:"14px",
+                            height:"90%"
+                          }}
+                          onClick={() => setShowDetailsPopup(!showDetailsPopup)}
+                        >
+                          {showDetailsPopup ? "Hide Details" : "Show Details"}
+                        </button>
                           <div className="popup-table-section-result" style={{ maxHeight: "69vh" }}>
                             {backendResult.comparison.map((comp: any, index: number) => {
                               const hostKeys = Object.keys(comp);
@@ -613,7 +631,25 @@ function SwitchSwitch() {
                                       </tbody>
                                     </table>
                                   </div>
-                                </div>
+                                  {/* Conditionally render the detail data */}
+                                  {showDetailsPopup && (
+                                    <div className="popup-overlay">
+                                      <div className="popup-content-host" style={{ width: "65%", height: "95%" }}>
+                                        <h4>Details Information</h4>
+                                        <div className="popup-detail-section" style={{ backgroundColor: "#fff", border: "1px solid #ccc", borderRadius: "4px", padding: "10px", height: "85%" }}>
+                                          <pre style={{ whiteSpace: "pre-wrap", wordWrap: "break-word", maxHeight:"100%" }}>
+                                            {showDetails ? JSON.stringify(showDetails, null, 2) : "No detail data available"}
+                                          </pre>
+
+                                        </div>
+                                        <div style={{ display: "flex", justifyContent: "flex-end" }}><button
+                                          className="cancel-btn"
+                                          onClick={() => setShowDetailsPopup(!showDetailsPopup)}
+                                        >Close</button></div>
+                                      </div>
+                                    </div>
+                                  )}
+                                            </div>
                               );
                             })}
                           </div>

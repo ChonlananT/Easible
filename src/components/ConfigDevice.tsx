@@ -168,6 +168,8 @@ function ConfigDevice() {
   const [selectedCommand, setSelectedCommand] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingRootInfo, setIsLoadingRootInfo] = useState(false);
+  const [showDetailsPopup, setShowDetailsPopup] = useState(false);
+  const [showDetails, setShowDetails] = useState<any>(null);
   const handleClose = async () => {
     // Close the popup by updating the state.
     setBridgeOpen(false);
@@ -1179,6 +1181,7 @@ function ConfigDevice() {
           setError(data.error);
         } else {
           setResultData(data);
+          setShowDetails(data.detail);
           // เปิด popup เมื่อได้รับข้อมูล
           setBridgeOpen(true);
         }

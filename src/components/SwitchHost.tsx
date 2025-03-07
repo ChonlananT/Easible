@@ -61,6 +61,8 @@ function SwitchHost() {
   const [summaryLinks, setSummaryLinks] = useState<SwitchToHostLink[]>([]);
   const [isResultPopupOpen, setIsResultPopupOpen] = useState(false);
   const [resultData, setResultData] = useState<any>(null);
+  const [showDetailsPopup, setShowDetailsPopup] = useState(false);
+  const [showDetails, setShowDetails] = useState<any>(null);
 
   // New state to track result loading (similar to SwitchSwitch)
   const [isResultLoading, setIsResultLoading] = useState(false);
@@ -322,6 +324,7 @@ function SwitchHost() {
         } else {
 
           setResultData(data);
+          setShowDetails(data.detail);
         }
       })
       .catch((err) => {
@@ -645,6 +648,21 @@ function SwitchHost() {
                       }}
                     >
                       <h4 style={{ marginTop: 0 }}>Applied on device:</h4>
+                      <button
+                          style={{
+                            padding: "3px 10px",
+                            cursor: "pointer",
+                            borderRadius: "20px",
+                            border: "none",
+                            backgroundColor: "#3caee3",
+                            color: "#fff",
+                            fontSize:"14px",
+                            height:"90%"
+                          }}
+                          onClick={() => setShowDetailsPopup(!showDetailsPopup)}
+                        >
+                          {showDetailsPopup ? "Hide Details" : "Show Details"}
+                        </button>
                       <div
                         className="popup-table-section-result"
                         style={{ maxHeight: "65vh" }}
@@ -709,7 +727,24 @@ function SwitchHost() {
                           );
                         })}
                       </div>
+                      {/* Conditionally render the detail data */}
+                      {showDetailsPopup && (
+                        <div className="popup-overlay">
+                          <div className="popup-content-host" style={{ width: "65%", height: "95%" }}>
+                            <h4>Details Information</h4>
+                            <div className="popup-detail-section" style={{ backgroundColor: "#fff", border: "1px solid #ccc", borderRadius: "4px", padding: "10px", height: "85%" }}>
+                              <pre style={{ whiteSpace: "pre-wrap", wordWrap: "break-word", maxHeight:"100%" }}>
+                                {showDetails ? JSON.stringify(showDetails, null, 2) : "No detail data available"}
+                              </pre>
 
+                            </div>
+                            <div style={{ display: "flex", justifyContent: "flex-end" }}><button
+                              className="cancel-btn"
+                              onClick={() => setShowDetailsPopup(!showDetailsPopup)}
+                            >Close</button></div>
+                          </div>
+                        </div>
+                      )}    
                     </div>
                     {/* Configuration sent Section */}
                     <div
