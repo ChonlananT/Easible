@@ -846,7 +846,23 @@ function RouterRouter() {
                         borderRadius: "5px",
                       }}
                     >
-                      <h4 style={{ marginTop: 0 }}>Applied on device:</h4>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}>
+                        <h4 style={{ marginTop: 0 }}>Applied on device:</h4>
+                        <button
+                          style={{
+                            padding: "5px 12px",
+                            cursor: "pointer",
+                            borderRadius: "20px",
+                            border: "none",
+                            backgroundColor: "rgb(125, 173, 216)",
+                            color: "#fff",
+                          }}
+                          onClick={() => setShowDetailsPopup(!showDetailsPopup)}
+                        >
+                          {showDetailsPopup ? "Hide Details" : "Show Details"}
+                        </button>
+                      </div>
+
                       <div
                         className="popup-table-section-result"
                         style={{ maxHeight: "65vh", overflowY: "auto" }}
@@ -908,27 +924,14 @@ function RouterRouter() {
                         )}
                       </div>
                       {/* Button to toggle detail view */}
-                      <button
-                        style={{
-                          marginTop: "10px",
-                          padding: "8px 12px",
-                          cursor: "pointer",
-                          borderRadius: "4px",
-                          border: "none",
-                          backgroundColor: "#1890ff",
-                          color: "#fff",
-                        }}
-                        onClick={() => setShowDetailsPopup(!showDetailsPopup)}
-                      >
-                        {showDetailsPopup ? "Hide Details" : "Show Details"}
-                      </button>
+
 
                       {/* Conditionally render the detail data */}
                       {showDetailsPopup && (
                         <div className="popup-overlay">
-                          <div className="popup-content-host" style={{ width: "80%", height: "95%" }}>
+                          <div className="popup-content-host" style={{ width: "65%", height: "95%" }}>
                             <h5>Detail Information</h5>
-                            <div className="popup-detail-section" style={{ backgroundColor: "#fff", border: "1px solid #ccc", borderRadius: "4px", padding: "10px", height: "90%" }}>
+                            <div className="popup-detail-section" style={{ backgroundColor: "#fff", border: "1px solid #ccc", borderRadius: "4px", padding: "10px", height: "80%" }}>
                               <pre style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}>
                                 {showDetails ? JSON.stringify(showDetails, null, 2) : "No detail data available"}
                               </pre>
