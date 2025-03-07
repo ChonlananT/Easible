@@ -462,6 +462,21 @@ function ConfigDevice() {
                     </div>
                   ))}
                 </div>
+                <button
+                  style={{
+                    padding: "3px 10px",
+                    cursor: "pointer",
+                    borderRadius: "20px",
+                    border: "none",
+                    backgroundColor: "#3caee3",
+                    color: "#fff",
+                    fontSize: "14px",
+                    height: "90%"
+                  }}
+                  onClick={() => setShowDetailsPopup(!showDetailsPopup)}
+                >
+                  {showDetailsPopup ? "Hide Details" : "Show Details"}
+                </button>
                 {/* Conditionally render the detail data */}
                 {showDetailsPopup && (
                             <div className="popup-overlay">

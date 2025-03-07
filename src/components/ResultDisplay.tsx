@@ -142,7 +142,7 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({
             <h4 style={{ marginTop: 0 }}>Applied on device:</h4>
             <button
               onClick={() => {
-                setShowDetails(resultData);
+                setShowDetails(resultData.detail);
                 setShowDetailsPopup(true);
               }}
             >
