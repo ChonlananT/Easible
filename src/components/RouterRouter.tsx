@@ -935,7 +935,7 @@ function RouterRouter() {
                             <h4>Details Information</h4>
                             <div className="popup-detail-section" style={{ backgroundColor: "#fff", border: "1px solid #ccc", borderRadius: "4px", padding: "10px", height: "85%" }}>
                               <pre style={{ whiteSpace: "pre-wrap", wordWrap: "break-word", maxHeight:"100%" }}>
-                                {showDetails || "No detail data available"}
+                                {showDetails ? JSON.stringify(showDetails, null, 2) : "No detail data available"}
                               </pre>
 
                             </div>
