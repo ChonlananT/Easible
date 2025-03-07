@@ -51,7 +51,8 @@ function RouterRouter() {
   const [hosts, setHosts] = useState<DropdownOption[]>([]);
   const [interfaceData, setInterfaceData] = useState<InterfaceData[]>([]);
   const [links, setLinks] = useState<LinkConfig[]>([]);
-  const [showDetails, setShowDetails] = useState(false);
+  const [showDetailsPopup, setShowDetailsPopup] = useState(false);
+  const [showDetails, setShowDetails] = useState<any>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -916,13 +917,13 @@ function RouterRouter() {
                           backgroundColor: "#1890ff",
                           color: "#fff",
                         }}
-                        onClick={() => setShowDetails(!showDetails)}
+                        onClick={() => setShowDetails(!showDetailsPopup)}
                       >
-                        {showDetails ? "Hide Details" : "Show Details"}
+                        {showDetailsPopup ? "Hide Details" : "Show Details"}
                       </button>
                       
                       {/* Conditionally render the detail data */}
-                      {showDetails && (
+                      {showDetailsPopup && (
                         <div
                           className="popup-detail-section"
                           style={{
