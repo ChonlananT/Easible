@@ -51,7 +51,7 @@ function RouterRouter() {
   const [hosts, setHosts] = useState<DropdownOption[]>([]);
   const [interfaceData, setInterfaceData] = useState<InterfaceData[]>([]);
   const [links, setLinks] = useState<LinkConfig[]>([]);
-
+  const [showDetails, setShowDetails] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -236,7 +236,7 @@ function RouterRouter() {
         handleClosePopup();
         setComparisonResult(data.comparison);
         setParsedRoutes(data.parsed_routes);
-
+        setShowDetails(data.detail);
       })
       .catch((err) => {
         setError(err.message);
@@ -905,6 +905,41 @@ function RouterRouter() {
                           )
                         )}
                       </div>
+                       {/* Button to toggle detail view */}
+                      <button
+                        style={{
+                          marginTop: "10px",
+                          padding: "8px 12px",
+                          cursor: "pointer",
+                          borderRadius: "4px",
+                          border: "none",
+                          backgroundColor: "#1890ff",
+                          color: "#fff",
+                        }}
+                        onClick={() => setShowDetails(!showDetails)}
+                      >
+                        {showDetails ? "Hide Details" : "Show Details"}
+                      </button>
+                      
+                      {/* Conditionally render the detail data */}
+                      {showDetails && (
+                        <div
+                          className="popup-detail-section"
+                          style={{
+                            marginTop: "10px",
+                            backgroundColor: "#fff",
+                            border: "1px solid #ccc",
+                            borderRadius: "4px",
+                            padding: "10px",
+                          }}
+                        >
+                          <h5>Detail Information</h5>
+                          {/* You can format and style the detail data as needed */}
+                          <pre style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}>
+                            {JSON.stringify(showDetails, null, 2)}
+                          </pre>
+                        </div>
+                      )}
                     </div>
 
                     {/* CONFIGURATION SENT SECTION */}
