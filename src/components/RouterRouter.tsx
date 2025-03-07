@@ -924,22 +924,12 @@ function RouterRouter() {
                       
                       {/* Conditionally render the detail data */}
                       {showDetailsPopup && (
-                        <div
-                          className="popup-detail-section"
-                          style={{
-                            marginTop: "10px",
-                            backgroundColor: "#fff",
-                            border: "1px solid #ccc",
-                            borderRadius: "4px",
-                            padding: "10px",
-                          }}
-                        >
-                          <h5>Detail Information</h5>
-                          {/* You can format and style the detail data as needed */}
-                          <pre style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}>
-                            {JSON.stringify(showDetails, null, 2)}
-                          </pre>
-                        </div>
+                      <div className="popup-detail-section" style={{ marginTop: "10px", backgroundColor: "#fff", border: "1px solid #ccc", borderRadius: "4px", padding: "10px" }}>
+                        <h5>Detail Information</h5>
+                        <pre style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}>
+                          {showDetails ? JSON.stringify(showDetails, null, 2) : "No detail data available"}
+                        </pre>
+                      </div>
                       )}
                     </div>
 
