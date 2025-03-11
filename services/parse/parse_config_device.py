@@ -100,7 +100,7 @@ def parse_config_device(log_text):
             }
         
         # CATEGORY 5: Interface config output for router
-        elif task_line.startswith("Display interface config output for"):
+        elif task_line.startswith("Display 'show running interface on"):
             interface = None
             ipaddress = None
             cidr = None
