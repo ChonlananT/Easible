@@ -66,7 +66,9 @@ const Navbar = ({ isNavOpen, setIsNavOpen }) => {
         >
           <ArrowLeftFromLine size={24} />
         </button>
-        <img src="/easible-name.png" alt="Logo" className="dashboard-icon" />
+        <a href="/dashboard">
+          <img src="/easible-name.png" alt="Logo" className="dashboard-icon" />
+        </a>
       </div>
       <ul className="nav-links">
         <li className="center">
