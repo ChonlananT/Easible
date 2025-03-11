@@ -1514,8 +1514,10 @@ def run_playbook_configdevice():
         parsed_result = parse_config_device(verify_output)
         parsed_verify = parse_verify_output(verify_output)
         comparison = compare_config_device(data, parsed_result)
-      
-
+        print("parsed_result: ")
+        print(parsed_result)
+        print("comparison: ")
+        print(comparison)
         return jsonify({
             "comparison": comparison,
             "detail": parsed_verify
