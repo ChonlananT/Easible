@@ -46,7 +46,7 @@ def compare_config_device(request_data, parsed_result):
             grouped[host].setdefault("vlan", {})["interface_config"] = entry.get("interface_config", {})
         elif task.startswith("Display spanning-tree output for VLAN"):
             grouped[host]["bridge_priority"] = entry.get("spanning_tree", {})
-        elif task.startswith("Display interface config output for"):
+        elif task.startswith("Display 'show running interface on"):
             grouped[host]["config_ip_router"] = entry.get("interface_config", {})
         # Merge loopback data from different tasks
         elif task.startswith("Display loopback interface output for"):
