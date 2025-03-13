@@ -85,6 +85,7 @@ function OutputWithDiff({ actual, expected, diff }) {
 }
 
 function Lab() {
+  const [inputAdd, setInputAdd] = useState(false)
   // State สำหรับ Navigation และ Layout
   const [isNavOpen, setIsNavOpen] = useState(() => {
     const savedNavState = localStorage.getItem("isNavOpen");
@@ -162,11 +163,11 @@ function Lab() {
         </div>
       );
     }
-  
+
     return (
       <div style={{ fontFamily: "monospace", whiteSpace: "pre-wrap" }}>
         {diff.map((entry, idx) => (
-          <div key={idx} style={{ marginBottom: "10px", padding: "10px", border: "1px solid #ccc", borderRadius: "6px", backgroundColor:"#F5F6FA" }}>
+          <div key={idx} style={{ marginBottom: "10px", padding: "10px", border: "1px solid #ccc", borderRadius: "6px", backgroundColor: "#F5F6FA" }}>
             <div style={{ color: "#FE4141" }}>Actual: {entry.actual}</div>
             <div
               style={{
@@ -181,7 +182,7 @@ function Lab() {
       </div>
     );
   }
-  
+
   // State เพื่อตรวจสอบว่าอยู่ในโหมดแก้ไขหรือสร้างใหม่
   const [isEditing, setIsEditing] = useState(false);
   const [formError, setFormError] = useState("");
@@ -737,7 +738,15 @@ function Lab() {
                               >
                                 Edit Expected Output
                               </button>
-                              <div style={{ fontStyle: "italic", color: "grey", fontSize: "12px" }}>*required</div>
+                              <div
+                                style={{
+                                  fontStyle: "italic",
+                                  fontSize: "12px",
+                                  color: hostExp.expected_output.trim() !== "" ? "#1ed12e" : "grey",
+                                }}
+                              >
+                                {hostExp.expected_output.trim() !== "" ? "Added" : "*required"}
+                              </div>
                               {cmd.host_expected.length > 1 && (
                                 <CircleMinus
                                   onClick={() =>
@@ -851,6 +860,7 @@ function Lab() {
                       expectedOutputPopup.value
                     );
                     setExpectedOutputPopup(null);
+                    setInputAdd(true);
                   }}
                 >
                   Save
@@ -873,44 +883,46 @@ function Lab() {
               ) : checkResults ? (
                 <div>
                   {Object.keys(checkResults.comparison.details.unmatch).length > 0 ? (
-                      <div>
-                        {/* Add the image from the public folder */}
-                        <img 
-                            src="/Lab_Unmatched.png" 
-                            alt="Lab Unmatched" 
-                            style={{ maxWidth: "25%", marginBottom: "15px" ,display: "block", 
-                              marginLeft: "auto", 
-                              marginRight: "auto" }}
-                          />
-                        <h3 style={{ color: "#FE4141", textAlign: "center" }}>Unmatched</h3>
-                        
-                        {Object.entries(
-                          checkResults.comparison.details.unmatch
-                        ).map(([hostname, details]) => (
-                          <div key={hostname}>
-                            <h4>{hostname}</h4>
-                            {details.map((item, idx) => (
-                              <div key={idx} style={{ marginBottom: "15px" }}>
-                                <p>
-                                  <strong>Command:</strong> {item.command}
-                                </p>
-                                <OutputOnlyDiff diff={item.diff} />
-                              </div>
-                            ))}
-                          </div>
-                        ))}
-                      </div>
-                    ):(
-                      <div>
-                        <img 
-                          src="/Lab_Match.png" 
-                          alt="Lab Match" 
-                          style={{ maxWidth: "25%", marginBottom: "15px", display: "block", marginLeft: "auto", marginRight: "auto" }}
-                        />
-                        <h3 style={{ color: "#6ABD65", textAlign: "center" }}>All Matched</h3>
-                        <p style={{ color: "#a6a4a4", textAlign: "center" }}>The lab configuration is verified and correct</p>
-                      </div>
-                    )}
+                    <div>
+                      {/* Add the image from the public folder */}
+                      <img
+                        src="/Lab_Unmatched.png"
+                        alt="Lab Unmatched"
+                        style={{
+                          maxWidth: "25%", marginBottom: "15px", display: "block",
+                          marginLeft: "auto",
+                          marginRight: "auto"
+                        }}
+                      />
+                      <h3 style={{ color: "#FE4141", textAlign: "center" }}>Unmatched</h3>
+
+                      {Object.entries(
+                        checkResults.comparison.details.unmatch
+                      ).map(([hostname, details]) => (
+                        <div key={hostname}>
+                          <h4>{hostname}</h4>
+                          {details.map((item, idx) => (
+                            <div key={idx} style={{ marginBottom: "15px" }}>
+                              <p>
+                                <strong>Command:</strong> {item.command}
+                              </p>
+                              <OutputOnlyDiff diff={item.diff} />
+                            </div>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div>
+                      <img
+                        src="/Lab_Match.png"
+                        alt="Lab Match"
+                        style={{ maxWidth: "25%", marginBottom: "15px", display: "block", marginLeft: "auto", marginRight: "auto" }}
+                      />
+                      <h3 style={{ color: "#6ABD65", textAlign: "center" }}>All Matched</h3>
+                      <p style={{ color: "#a6a4a4", textAlign: "center" }}>The lab configuration is verified and correct</p>
+                    </div>
+                  )}
                   <div style={{ display: "flex", justifyContent: "flex-end" }}>
                     <button
                       onClick={() => setIsCheckModalOpen(false)}
