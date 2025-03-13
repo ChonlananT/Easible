@@ -546,6 +546,87 @@ function SwitchSwitch() {
                   <div style={{ height: "100%" }}>
                     <h1 style={{ fontSize: '38px' }}>Result</h1>
                     <div style={{ display: "flex", justifyContent: "space-between", padding: "0px 10px" }}>
+                      {/* CONFIGURATION SENT SECTION */}
+                      <div
+                        style={{
+                          width: "48%",
+                          backgroundColor: "#fff9e6", // Light yellowish background
+                          padding: "10px",
+                          border: "1px solid #ffe6b3",
+                          borderRadius: "5px",
+                        }}
+                      >
+                        <h4 style={{ marginTop: 0 }}>Configuration sent:</h4>
+                        <div className="popup-table-section-result" style={{ maxHeight: "69vh" }}>
+                          {links.map((link, index) => {
+                            let rows: JSX.Element[] = [];
+                            if (link.switchportMode === 'trunk') {
+                              if (link.vlans.length > 0) {
+                                rows = link.vlans.map((vlan, idx) => (
+                                  <tr key={idx}>
+                                    <td>{vlan || 'N/A'}</td>
+                                    <td>{link.selectedInterface1 || 'N/A'}</td>
+                                    <td>{link.selectedInterface2 || 'N/A'}</td>
+                                  </tr>
+                                ));
+                              } else {
+                                rows = [
+                                  <tr key="no-vlan">
+                                    <td>No VLAN selected</td>
+                                    <td>{link.selectedInterface1 || 'N/A'}</td>
+                                    <td>{link.selectedInterface2 || 'N/A'}</td>
+                                  </tr>
+                                ];
+                              }
+                            } else {
+                              rows = [
+                                <tr key="access">
+                                  <td>Access</td>
+                                  <td>{link.selectedInterface1 || 'N/A'}</td>
+                                  <td>{link.selectedInterface2 || 'N/A'}</td>
+                                </tr>
+                              ];
+                            }
+
+                            const host1Name = link.selectedHost1;
+                            const host2Name = link.selectedHost2;
+
+                            return (
+                              <div
+                                key={index}
+                                className="popup-table"
+                                style={{
+                                  marginBottom: "20px",
+                                  backgroundColor: "#ffffff",
+                                  borderRadius: "4px",
+                                  padding: "10px",
+                                }}
+                              >
+                                <h5>{`${host1Name}-${host2Name} Link ${index + 1}`}</h5>
+                                <div className="popup-table-wrapper" style={{ overflowX: "auto" }}>
+                                  <table
+                                    border={1}
+                                    style={{
+                                      width: '100%',
+                                      borderCollapse: 'collapse',
+                                      backgroundColor: "#fff",
+                                    }}
+                                  >
+                                    <thead>
+                                      <tr style={{ backgroundColor: "#fff2e6" }}>
+                                        <th>VLAN</th>
+                                        <th>Outgoing Interface {host1Name}</th>
+                                        <th>Outgoing Interface {host2Name}</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>{rows}</tbody>
+                                  </table>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
 
                       {/* APPLIED ON DEVICE SECTION */}
                       {backendResult && backendResult.comparison && (
@@ -644,7 +725,8 @@ function SwitchSwitch() {
                                           </pre>
 
                                         </div>
-                                        <div style={{ display: "flex", justifyContent: "flex-end" }}><button
+                                        <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                                          <button
                                           className="cancel-btn"
                                           onClick={() => setShowDetailsPopup(!showDetailsPopup)}
                                         >Close</button></div>
@@ -658,88 +740,6 @@ function SwitchSwitch() {
 
                         </div>
                       )}
-
-                      {/* CONFIGURATION SENT SECTION */}
-                      <div
-                        style={{
-                          width: "48%",
-                          backgroundColor: "#fff9e6", // Light yellowish background
-                          padding: "10px",
-                          border: "1px solid #ffe6b3",
-                          borderRadius: "5px",
-                        }}
-                      >
-                        <h4 style={{ marginTop: 0 }}>Configuration sent:</h4>
-                        <div className="popup-table-section-result" style={{ maxHeight: "69vh" }}>
-                          {links.map((link, index) => {
-                            let rows: JSX.Element[] = [];
-                            if (link.switchportMode === 'trunk') {
-                              if (link.vlans.length > 0) {
-                                rows = link.vlans.map((vlan, idx) => (
-                                  <tr key={idx}>
-                                    <td>{vlan || 'N/A'}</td>
-                                    <td>{link.selectedInterface1 || 'N/A'}</td>
-                                    <td>{link.selectedInterface2 || 'N/A'}</td>
-                                  </tr>
-                                ));
-                              } else {
-                                rows = [
-                                  <tr key="no-vlan">
-                                    <td>No VLAN selected</td>
-                                    <td>{link.selectedInterface1 || 'N/A'}</td>
-                                    <td>{link.selectedInterface2 || 'N/A'}</td>
-                                  </tr>
-                                ];
-                              }
-                            } else {
-                              rows = [
-                                <tr key="access">
-                                  <td>Access</td>
-                                  <td>{link.selectedInterface1 || 'N/A'}</td>
-                                  <td>{link.selectedInterface2 || 'N/A'}</td>
-                                </tr>
-                              ];
-                            }
-
-                            const host1Name = link.selectedHost1;
-                            const host2Name = link.selectedHost2;
-
-                            return (
-                              <div
-                                key={index}
-                                className="popup-table"
-                                style={{
-                                  marginBottom: "20px",
-                                  backgroundColor: "#ffffff",
-                                  borderRadius: "4px",
-                                  padding: "10px",
-                                }}
-                              >
-                                <h5>{`${host1Name}-${host2Name} Link ${index + 1}`}</h5>
-                                <div className="popup-table-wrapper" style={{ overflowX: "auto" }}>
-                                  <table
-                                    border={1}
-                                    style={{
-                                      width: '100%',
-                                      borderCollapse: 'collapse',
-                                      backgroundColor: "#fff",
-                                    }}
-                                  >
-                                    <thead>
-                                      <tr style={{ backgroundColor: "#fff2e6" }}>
-                                        <th>VLAN</th>
-                                        <th>Outgoing Interface {host1Name}</th>
-                                        <th>Outgoing Interface {host2Name}</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>{rows}</tbody>
-                                  </table>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
                     </div>
 
                     <div className="button-prev-section">

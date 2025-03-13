@@ -636,6 +636,69 @@ function SwitchHost() {
               ) : resultData ? (
                 <div className="result-content" style={{ height: "85%" }} >
                   <div style={{ display: "flex", justifyContent: "space-between", padding: "0px 10px", height: "97%" }}>
+                    {/* Configuration sent Section */}
+                    <div
+                      style={{
+                        width: "48%",
+                        backgroundColor: "#fff9e6",
+                        padding: "10px",
+                        border: "1px solid #ffe6b3",
+                        borderRadius: "5px",
+                      }}
+                    >
+                      <h4 style={{ marginTop: 0 }}>Configuration sent:</h4>
+                      <div
+                        className="popup-table-section-result"
+                        style={{ maxHeight: "65vh", overflowX: "auto" }}
+                      >
+                        {resultData.comparison.map((sw: any, idx: number) => (
+                          <div key={idx} style={{ marginBottom: "20px" }}>
+                            <div
+                              key={idx}
+                              className="popup-table"
+                              style={{
+                                marginBottom: "20px",
+                                backgroundColor: "#ffffff",
+                                borderRadius: "4px",
+                                padding: "10px",
+                              }}
+                            >
+                              <h5>{sw.hostname}</h5>
+                              <div className="popup-table-wrapper" style={{ overflowX: "auto" }}>
+                                <table
+                                  border={1}
+                                  style={{
+                                    width: "100%",
+                                    borderCollapse: "collapse",
+                                    backgroundColor: "#fff",
+                                  }}
+                                >
+                                  <thead>
+                                    <tr style={{ backgroundColor: "#fff2e6" }}>
+                                      <th>Interface</th>
+                                      <th>SVI IP Address</th>
+                                      <th>VLAN ID</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {sw.interfaces.map((iface: any, i: number) => (
+                                      <tr key={i}>
+                                        <td>{iface.frontend.interface}</td>
+                                        <td>
+                                          {iface.frontend.ipAddress}/{iface.frontend.subnetMask}
+                                        </td>
+                                        <td>{iface.frontend.vlanId}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    
                     {/* Applied on device Section */}
                     <div
                       style={{
@@ -747,68 +810,6 @@ function SwitchHost() {
                           </div>
                         </div>
                       )}
-                    </div>
-                    {/* Configuration sent Section */}
-                    <div
-                      style={{
-                        width: "48%",
-                        backgroundColor: "#fff9e6",
-                        padding: "10px",
-                        border: "1px solid #ffe6b3",
-                        borderRadius: "5px",
-                      }}
-                    >
-                      <h4 style={{ marginTop: 0 }}>Configuration sent:</h4>
-                      <div
-                        className="popup-table-section-result"
-                        style={{ maxHeight: "65vh", overflowX: "auto" }}
-                      >
-                        {resultData.comparison.map((sw: any, idx: number) => (
-                          <div key={idx} style={{ marginBottom: "20px" }}>
-                            <div
-                              key={idx}
-                              className="popup-table"
-                              style={{
-                                marginBottom: "20px",
-                                backgroundColor: "#ffffff",
-                                borderRadius: "4px",
-                                padding: "10px",
-                              }}
-                            >
-                              <h5>{sw.hostname}</h5>
-                              <div className="popup-table-wrapper" style={{ overflowX: "auto" }}>
-                                <table
-                                  border={1}
-                                  style={{
-                                    width: "100%",
-                                    borderCollapse: "collapse",
-                                    backgroundColor: "#fff",
-                                  }}
-                                >
-                                  <thead>
-                                    <tr style={{ backgroundColor: "#fff2e6" }}>
-                                      <th>Interface</th>
-                                      <th>SVI IP Address</th>
-                                      <th>VLAN ID</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody>
-                                    {sw.interfaces.map((iface: any, i: number) => (
-                                      <tr key={i}>
-                                        <td>{iface.frontend.interface}</td>
-                                        <td>
-                                          {iface.frontend.ipAddress}/{iface.frontend.subnetMask}
-                                        </td>
-                                        <td>{iface.frontend.vlanId}</td>
-                                      </tr>
-                                    ))}
-                                  </tbody>
-                                </table>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
                     </div>
                   </div>
                 </div>

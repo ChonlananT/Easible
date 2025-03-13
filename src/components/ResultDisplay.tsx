@@ -128,6 +128,74 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({
   return (
     <div style={{ height: "88%", overflowY: "auto" }}>
       <div style={{ display: "flex", justifyContent: "space-between" }}>
+        {/* Configuration sent column */}
+        <div
+          style={{
+            width: "48%",
+            backgroundColor: "#fff9e6",
+            padding: "10px",
+            border: "1px solid #ffe6b3",
+            borderRadius: "5px",
+          }}
+        >
+          <h4 style={{ marginTop: 0 }}>Configuration sent:</h4>
+          <div
+            className="popup-table-section-result"
+            style={{ maxHeight: "65vh", overflowY: "auto" }}
+          >
+            {resultData.comparison.map((comp: any, idx: number) => {
+              const configFields = getConfigFields(comp);
+              return (
+                <div
+                  key={idx}
+                  className="popup-table"
+                  style={{
+                    marginBottom: "20px",
+                    backgroundColor: "#ffffff",
+                    borderRadius: "4px",
+                    padding: "10px",
+                  }}
+                >
+                  <div style={{ marginBottom: "10px" }}>
+                    <h5>{comp.frontend.hostname || "-"}</h5>
+                  </div>
+                  <div
+                    className="popup-table-wrapper"
+                    style={{ overflowX: "auto" }}
+                  >
+                    <table
+                      border={1}
+                      style={{
+                        width: "100%",
+                        borderCollapse: "collapse",
+                        backgroundColor: "#fff",
+                      }}
+                    >
+                      <tbody>
+                        {configFields.map((field, index) => (
+                          <tr key={index}>
+                            <td
+                              style={{
+                                padding: "8px",
+                                fontWeight: "bold",
+                                backgroundColor: "#fff2e6",
+                              }}
+                            >
+                              {field.label}
+                            </td>
+                            <td style={{ padding: "8px" }}>
+                              {field.value ? field.value : "-"}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
         {/* Applied on device column */}
         <div
           style={{
@@ -202,75 +270,6 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({
                                 padding: "8px",
                                 fontWeight: "bold",
                                 backgroundColor: "#f0f8ff",
-                              }}
-                            >
-                              {field.label}
-                            </td>
-                            <td style={{ padding: "8px" }}>
-                              {field.value ? field.value : "-"}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Configuration sent column */}
-        <div
-          style={{
-            width: "48%",
-            backgroundColor: "#fff9e6",
-            padding: "10px",
-            border: "1px solid #ffe6b3",
-            borderRadius: "5px",
-          }}
-        >
-          <h4 style={{ marginTop: 0 }}>Configuration sent:</h4>
-          <div
-            className="popup-table-section-result"
-            style={{ maxHeight: "65vh", overflowY: "auto" }}
-          >
-            {resultData.comparison.map((comp: any, idx: number) => {
-              const configFields = getConfigFields(comp);
-              return (
-                <div
-                  key={idx}
-                  className="popup-table"
-                  style={{
-                    marginBottom: "20px",
-                    backgroundColor: "#ffffff",
-                    borderRadius: "4px",
-                    padding: "10px",
-                  }}
-                >
-                  <div style={{ marginBottom: "10px" }}>
-                    <h5>{comp.frontend.hostname || "-"}</h5>
-                  </div>
-                  <div
-                    className="popup-table-wrapper"
-                    style={{ overflowX: "auto" }}
-                  >
-                    <table
-                      border={1}
-                      style={{
-                        width: "100%",
-                        borderCollapse: "collapse",
-                        backgroundColor: "#fff",
-                      }}
-                    >
-                      <tbody>
-                        {configFields.map((field, index) => (
-                          <tr key={index}>
-                            <td
-                              style={{
-                                padding: "8px",
-                                fontWeight: "bold",
-                                backgroundColor: "#fff2e6",
                               }}
                             >
                               {field.label}

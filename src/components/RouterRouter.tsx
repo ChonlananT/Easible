@@ -836,6 +836,72 @@ function RouterRouter() {
                       height: "72vh",
                     }}
                   >
+                    {/* CONFIGURATION SENT SECTION */}
+                    <div
+                      style={{
+                        width: "48%",
+                        backgroundColor: "#fff9e6", // Light yellowish background
+                        padding: "10px",
+                        border: "1px solid #ffe6b3",
+                        borderRadius: "5px",
+                      }}
+                    >
+                      <h4 style={{ marginTop: 0 }}>Configuration sent:</h4>
+                      <div
+                        className="popup-table-section-result"
+                        style={{ maxHeight: "65vh", overflowY: "auto" }}
+                      >
+                        {Object.entries(routingTables).map(
+                          ([hostname, routes]: [string, any]) => (
+                            <div
+                              key={hostname}
+                              className="popup-table"
+                              style={{
+                                marginBottom: "20px",
+                                backgroundColor: "#ffffff",
+                                borderRadius: "4px",
+                                padding: "10px",
+                              }}
+                            >
+                              <h5>{hostname}</h5>
+                              <div
+                                className="popup-table-wrapper"
+                                style={{ overflowX: "auto" }}
+                              >
+                                <table
+                                  border={1}
+                                  style={{
+                                    width: "100%",
+                                    borderCollapse: "collapse",
+                                    backgroundColor: "#fff",
+                                  }}
+                                >
+                                  <thead>
+                                    <tr style={{ backgroundColor: "#fff2e6" }}>
+                                      <th>Protocol</th>
+                                      <th>Subnet</th>
+                                      <th>Next Hop</th>
+                                      <th>Outgoing Interface</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {routes.map((route: any, i: number) => (
+                                      <tr key={i}>
+                                        <td>{route.protocol}</td>
+                                        <td>{route.subnet}</td>
+                                        <td>{route.nexthop}</td>
+                                        <td>{route.outgoing_interface}</td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </div>
+
                     {/* APPLIED ON DEVICE SECTION */}
                     <div
                       style={{
@@ -946,72 +1012,6 @@ function RouterRouter() {
                           </div>
                         </div>
                       )}
-                    </div>
-
-                    {/* CONFIGURATION SENT SECTION */}
-                    <div
-                      style={{
-                        width: "48%",
-                        backgroundColor: "#fff9e6", // Light yellowish background
-                        padding: "10px",
-                        border: "1px solid #ffe6b3",
-                        borderRadius: "5px",
-                      }}
-                    >
-                      <h4 style={{ marginTop: 0 }}>Configuration sent:</h4>
-                      <div
-                        className="popup-table-section-result"
-                        style={{ maxHeight: "65vh", overflowY: "auto" }}
-                      >
-                        {Object.entries(routingTables).map(
-                          ([hostname, routes]: [string, any]) => (
-                            <div
-                              key={hostname}
-                              className="popup-table"
-                              style={{
-                                marginBottom: "20px",
-                                backgroundColor: "#ffffff",
-                                borderRadius: "4px",
-                                padding: "10px",
-                              }}
-                            >
-                              <h5>{hostname}</h5>
-                              <div
-                                className="popup-table-wrapper"
-                                style={{ overflowX: "auto" }}
-                              >
-                                <table
-                                  border={1}
-                                  style={{
-                                    width: "100%",
-                                    borderCollapse: "collapse",
-                                    backgroundColor: "#fff",
-                                  }}
-                                >
-                                  <thead>
-                                    <tr style={{ backgroundColor: "#fff2e6" }}>
-                                      <th>Protocol</th>
-                                      <th>Subnet</th>
-                                      <th>Next Hop</th>
-                                      <th>Outgoing Interface</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody>
-                                    {routes.map((route: any, i: number) => (
-                                      <tr key={i}>
-                                        <td>{route.protocol}</td>
-                                        <td>{route.subnet}</td>
-                                        <td>{route.nexthop}</td>
-                                        <td>{route.outgoing_interface}</td>
-                                      </tr>
-                                    ))}
-                                  </tbody>
-                                </table>
-                              </div>
-                            </div>
-                          )
-                        )}
-                      </div>
                     </div>
                   </div>
 
