@@ -9,6 +9,7 @@ import SwitchSwitch from "./components/SwitchSwitch.tsx";
 import ConfigDevice from "./components/ConfigDevice.tsx";
 import SwitchHost from "./components/SwitchHost.tsx";
 import Lab from "./components/Lab.tsx";
+import ConfigCommand from "./components/ConfigCommand.tsx";
 
 function App() {
   const [user, setUser] = useState("");
@@ -65,6 +66,8 @@ function App() {
     return <SwitchHost />;
   } else if (route === "/configdevice") {
     return <ConfigDevice />;
+  } else if (route === "/configcommand"){
+    return <ConfigCommand/>
   } else {
     return <Lab />;
   }
