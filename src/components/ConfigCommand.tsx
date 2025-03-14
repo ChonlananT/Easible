@@ -123,7 +123,7 @@ function ConfigCommand() {
             .filter((cmd) => cmd !== ""),
       }));
       setCommandLoading(true);
-      fetch("/api/run_playbook_command", {
+      fetch("/api/custom_show_command", {
          method: "POST",
          headers: { "Content-Type": "application/json" },
          body: JSON.stringify(payload),
