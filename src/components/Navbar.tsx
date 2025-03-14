@@ -155,7 +155,7 @@ const Navbar = ({ isNavOpen, setIsNavOpen }) => {
             href="/configcommand"
             style={location.pathname === "/configcommand" ? activeStyle : {}}
           >
-            Custom Command
+            Custom command
           </a>
         </li>
         <li className="center">

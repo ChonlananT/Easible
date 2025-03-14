@@ -40,10 +40,11 @@ function ConfigCommand() {
       localStorage.setItem("isNavOpen", isNavOpen.toString());
    }, [isNavOpen]);
 
-   // Fetch hosts from backend; fetching status (spinner) is preserved
+   // Fetch hosts from backend. Now we fetch from "/api/dashboard" which returns an object
+   // with online devices under "ok" and offline devices under "fatal", combining both into hosts.
    const fetchHosts = () => {
       setLoading(true);
-      fetch("/api/show_detail_router", {
+      fetch("/api/dashboard", {
          method: "POST",
          headers: { "Content-Type": "application/json" },
       })
@@ -52,8 +53,25 @@ function ConfigCommand() {
             return res.json();
          })
          .then((data) => {
-            // Assuming data.parsed_result is an array of host objects
-            setHosts(data.parsed_result);
+            // Assuming data.parsed_result has the following structure:
+            // {
+            //   ok: [{ hostname: string, deviceType: string }, ...],
+            //   fatal: [{ hostname: string, deviceType: string }, ...]
+            // }
+            const onlineDevices: DropdownOption[] = data.parsed_result.ok.map(
+               (device: { hostname: string; deviceType: string }) => ({
+                  hostname: device.hostname,
+                  deviceType: device.deviceType,
+               })
+            );
+            const offlineDevices: DropdownOption[] = data.parsed_result.fatal.map(
+               (device: { hostname: string; deviceType: string }) => ({
+                  hostname: device.hostname,
+                  deviceType: device.deviceType,
+               })
+            );
+            const allDevices = [...onlineDevices, ...offlineDevices];
+            setHosts(allDevices);
          })
          .catch((err) => setError(err.message))
          .finally(() => setLoading(false));
@@ -105,7 +123,7 @@ function ConfigCommand() {
             .filter((cmd) => cmd !== ""),
       }));
       setCommandLoading(true);
-      fetch("/api/send_command", {
+      fetch("/api/run_playbook_command", {
          method: "POST",
          headers: { "Content-Type": "application/json" },
          body: JSON.stringify(payload),
@@ -115,7 +133,7 @@ function ConfigCommand() {
             if (data.error) {
                setError(data.error);
             } else {
-               setCommandResult(data.result);
+               setCommandResult(data.Result); // or data.result if you modify accordingly
                setShowResultPopup(true);
             }
          })
@@ -149,7 +167,7 @@ function ConfigCommand() {
                         <Menu size={24} />
                      </button>
                   )}
-                  Custom Command
+                  Custom command
                </div>
                <button
                   onClick={fetchHosts}
@@ -207,7 +225,8 @@ function ConfigCommand() {
                                                 <option value="">-- Select a Device --</option>
                                                 {hosts.map((host) => (
                                                    <option key={host.hostname} value={host.hostname}>
-                                                      {host.hostname} {host.deviceType && `(${host.deviceType})`}
+                                                      {host.hostname}{" "}
+                                                      {host.deviceType && `(${host.deviceType})`}
                                                    </option>
                                                 ))}
                                              </select>
@@ -216,7 +235,13 @@ function ConfigCommand() {
                                     </div>
                                  </div>
                               </div>
-                              <div style={{ marginTop: "15px", marginLeft: "auto", marginRight: "auto" }}>
+                              <div
+                                 style={{
+                                    marginTop: "15px",
+                                    marginLeft: "auto",
+                                    marginRight: "auto",
+                                 }}
+                              >
                                  <div
                                     className="host-card"
                                     style={{
@@ -226,7 +251,7 @@ function ConfigCommand() {
                                        borderColor: "#aad3f0",
                                     }}
                                  >
-                                    <label>Enter Commands:</label>
+                                    <label>Enter Show Commands:</label>
                                     <textarea
                                        className="command-textarea"
                                        value={link.commandText}
@@ -246,8 +271,6 @@ show running-config`}
                                        }}
                                     />
                                  </div>
-
-
                               </div>
                            </div>
                         </div>
@@ -294,15 +317,16 @@ show running-config`}
          {showResultPopup && (
             <div className="popup-overlay">
                <div
-                  className="popup-content"
-                  style={{ maxWidth: "600px", margin: "auto", padding: "20px" }}
+                  className="popup-content-host"
+                  style={{ height: "700px", width: "1000px", margin: "auto", padding: "20px" }}
                >
                   <h2>Command Result</h2>
                   <pre style={{ whiteSpace: "pre-wrap", wordWrap: "break-word" }}>
                      {JSON.stringify(commandResult, null, 2)}
                   </pre>
-                  <div style={{ textAlign: "right", marginTop: "15px" }}>
+                  <div style={{ textAlign: "right"}}>
                      <button
+                        className="cancel-btn"
                         onClick={() => setShowResultPopup(false)}
                         style={{ padding: "8px 16px" }}
                      >
@@ -316,8 +340,7 @@ show running-config`}
          {/* Error Popup */}
          {error && (
             <div className="popup-overlay">
-               <div
-                  className="popup-content-host">
+               <div className="popup-content-host">
                   <div className="error-rt-rt">{error}</div>
                   <button
                      className="cancel-btn"
