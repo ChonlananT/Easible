@@ -4,7 +4,7 @@ import ipaddress
 import time
 from flask import Blueprint, request, jsonify
 from services.ssh_service import create_ssh_connection
-from services.parse import parse_ansible_output, parse_result, parse_interface, parse_configd, parse_dashboard, parse_sh_int_trunk, parse_routes, parse_switch_host, parse_router_switch, parse_config_device, parse_verify_output
+from services.parse import parse_ansible_output, parse_result, parse_interface, parse_configd, parse_dashboard, parse_sh_int_trunk, parse_routes, parse_switch_host, parse_router_switch, parse_config_device, parse_verify_output, parse_show_output, parse_error_output
 from services.database import add_device, fetch_all_devices, delete_device, assign_group_to_hosts, delete_group, create_custom_lab_in_db, fetch_all_custom_labs, delete_custom_lab_in_db, update_custom_lab_in_db
 from services.generate_inventory import generate_inventory_content
 from services.show_command import sh_ip_int_br, sh_ip_int_br_rt, sh_dashboard, sh_swtort, sh_int_trunk, sh_ip_route, sh_sw_host, sh_router_switch, sh_config_device
@@ -1186,41 +1186,49 @@ def run_playbook_switchswitch():
 
         stdin, stdout, stderr = ssh.exec_command(f"ansible-playbook -i {inventory_path} {playbook_path}")
         exit_status = stdout.channel.recv_exit_status()
-        output = stdout.read().decode('utf-8')
-        errors = stderr.read().decode('utf-8')
+        ansible_output = stdout.read().decode('utf-8')
+        ansible_errors = stderr.read().decode('utf-8')
+        
         # Check for errors and filter for fatal messages only
-        if exit_status != 0 or "FAILED!" in output:
-            combined = output.splitlines() + errors.splitlines()
+        if exit_status != 0 or "FAILED!" in ansible_output:
+            combined = ansible_output.splitlines() + ansible_errors.splitlines()
             fatal_error_line = None
             for line in combined:
                 if line.strip().startswith("fatal: ["):
                     fatal_error_line = line.strip()
                     break
             if fatal_error_line:
+                # Extract the device name from the fatal error line.
+                device_match = re.search(r'fatal:\s+\[([^\]]+)\]', fatal_error_line)
+                device_name = device_match.group(1) if device_match else "Unknown device"
                 # Extract the JSON portion after "FAILED! =>"
                 match = re.search(r'FAILED! => (.*)', fatal_error_line)
                 if match:
-                    json_str = match.group(1)
+                    raw_error = match.group(1).strip()
                     try:
-                        error_obj = json.loads(json_str)
-                        module_stderr = error_obj.get("module_stderr", "")
-                        # Remove the last line (typically the command prompt)
-                        lines = module_stderr.splitlines()
-                        if len(lines) > 1:
-                            module_stderr = "\n".join(lines[:-1])
-                        # Remove any '%' characters
-                        module_stderr = module_stderr.replace("%", "").strip()
-                        # Extract device name from the fatal error line, e.g., "fatal: [R101]: ..."
-                        device_match = re.search(r'fatal:\s+\[([^\]]+)\]', fatal_error_line)
-                        device_name = device_match.group(1) if device_match else ""
-                        # Prepend the device name in the desired format
-                        module_stderr = f"[{device_name}]: " + module_stderr
+                        error_obj = json.loads(raw_error)
+                        error_msg = error_obj.get("msg", "")
+                        lines = error_msg.splitlines()
+                        if lines:
+                            command_str = lines[0].strip()  # This is the attempted command.
+                            error_desc = ""
+                            # Look for a line starting with "%" that likely contains the error description.
+                            for line in lines:
+                                if line.strip().startswith("%"):
+                                    error_desc = line.strip()
+                                    break
+                            if error_desc:
+                                module_stderr = f"Error on {device_name}: Command '{command_str}' failed. {error_desc}"
+                            else:
+                                module_stderr = f"Error on {device_name}: {error_msg}"
+                        else:
+                            module_stderr = error_msg
                     except Exception as e:
                         module_stderr = "Error parsing JSON: " + str(e)
                 else:
-                    module_stderr = "No JSON error message found."
+                    module_stderr = "No error message found."
             else:
-                module_stderr = errors or output
+                module_stderr = ansible_errors or ansible_output
             ssh.close()
             return jsonify({"error": module_stderr}), 500
         time.sleep(4)
@@ -1378,41 +1386,49 @@ def run_playbook_routerrouter():
 
         stdin, stdout, stderr = ssh.exec_command(f"ansible-playbook -i {inventory_path} {playbook_path}")
         exit_status = stdout.channel.recv_exit_status()
-        output = stdout.read().decode('utf-8')
-        errors = stderr.read().decode('utf-8')
+        ansible_output = stdout.read().decode('utf-8')
+        ansible_errors = stderr.read().decode('utf-8')
+        
         # Check for errors and filter for fatal messages only
-        if exit_status != 0 or "FAILED!" in output:
-            combined = output.splitlines() + errors.splitlines()
+        if exit_status != 0 or "FAILED!" in ansible_output:
+            combined = ansible_output.splitlines() + ansible_errors.splitlines()
             fatal_error_line = None
             for line in combined:
                 if line.strip().startswith("fatal: ["):
                     fatal_error_line = line.strip()
                     break
             if fatal_error_line:
+                # Extract the device name from the fatal error line.
+                device_match = re.search(r'fatal:\s+\[([^\]]+)\]', fatal_error_line)
+                device_name = device_match.group(1) if device_match else "Unknown device"
                 # Extract the JSON portion after "FAILED! =>"
                 match = re.search(r'FAILED! => (.*)', fatal_error_line)
                 if match:
-                    json_str = match.group(1)
+                    raw_error = match.group(1).strip()
                     try:
-                        error_obj = json.loads(json_str)
-                        module_stderr = error_obj.get("module_stderr", "")
-                        # Remove the last line (typically the command prompt)
-                        lines = module_stderr.splitlines()
-                        if len(lines) > 1:
-                            module_stderr = "\n".join(lines[:-1])
-                        # Remove any '%' characters
-                        module_stderr = module_stderr.replace("%", "").strip()
-                        # Extract device name from the fatal error line, e.g., "fatal: [R101]: ..."
-                        device_match = re.search(r'fatal:\s+\[([^\]]+)\]', fatal_error_line)
-                        device_name = device_match.group(1) if device_match else ""
-                        # Prepend the device name in the desired format
-                        module_stderr = f"[{device_name}]: " + module_stderr
+                        error_obj = json.loads(raw_error)
+                        error_msg = error_obj.get("msg", "")
+                        lines = error_msg.splitlines()
+                        if lines:
+                            command_str = lines[0].strip()  # This is the attempted command.
+                            error_desc = ""
+                            # Look for a line starting with "%" that likely contains the error description.
+                            for line in lines:
+                                if line.strip().startswith("%"):
+                                    error_desc = line.strip()
+                                    break
+                            if error_desc:
+                                module_stderr = f"Error on {device_name}: Command '{command_str}' failed. {error_desc}"
+                            else:
+                                module_stderr = f"Error on {device_name}: {error_msg}"
+                        else:
+                            module_stderr = error_msg
                     except Exception as e:
                         module_stderr = "Error parsing JSON: " + str(e)
                 else:
-                    module_stderr = "No JSON error message found."
+                    module_stderr = "No error message found."
             else:
-                module_stderr = errors or output
+                module_stderr = ansible_errors or ansible_output
             ssh.close()
             return jsonify({"error": module_stderr}), 500
 
@@ -1460,41 +1476,49 @@ def run_playbook_configdevice():
 
         stdin, stdout, stderr = ssh.exec_command(f"ansible-playbook -i {inventory_path} {playbook_path}")
         exit_status = stdout.channel.recv_exit_status()
-        output = stdout.read().decode('utf-8')
-        errors = stderr.read().decode('utf-8')
+        ansible_output = stdout.read().decode('utf-8')
+        ansible_errors = stderr.read().decode('utf-8')
+        
         # Check for errors and filter for fatal messages only
-        if exit_status != 0 or "FAILED!" in output:
-            combined = output.splitlines() + errors.splitlines()
+        if exit_status != 0 or "FAILED!" in ansible_output:
+            combined = ansible_output.splitlines() + ansible_errors.splitlines()
             fatal_error_line = None
             for line in combined:
                 if line.strip().startswith("fatal: ["):
                     fatal_error_line = line.strip()
                     break
             if fatal_error_line:
+                # Extract the device name from the fatal error line.
+                device_match = re.search(r'fatal:\s+\[([^\]]+)\]', fatal_error_line)
+                device_name = device_match.group(1) if device_match else "Unknown device"
                 # Extract the JSON portion after "FAILED! =>"
                 match = re.search(r'FAILED! => (.*)', fatal_error_line)
                 if match:
-                    json_str = match.group(1)
+                    raw_error = match.group(1).strip()
                     try:
-                        error_obj = json.loads(json_str)
-                        module_stderr = error_obj.get("module_stderr", "")
-                        # Remove the last line (typically the command prompt)
-                        lines = module_stderr.splitlines()
-                        if len(lines) > 1:
-                            module_stderr = "\n".join(lines[:-1])
-                        # Remove any '%' characters
-                        module_stderr = module_stderr.replace("%", "").strip()
-                        # Extract device name from the fatal error line, e.g., "fatal: [R101]: ..."
-                        device_match = re.search(r'fatal:\s+\[([^\]]+)\]', fatal_error_line)
-                        device_name = device_match.group(1) if device_match else ""
-                        # Prepend the device name in the desired format
-                        module_stderr = f"[{device_name}]: " + module_stderr
+                        error_obj = json.loads(raw_error)
+                        error_msg = error_obj.get("msg", "")
+                        lines = error_msg.splitlines()
+                        if lines:
+                            command_str = lines[0].strip()  # This is the attempted command.
+                            error_desc = ""
+                            # Look for a line starting with "%" that likely contains the error description.
+                            for line in lines:
+                                if line.strip().startswith("%"):
+                                    error_desc = line.strip()
+                                    break
+                            if error_desc:
+                                module_stderr = f"Error on {device_name}: Command '{command_str}' failed. {error_desc}"
+                            else:
+                                module_stderr = f"Error on {device_name}: {error_msg}"
+                        else:
+                            module_stderr = error_msg
                     except Exception as e:
                         module_stderr = "Error parsing JSON: " + str(e)
                 else:
-                    module_stderr = "No JSON error message found."
+                    module_stderr = "No error message found."
             else:
-                module_stderr = errors or output
+                module_stderr = ansible_errors or ansible_output
             ssh.close()
             return jsonify({"error": module_stderr}), 500
 
@@ -1541,41 +1565,48 @@ def run_playbook_switchhost():
             f"ansible-playbook -i {inventory_path} {playbook_path}"
         )
         exit_status = stdout.channel.recv_exit_status()
-        output = stdout.read().decode('utf-8')
-        errors = stderr.read().decode('utf-8')
+        ansible_output = stdout.read().decode('utf-8')
+        ansible_errors = stderr.read().decode('utf-8')
         # Check for errors and filter for fatal messages only
-        if exit_status != 0 or "FAILED!" in output:
-            combined = output.splitlines() + errors.splitlines()
+        if exit_status != 0 or "FAILED!" in ansible_output:
+            combined = ansible_output.splitlines() + ansible_errors.splitlines()
             fatal_error_line = None
             for line in combined:
                 if line.strip().startswith("fatal: ["):
                     fatal_error_line = line.strip()
                     break
             if fatal_error_line:
+                # Extract the device name from the fatal error line.
+                device_match = re.search(r'fatal:\s+\[([^\]]+)\]', fatal_error_line)
+                device_name = device_match.group(1) if device_match else "Unknown device"
                 # Extract the JSON portion after "FAILED! =>"
                 match = re.search(r'FAILED! => (.*)', fatal_error_line)
                 if match:
-                    json_str = match.group(1)
+                    raw_error = match.group(1).strip()
                     try:
-                        error_obj = json.loads(json_str)
-                        module_stderr = error_obj.get("module_stderr", "")
-                        # Remove the last line (typically the command prompt)
-                        lines = module_stderr.splitlines()
-                        if len(lines) > 1:
-                            module_stderr = "\n".join(lines[:-1])
-                        # Remove any '%' characters
-                        module_stderr = module_stderr.replace("%", "").strip()
-                        # Extract device name from the fatal error line, e.g., "fatal: [R101]: ..."
-                        device_match = re.search(r'fatal:\s+\[([^\]]+)\]', fatal_error_line)
-                        device_name = device_match.group(1) if device_match else ""
-                        # Prepend the device name in the desired format
-                        module_stderr = f"[{device_name}]: " + module_stderr
+                        error_obj = json.loads(raw_error)
+                        error_msg = error_obj.get("msg", "")
+                        lines = error_msg.splitlines()
+                        if lines:
+                            command_str = lines[0].strip()  # This is the attempted command.
+                            error_desc = ""
+                            # Look for a line starting with "%" that likely contains the error description.
+                            for line in lines:
+                                if line.strip().startswith("%"):
+                                    error_desc = line.strip()
+                                    break
+                            if error_desc:
+                                module_stderr = f"Error on {device_name}: Command '{command_str}' failed. {error_desc}"
+                            else:
+                                module_stderr = f"Error on {device_name}: {error_msg}"
+                        else:
+                            module_stderr = error_msg
                     except Exception as e:
                         module_stderr = "Error parsing JSON: " + str(e)
                 else:
-                    module_stderr = "No JSON error message found."
+                    module_stderr = "No error message found."
             else:
-                module_stderr = errors or output
+                module_stderr = ansible_errors or ansible_output
             ssh.close()
             return jsonify({"error": module_stderr}), 500
 
@@ -1629,41 +1660,49 @@ def run_playbook_switchrouter():
 
         stdin, stdout, stderr = ssh.exec_command(f"ansible-playbook -i {inventory_path} {playbook_path}")
         exit_status = stdout.channel.recv_exit_status()
-        output = stdout.read().decode('utf-8')
-        errors = stderr.read().decode('utf-8')
+        ansible_output = stdout.read().decode('utf-8')
+        ansible_errors = stderr.read().decode('utf-8')
+        
         # Check for errors and filter for fatal messages only
-        if exit_status != 0 or "FAILED!" in output:
-            combined = output.splitlines() + errors.splitlines()
+        if exit_status != 0 or "FAILED!" in ansible_output:
+            combined = ansible_output.splitlines() + ansible_errors.splitlines()
             fatal_error_line = None
             for line in combined:
                 if line.strip().startswith("fatal: ["):
                     fatal_error_line = line.strip()
                     break
             if fatal_error_line:
+                # Extract the device name from the fatal error line.
+                device_match = re.search(r'fatal:\s+\[([^\]]+)\]', fatal_error_line)
+                device_name = device_match.group(1) if device_match else "Unknown device"
                 # Extract the JSON portion after "FAILED! =>"
                 match = re.search(r'FAILED! => (.*)', fatal_error_line)
                 if match:
-                    json_str = match.group(1)
+                    raw_error = match.group(1).strip()
                     try:
-                        error_obj = json.loads(json_str)
-                        module_stderr = error_obj.get("module_stderr", "")
-                        # Remove the last line (typically the command prompt)
-                        lines = module_stderr.splitlines()
-                        if len(lines) > 1:
-                            module_stderr = "\n".join(lines[:-1])
-                        # Remove any '%' characters
-                        module_stderr = module_stderr.replace("%", "").strip()
-                        # Extract device name from the fatal error line, e.g., "fatal: [R101]: ..."
-                        device_match = re.search(r'fatal:\s+\[([^\]]+)\]', fatal_error_line)
-                        device_name = device_match.group(1) if device_match else ""
-                        # Prepend the device name in the desired format
-                        module_stderr = f"[{device_name}]: " + module_stderr
+                        error_obj = json.loads(raw_error)
+                        error_msg = error_obj.get("msg", "")
+                        lines = error_msg.splitlines()
+                        if lines:
+                            command_str = lines[0].strip()  # This is the attempted command.
+                            error_desc = ""
+                            # Look for a line starting with "%" that likely contains the error description.
+                            for line in lines:
+                                if line.strip().startswith("%"):
+                                    error_desc = line.strip()
+                                    break
+                            if error_desc:
+                                module_stderr = f"Error on {device_name}: Command '{command_str}' failed. {error_desc}"
+                            else:
+                                module_stderr = f"Error on {device_name}: {error_msg}"
+                        else:
+                            module_stderr = error_msg
                     except Exception as e:
                         module_stderr = "Error parsing JSON: " + str(e)
                 else:
-                    module_stderr = "No JSON error message found."
+                    module_stderr = "No error message found."
             else:
-                module_stderr = errors or output
+                module_stderr = ansible_errors or ansible_output
             ssh.close()
             return jsonify({"error": module_stderr}), 500
 
@@ -1809,6 +1848,50 @@ def create_playbook_check_lab():
         stdin, stdout, stderr = ssh.exec_command(command)
         ansible_output = stdout.read().decode('utf-8')
         ansible_errors = stderr.read().decode('utf-8')
+        exit_status = stdout.channel.recv_exit_status()
+        
+        # Check for errors and filter for fatal messages only
+        if exit_status != 0 or "FAILED!" in ansible_output:
+            combined = ansible_output.splitlines() + ansible_errors.splitlines()
+            fatal_error_line = None
+            for line in combined:
+                if line.strip().startswith("fatal: ["):
+                    fatal_error_line = line.strip()
+                    break
+            if fatal_error_line:
+                # Extract the device name from the fatal error line.
+                device_match = re.search(r'fatal:\s+\[([^\]]+)\]', fatal_error_line)
+                device_name = device_match.group(1) if device_match else "Unknown device"
+                # Extract the JSON portion after "FAILED! =>"
+                match = re.search(r'FAILED! => (.*)', fatal_error_line)
+                if match:
+                    raw_error = match.group(1).strip()
+                    try:
+                        error_obj = json.loads(raw_error)
+                        error_msg = error_obj.get("msg", "")
+                        lines = error_msg.splitlines()
+                        if lines:
+                            command_str = lines[0].strip()  # This is the attempted command.
+                            error_desc = ""
+                            # Look for a line starting with "%" that likely contains the error description.
+                            for line in lines:
+                                if line.strip().startswith("%"):
+                                    error_desc = line.strip()
+                                    break
+                            if error_desc:
+                                module_stderr = f"Error on {device_name}: Command '{command_str}' failed. {error_desc}"
+                            else:
+                                module_stderr = f"Error on {device_name}: {error_msg}"
+                        else:
+                            module_stderr = error_msg
+                    except Exception as e:
+                        module_stderr = "Error parsing JSON: " + str(e)
+                else:
+                    module_stderr = "No error message found."
+            else:
+                module_stderr = ansible_errors or ansible_output
+            ssh.close()
+            return jsonify({"error": module_stderr}), 500
         ssh.close()
 
         # 6) แยกผลลัพธ์จาก task "Display" ด้วย regex (โดยสมมุติว่ามีฟังก์ชัน parse_ansible_output อยู่)
@@ -1820,6 +1903,121 @@ def create_playbook_check_lab():
         return jsonify({
             "parsed_output": parsed_output,
             "comparison": compare_result
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@api_bp.route('/api/custom_show_command', methods=['POST'])
+def run_playbook_command():
+    try:
+        data = request.json
+        # Ensure we have a list of configurations
+        if isinstance(data, dict):
+            data = [data]
+        elif not isinstance(data, list):
+            return jsonify({"error": "Invalid data format. Expected a list of command configurations."}), 400
+
+        # Initialize playbook_content with the play header
+        playbook_content = """---
+- name: Configure Device Commands
+  hosts: selectedgroup
+  gather_facts: no
+  tasks:
+"""
+
+        # Iterate over each configuration from the frontend payload
+        for config in data:
+            device = config.get("device")
+            commands = config.get("commands")
+            if not device or not commands:
+                return jsonify({"error": "Missing device or commands field in configuration."}), 400
+
+            # Build a YAML list of commands.
+            # This will generate lines like: 
+            #          - "show ip route"
+            #          - "show running-config"
+            commands_yaml = "\n".join([f'          - "{command}"' for command in commands])
+
+            playbook_content += f"""    - name: "Output of {commands} command on {device}"
+      ios_command:
+        commands:
+{commands_yaml}
+      when: inventory_hostname == "{device}"
+      register: interface_output_{device}
+    - name: "Display output of '{", ".join(commands)}' on {device}"
+      debug:
+        msg: "{{{{ interface_output_{device}.stdout_lines | default('No output') }}}}"
+      when: inventory_hostname == "{device}" and interface_output_{device} is defined
+"""
+
+        # Create SSH connection
+        ssh, username = create_ssh_connection()
+        playbook_path = f"/home/{username}/playbook/run_show_command.yml"
+        inventory_path = f"/home/{username}/inventory/inventory.ini"
+
+        # Write the playbook file on the server via SSH
+        sftp = ssh.open_sftp()
+        with sftp.open(playbook_path, "w") as playbook_file:
+            playbook_file.write(playbook_content)
+        sftp.close()
+
+        # Execute the playbook using ansible-playbook
+        command_line = f"ansible-playbook -i {inventory_path} {playbook_path}"
+        stdin, stdout, stderr = ssh.exec_command(command_line)
+
+        exit_status = stdout.channel.recv_exit_status()
+        ansible_output = stdout.read().decode('utf-8')
+        ansible_errors = stderr.read().decode('utf-8')
+        # Check for errors and filter for fatal messages only
+        if exit_status != 0 or "FAILED!" in ansible_output:
+            combined = ansible_output.splitlines() + ansible_errors.splitlines()
+            fatal_error_line = None
+            for line in combined:
+                if line.strip().startswith("fatal: ["):
+                    fatal_error_line = line.strip()
+                    break
+            if fatal_error_line:
+                # Extract the device name from the fatal error line.
+                device_match = re.search(r'fatal:\s+\[([^\]]+)\]', fatal_error_line)
+                device_name = device_match.group(1) if device_match else "Unknown device"
+                # Extract the JSON portion after "FAILED! =>"
+                match = re.search(r'FAILED! => (.*)', fatal_error_line)
+                if match:
+                    raw_error = match.group(1).strip()
+                    try:
+                        error_obj = json.loads(raw_error)
+                        error_msg = error_obj.get("msg", "")
+                        lines = error_msg.splitlines()
+                        if lines:
+                            command_str = lines[0].strip()  # This is the attempted command.
+                            error_desc = ""
+                            # Look for a line starting with "%" that likely contains the error description.
+                            for line in lines:
+                                if line.strip().startswith("%"):
+                                    error_desc = line.strip()
+                                    break
+                            if error_desc:
+                                module_stderr = f"Error on {device_name}: Command '{command_str}' failed. {error_desc}"
+                            else:
+                                module_stderr = f"Error on {device_name}: {error_msg}"
+                        else:
+                            module_stderr = error_msg
+                    except Exception as e:
+                        module_stderr = "Error parsing JSON: " + str(e)
+                else:
+                    module_stderr = "No error message found."
+            else:
+                module_stderr = ansible_errors or ansible_output
+            ssh.close()
+            return jsonify({"error": module_stderr}), 500
+
+        parsed_show_output = parse_show_output(ansible_output)
+        ssh.close()
+
+        return jsonify({
+            "Result": parsed_show_output,
+            "Errors": ansible_errors
         }), 200
 
     except Exception as e:

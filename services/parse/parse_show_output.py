@@ -1,6 +1,6 @@
 import re
 
-def parse_verify_output(log_text):
+def parse_show_output(log_text):
     """
     Returns a dictionary mapping each hostname to a list of dictionaries,
     where each dictionary has the keys "task" (the task name) and "msg" (a list of messages)
@@ -57,7 +57,7 @@ def parse_verify_output(log_text):
             # Append the current task's data to the host's list.
             result[hostname].append({
                 "description": task_name,
-                "verify_output": lines_list
+                "show_output": lines_list
             })
 
     

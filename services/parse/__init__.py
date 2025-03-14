@@ -10,3 +10,5 @@ from services.parse.parse_switch_host import parse_switch_host
 from services.parse.parse_router_switch import parse_router_switch
 from services.parse.parse_config_device import parse_config_device
 from services.parse.parse_verify_output import parse_verify_output
+from services.parse.parse_show_output import parse_show_output
+from services.parse.parse_error_output import parse_error_output
