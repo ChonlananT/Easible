@@ -1953,8 +1953,8 @@ def run_playbook_command():
 
         # Create SSH connection
         ssh, username = create_ssh_connection()
-        playbook_path = f"/home/{username}/playbook/run_show_command.yml"
-        inventory_path = f"/home/{username}/inventory/inventory.ini"
+        playbook_path = f"/app/playbook/custom_lab_check.yml"
+        inventory_path = f"/app/inventory/inventory.ini"
 
         # Write the playbook file on the server via SSH
         sftp = ssh.open_sftp()
