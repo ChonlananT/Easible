@@ -24,8 +24,6 @@ def parse_show_output(log_text):
     """
 
     # 1) ดึง TASK ที่เป็น Display พร้อมคำสั่งที่ตามหลัง
-    #    group(1): command จริง เช่น show ip route
-    #    group(2): ข้อมูล msg ของ task
     task_pattern = re.compile(
         r'(?s)TASK \[Display (.*?)\].*?\n(.*?)(?=^TASK \[|^PLAY|\Z)',
         re.MULTILINE
@@ -51,14 +49,18 @@ def parse_show_output(log_text):
         for (hostname, raw_lines) in host_pattern.findall(block_content):
             lines_list = line_pattern.findall(raw_lines)
 
-            # 6) สร้าง list ว่างถ้ายังไม่มี host นี้
-            if hostname not in result:
-                result[hostname] = []
+            # แยกคำสั่งออกจากกันถ้ามีหลายคำสั่งใน 'command'
+            commands = command_name.split(',')  # ถ้าหลายคำสั่งจะถูกแยก
+            for command in commands:
+                command = command.strip()  # ลบช่องว่างส่วนเกิน
+                # 6) สร้าง list ว่างถ้ายังไม่มี host นี้
+                if hostname not in result:
+                    result[hostname] = []
 
-            # 7) เพิ่มข้อมูลเข้าไปใน host นั้น
-            result[hostname].append({
-                "command": command_name,
-                "show_output": lines_list
-            })
+                # 7) เพิ่มข้อมูลเข้าไปใน host นั้น
+                result[hostname].append({
+                    "command": command,
+                    "show_output": lines_list
+                })
 
     return result
