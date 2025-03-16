@@ -31,7 +31,7 @@ def parse_show_output(log_text):
     #    - Group 1: Hostname (e.g., R101)
     #    - Group 2: Raw content of the msg field.
     host_pattern = re.compile(
-        r'(?s)ok: \[([^]]+)\] => {\s+"msg"\s:\s(\[[\s\S]+?\])\s*}\n?',
+        r'(?s)ok: \[([^]]+)\] => \{\s+"msg"\s*:\s*\[\s*\[\s*(.*?)\s*\]\s*\}\n?',
         re.MULTILINE
     )
 
