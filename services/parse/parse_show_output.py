@@ -4,7 +4,7 @@ def parse_show_output(log_text):
     """
     Returns a dictionary mapping each hostname to a list of dictionaries,
     where each dictionary has the keys:
-    - "command": the command name (e.g., "show ip route")
+    - "command": the command name (e.g., "sh ip route")
     - "show_output": a list of strings, which are the command output lines.
     """
     # 1) ดึง TASK ที่เป็น Display พร้อมคำสั่งที่ตามหลัง
@@ -28,7 +28,19 @@ def parse_show_output(log_text):
     
     # 5) loop ทีละ TASK (Display เท่านั้น)
     for task_match in task_pattern.finditer(log_text):
-        command_names = [cmd.strip() for cmd in task_match.group(1).split(',')]
+        # ตัวอย่างข้อความที่จับได้:
+        # "output of 'sh ip route, sh ip int br, sh ip route ospf' on R102"
+        task_command_text = task_match.group(1)
+        # ดึงเฉพาะข้อความภายในเครื่องหมายคำพูดเดียว
+        extracted = re.search(r"'([^']+)'", task_command_text)
+        if extracted:
+            command_names_str = extracted.group(1)
+        else:
+            command_names_str = task_command_text
+        
+        # แยกคำสั่งแต่ละตัวออกจากกัน
+        command_names = [cmd.strip() for cmd in command_names_str.split(',')]
+        
         block_content = task_match.group(2)
     
         # 6) loop ทีละ host ที่อยู่ใน task นี้
@@ -51,7 +63,7 @@ def parse_show_output(log_text):
                         "show_output": out
                     })
             else:
-                # กรณีที่ไม่เท่ากัน ให้รวมทุกบรรทัดเข้าด้วยกัน (fallback)
+                # fallback: ถ้าจำนวนไม่ตรงกันรวมทุกบรรทัดเข้าด้วยกัน
                 combined = [line for sub in outputs for line in sub]
                 for cmd in command_names:
                     result[hostname].append({
