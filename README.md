@@ -6,8 +6,8 @@ Follow these steps to install and run the project:
 
    Open a terminal and run:
    ```bash
-   git clone https://github.com/ChonlananT/AnsibleAWX_Project.git
-   cd AnsibleAWX_Project
+   git clone https://github.com/ChonlananT/Easible.git
+   cd Easible
    ```
 
 2. **Build and Start the Containers**
